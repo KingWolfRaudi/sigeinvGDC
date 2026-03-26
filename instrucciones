@@ -1,0 +1,55 @@
+Fase 1: Configuración Base y Seguridad (Donde estamos)
+Antes de crear cualquier formulario, necesitamos que la "casa" esté lista.
+
+Plantilla Base (Layout): Crear el archivo app.blade.php con la barra de navegación de Bootstrap 5.
+
+Roles y Permisos: Instalar y configurar spatie/laravel-permission. Crear los roles base (SuperAdmin, Admin, etc.).
+
+Auditoría: Instalar y configurar spatie/laravel-activitylog para rastrear quién hace qué.
+
+Modelo de Usuario: Ajustar la tabla users para el login unificado (email o username) y asociar los roles.
+
+Fase 2: Catálogos Independientes
+Son las tablas que no requieren de otras para existir. Las desarrollaremos con sus CRUDs en Livewire y notificaciones Toast.
+
+Marcas
+
+Tipos de Dispositivo
+
+Sistemas Operativos
+
+Puertos
+
+Departamentos
+
+Fase 3: Catálogos Dependientes y Trabajadores
+Son tablas que necesitan que la Fase 2 ya exista (por las llaves foráneas).
+
+Procesadores y GPUs: (Probablemente requieran asociarse a una "Marca").
+
+Trabajadores: Requieren asociarse a los "Departamentos" creados en la Fase 2, y se implementará el Observer para enlazar con los Usuarios.
+
+Fase 4: Módulos Principales de Inventario
+El núcleo del sistema. Aquí usaremos componentes más avanzados (modales, creación rápida de marcas/puertos desde el mismo formulario).
+
+Computadores: Dependen de Marcas, SO, Procesadores, GPUs.
+
+Dispositivos: Dependen de Marcas y Tipos de Dispositivo.
+
+Consumibles: Sistema de stock (badges) y dependencias de marcas.
+
+Fase 5: Movimientos y Lógica de Negocio
+Como los equipos y trabajadores ya existen, podemos asignarlos.
+
+Movimientos de Equipo: Lógica de estados (borrador -> pendiente -> aprobado/rechazado).
+
+Movimientos de Consumibles: Igual al anterior, descontando el stock.
+
+Fase 6: Administración, Reportes y Cierre
+Ya con datos en el sistema, construimos las vistas gerenciales.
+
+Dashboard: Gráficos y estadísticas con la información recopilada.
+
+Reportes: Exportación a PDF y Excel (dompdf y maatwebsite/excel).
+
+Gestión de Usuarios y Configuración: Panel final para que el SuperAdmin gestione el sistema y active/desactive módulos.
