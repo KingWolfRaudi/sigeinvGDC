@@ -1,9 +1,21 @@
 <div>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="mb-0">Catálogo de Marcas</h3>
-        <button wire:click="crear" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-1"></i> Nueva Marca
-        </button>
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-4">
+            <h3 class="mb-0">Catálogo de Marcas</h3>
+        </div>
+        <div class="col-md-5">
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar marca...">
+            </div>
+        </div>
+        <div class="col-md-3 text-end">
+            @can('crear-marcas')
+                <button wire:click="crear" class="btn btn-primary w-100">
+                    <i class="bi bi-plus-circle me-1"></i> Nueva Marca
+                </button>
+            @endcan
+        </div>
     </div>
 
     <div class="card shadow-sm border-0">
@@ -12,9 +24,18 @@
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Estado</th>
+                            <th wire:click="sortBy('id')" style="cursor: pointer;">
+                                ID 
+                                @if($sortField === 'id') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            </th>
+                            <th wire:click="sortBy('nombre')" style="cursor: pointer;">
+                                Nombre 
+                                @if($sortField === 'nombre') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            </th>
+                            <th wire:click="sortBy('activo')" style="cursor: pointer;">
+                                Estado
+                                @if($sortField === 'activo') <i class="bi bi-sort-down ms-1"></i> @endif
+                            </th>
                             <th class="text-end">Acciones</th>
                         </tr>
                     </thead>
@@ -31,28 +52,36 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    <button wire:click="toggleActivo({{ $marca->id }})" 
-                                            class="btn btn-sm {{ $marca->activo ? 'btn-success' : 'btn-secondary' }} text-white" 
-                                            title="{{ $marca->activo ? 'Desactivar Marca' : 'Activar Marca' }}">
-                                        <i class="bi {{ $marca->activo ? 'bi-toggle-on' : 'bi-toggle-off' }}"></i>
-                                    </button>
+                                    
+                                    @can('cambiar-estatus-marcas')
+                                        <button wire:click="toggleActivo({{ $marca->id }})" class="btn btn-sm {{ $marca->activo ? 'btn-success' : 'btn-secondary' }} text-white" title="Alternar Estado">
+                                            <i class="bi {{ $marca->activo ? 'bi-toggle-on' : 'bi-toggle-off' }}"></i>
+                                        </button>
+                                    @endcan
 
-                                    <button wire:click="ver({{ $marca->id }})" class="btn btn-sm btn-info text-white" title="Ver Detalles">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
+                                    @can('ver-marcas')
+                                        <button wire:click="ver({{ $marca->id }})" class="btn btn-sm btn-info text-white" title="Ver Detalles">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    @endcan
                                     
-                                    <button wire:click="editar({{ $marca->id }})" class="btn btn-sm btn-primary" title="Editar">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </button>
+                                    @can('editar-marcas')
+                                        <button wire:click="editar({{ $marca->id }})" class="btn btn-sm btn-primary" title="Editar">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                    @endcan
                                     
-                                    <button wire:click="eliminar({{ $marca->id }})" wire:confirm="¿Estás seguro de que deseas eliminar esta marca?" class="btn btn-sm btn-danger" title="Eliminar">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                    @can('eliminar-marcas')
+                                        <button wire:click="eliminar({{ $marca->id }})" wire:confirm="¿Estás seguro de que deseas eliminar esta marca?" class="btn btn-sm btn-danger" title="Eliminar">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    @endcan
+
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center text-muted py-4">No hay marcas registradas en el sistema.</td>
+                                <td colspan="4" class="text-center text-muted py-4">No se encontraron marcas que coincidan con la búsqueda.</td>
                             </tr>
                         @endforelse
                     </tbody>

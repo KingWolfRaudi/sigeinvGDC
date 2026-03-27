@@ -68,13 +68,55 @@
                         <div class="mb-3">
                             <label for="name" class="form-label">Identificador del Rol <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" wire:model="name" placeholder="Ej: auditor, recursos-humanos" {{ $name === 'super-admin' ? 'readonly' : '' }}>
-                            <div class="form-text">Usar minúsculas y guiones. Sin espacios.</div>
                             @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label for="descripcion" class="form-label">Descripción</label>
                             <textarea class="form-control @error('descripcion') is-invalid @enderror" id="descripcion" wire:model="descripcion" rows="2" placeholder="Describe brevemente qué hace este rol..."></textarea>
                             @error('descripcion') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+
+                        <div class="border-top pt-3">
+                            <h6 class="mb-3"><i class="bi bi-key me-2"></i>Asignación de Permisos por Módulo</h6>
+                            
+                            @if($name === 'super-admin')
+                                <div class="alert alert-info py-2 text-sm">
+                                    <i class="bi bi-info-circle me-1"></i> El <strong>Super Admin</strong> tiene acceso total al sistema por defecto. No es necesario asignarle permisos individuales.
+                                </div>
+                            @else
+                                @forelse($permisosAgrupados as $grupo => $permisos)
+                                    <div class="mb-4">
+                                        <h6 class="text-primary border-bottom pb-1 mb-3">
+                                            <i class="bi bi-box me-1"></i> Módulo: {{ $grupo }}
+                                        </h6>
+                                        
+                                        <div class="row g-2">
+                                            @foreach($permisos as $permiso)
+                                                @php
+                                                    $accion = str_replace('-' . strtolower($grupo), '', $permiso->name);
+                                                    $accionLimpia = ucfirst(str_replace('-', ' ', $accion));
+                                                @endphp
+                                                
+                                                <div class="col-md-4">
+                                                    <div class="form-check form-switch shadow-sm border rounded p-2 bg-light h-100 d-flex align-items-center">
+                                                        <input class="form-check-input ms-1 flex-shrink-0" type="checkbox" 
+                                                               value="{{ $permiso->name }}" 
+                                                               id="permiso_{{ $permiso->id }}" 
+                                                               wire:model="permisos_seleccionados">
+                                                        <label class="form-check-label ms-2 text-wrap" style="font-size: 0.85rem; cursor:pointer;" for="permiso_{{ $permiso->id }}">
+                                                            {{ $accionLimpia }}
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="col-12 text-muted text-center py-2">
+                                        No hay permisos registrados en el sistema aún.
+                                    </div>
+                                @endforelse
+                            @endif
                         </div>
                     </div>
                     <div class="modal-footer">

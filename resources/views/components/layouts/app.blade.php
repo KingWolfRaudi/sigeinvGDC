@@ -66,7 +66,11 @@
                     </a>
                     <div class="collapse" id="submenuCatalogos" data-bs-parent="#menuLateral">
                         <ul class="nav flex-column ms-3 mt-1">
-                            <li class="nav-item"><a href="{{ route('catalogos.marcas') }}" class="nav-link {{ request()->routeIs('catalogos.marcas') ? 'text-white' : 'text-white-50' }} px-2 py-1">Marcas</a></li>
+                            @can('ver-marcas')
+                            <li class="nav-item">
+                                <a href="{{ route('catalogos.marcas') }}" class="nav-link {{ request()->routeIs('catalogos.marcas') ? 'text-white' : 'text-white-50' }} px-2 py-1">Marcas</a>
+                            </li>
+                            @endcan
                             <li class="nav-item"><a href="#" class="nav-link text-white-50 px-2 py-1">Tipos de Dispositivo</a></li>
                             <li class="nav-item"><a href="#" class="nav-link text-white-50 px-2 py-1">Sistemas Operativos</a></li>
                             <li class="nav-item"><a href="#" class="nav-link text-white-50 px-2 py-1">Puertos</a></li>
@@ -87,16 +91,27 @@
                         </ul>
                     </div>
                 </li>
+                @canany(['ver-roles', 'crear-roles', 'editar-roles', 'eliminar-roles', 'ver-usuarios', 'crear-usuarios', 'editar-usuarios', 'cambiar-estatus-usuarios', 'eliminar-usuarios'])
                 <li class="nav-item mb-1 mt-3">
                     <h6 class="sidebar-heading px-3 mt-4 mb-1 text-white-50 text-uppercase" style="font-size: 0.75rem;">
                         <span>Administración</span>
                     </h6>
                 </li>
+                @endcanany
+                @can('ver-roles')
                 <li class="nav-item mb-1">
                     <a href="{{ route('admin.roles') }}" class="nav-link {{ request()->routeIs('admin.roles') ? 'active' : 'text-white' }} d-flex align-items-center">
                         <i class="bi bi-shield-lock me-2"></i> Roles y Permisos
                     </a>
                 </li>
+                @endcan
+                @can('ver-usuarios')
+                <li class="nav-item mb-1">
+                    <a href="{{ route('admin.usuarios') }}" class="nav-link {{ request()->routeIs('admin.usuarios') ? 'active' : 'text-white' }} d-flex align-items-center">
+                        <i class="bi bi-people-fill me-2"></i> Usuarios
+                    </a>
+                </li>
+                @endcan
             </ul>
             <hr>
 

@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Livewire\Admin\Roles;
 use App\Livewire\Auth\Login;
+use App\Livewire\Admin\Usuarios;
 use App\Livewire\Dashboard;
 use App\Livewire\Catalogos\Marcas;
 
@@ -18,6 +19,7 @@ Route::middleware('auth')->group(function () {
     // Nuestro nuevo Dashboard
     Route::get('/', Dashboard::class)->name('dashboard');
     Route::get('/admin/roles', Roles::class)->name('admin.roles');
+    Route::get('/admin/usuarios', Usuarios::class)->name('admin.usuarios');
     Route::get('/catalogos/marcas', Marcas::class)->name('catalogos.marcas');
 
     // Ruta simple para cerrar sesión
