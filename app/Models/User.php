@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles; // <-- Importar trait de Roles
+use Illuminate\Database\Eloquent\SoftDeletes; // 1. Importar SoftDeletes
 
 class User extends Authenticatable
 {

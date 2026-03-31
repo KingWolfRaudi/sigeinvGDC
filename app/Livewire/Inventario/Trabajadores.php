@@ -1,0 +1,158 @@
+<?php
+
+namespace App\Livewire\Inventario;
+
+use Livewire\Component;
+use Livewire\WithPagination;
+use App\Models\Trabajador;
+use App\Models\Departamento;
+
+class Trabajadores extends Component
+{
+    use WithPagination;
+    
+    protected $paginationTheme = 'bootstrap';
+
+    // Estado general
+    public $search = '';
+    public $sortField = 'id';
+    public $sortAsc = false;
+    public $tituloModal = 'Nuevo Trabajador';
+
+    // Variables de formulario
+    public $trabajador_id, $nombres, $apellidos, $cedula, $cargo, $departamento_id;
+    public $activo = true;
+
+    // Variables para departamento rápido y detalle
+    public $nuevo_departamento = '';
+    public $creando_departamento = false;
+    public $trabajador_detalle = null;
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function sortBy($field)
+    {
+        if ($this->sortField === $field) {
+            $this->sortAsc = !$this->sortAsc;
+        } else {
+            $this->sortAsc = true;
+        }
+        $this->sortField = $field;
+    }
+
+    public function render()
+    {
+        $departamentos = Departamento::orderBy('nombre', 'asc')->get();
+
+        $trabajadores = Trabajador::with('departamento')
+            ->where(function ($query) {
+                $query->where('nombres', 'like', '%' . $this->search . '%')
+                      ->orWhere('apellidos', 'like', '%' . $this->search . '%')
+                      ->orWhere('cedula', 'like', '%' . $this->search . '%')
+                      ->orWhere('cargo', 'like', '%' . $this->search . '%')
+                      ->orWhereHas('departamento', function ($q) {
+                          $q->where('nombre', 'like', '%' . $this->search . '%');
+                      });
+            })
+            ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
+            ->paginate(10);
+
+        return view('livewire.inventario.trabajadores', compact('trabajadores', 'departamentos'));
+    }
+
+    public function crear()
+    {
+        $this->resetCampos();
+        $this->tituloModal = 'Nuevo Trabajador';
+    }
+
+    public function ver($id)
+    {
+        $this->trabajador_detalle = Trabajador::with('departamento')->findOrFail($id);
+    }
+
+    public function editar($id)
+    {
+        $this->resetCampos();
+        $this->tituloModal = 'Editar Trabajador';
+        $trabajador = Trabajador::findOrFail($id);
+        
+        $this->trabajador_id = $trabajador->id;
+        $this->nombres = $trabajador->nombres;
+        $this->apellidos = $trabajador->apellidos;
+        $this->cedula = $trabajador->cedula;
+        $this->cargo = $trabajador->cargo;
+        $this->departamento_id = $trabajador->departamento_id;
+        $this->activo = $trabajador->activo;
+    }
+
+    public function guardarDepartamento()
+    {
+        $this->validate([
+            'nuevo_departamento' => 'required|unique:departamentos,nombre|min:3'
+        ]);
+
+        // Ya NO forzamos strtoupper() aquí
+        $dep = Departamento::create([
+            'nombre' => $this->nuevo_departamento
+        ]);
+
+        $this->departamento_id = $dep->id;
+        $this->creando_departamento = false;
+        $this->nuevo_departamento = '';
+        
+        $this->dispatch('toast', mensaje: 'Departamento creado', tipo: 'success');
+    }
+
+    public function guardar()
+    {
+        $this->validate([
+            'nombres' => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
+            'cedula' => 'required|string|unique:trabajadores,cedula,' . $this->trabajador_id,
+            'departamento_id' => 'required|exists:departamentos,id',
+        ]);
+
+        // Ya NO forzamos strtoupper() en los datos personales
+        Trabajador::updateOrCreate(
+            ['id' => $this->trabajador_id],
+            [
+                'nombres' => $this->nombres,
+                'apellidos' => $this->apellidos,
+                'cedula' => $this->cedula,
+                'cargo' => $this->cargo,
+                'departamento_id' => $this->departamento_id,
+                'activo' => $this->activo,
+            ]
+        );
+
+        $this->resetCampos();
+        $this->dispatch('cerrar-modal'); 
+        $this->dispatch('toast', mensaje: 'Trabajador guardado exitosamente', tipo: 'success');
+    }
+
+    public function toggleActivo($id)
+    {
+        $trabajador = Trabajador::findOrFail($id);
+        $trabajador->activo = !$trabajador->activo;
+        $trabajador->save();
+        $this->dispatch('toast', mensaje: 'Estado actualizado', tipo: 'success');
+    }
+
+    public function eliminar($id)
+    {
+        $trabajador = Trabajador::findOrFail($id);
+        $trabajador->delete();
+        $this->dispatch('toast', mensaje: 'Trabajador eliminado', tipo: 'success');
+    }
+
+    public function resetCampos()
+    {
+        $this->reset(['trabajador_id', 'nombres', 'apellidos', 'cedula', 'cargo', 'departamento_id', 'nuevo_departamento', 'creando_departamento', 'trabajador_detalle']);
+        $this->activo = true;
+        $this->resetValidation();
+    }
+}

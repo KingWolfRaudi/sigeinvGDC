@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes; // 1. Importar SoftDeletes
 
 class Procesador extends Model
 {
-    use HasFactory;
+    // 2. Añadir SoftDeletes al lado de HasFactory
+    use HasFactory, SoftDeletes; 
 
     protected $table = 'procesadores';
 
@@ -20,6 +22,11 @@ class Procesador extends Model
         'nucleos',
         'hilos',
         'activo',
+    ];
+
+    // 3. Aprovechamos de aplicar el casteo obligatorio
+    protected $casts = [
+        'activo' => 'boolean',
     ];
 
     // Relación: Un procesador pertenece a una marca

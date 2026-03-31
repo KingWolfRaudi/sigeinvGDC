@@ -6,6 +6,8 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Event;
+use App\Models\Trabajador;
+use App\Observers\TrabajadorObserver;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -25,7 +27,7 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Trabajador::observe(TrabajadorObserver::class);
     }
 
     /**
@@ -36,3 +38,5 @@ class EventServiceProvider extends ServiceProvider
         return false;
     }
 }
+
+

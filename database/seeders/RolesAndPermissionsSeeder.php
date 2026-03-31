@@ -34,7 +34,9 @@ class RolesAndPermissionsSeeder extends Seeder
             // Procesadores
             'ver-procesadores', 'crear-procesadores', 'editar-procesadores', 'cambiar-estatus-procesadores', 'eliminar-procesadores',
             // Gpus
-            'ver-gpus', 'crear-gpus', 'editar-gpus', 'cambiar-estatus-gpus', 'eliminar-gpus'
+            'ver-gpus', 'crear-gpus', 'editar-gpus', 'cambiar-estatus-gpus', 'eliminar-gpus',
+            // Trabajadores
+            'ver-trabajadores', 'crear-trabajadores', 'editar-trabajadores', 'eliminar-trabajadores'
         ];
 
         foreach ($permisos as $permiso) {

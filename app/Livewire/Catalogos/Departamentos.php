@@ -108,10 +108,16 @@ class Departamentos extends Component
 
     public function eliminar($id)
     {
-        abort_if(Gate::denies('eliminar-departamentos'), 403);
+        $departamento = Departamento::findOrFail($id);
 
-        Departamento::findOrFail($id)->delete();
-        $this->dispatch('mostrar-toast', mensaje: 'Departamento eliminado.');
+        // Protección de integridad
+        if ($departamento->trabajadores()->exists()) {
+            $this->dispatch('toast', mensaje: 'No se puede eliminar: Hay trabajadores asignados a este departamento.', tipo: 'error');
+            return;
+        }
+
+        $departamento->delete();
+        $this->dispatch('toast', mensaje: 'Departamento eliminado correctamente.', tipo: 'success');
     }
 
     public function resetCampos()

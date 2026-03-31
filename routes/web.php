@@ -13,6 +13,7 @@ use App\Livewire\Catalogos\Puertos;
 use App\Livewire\Catalogos\Departamentos;
 use App\Livewire\Catalogos\Procesadores;
 use App\Livewire\Catalogos\Gpus;
+use App\Livewire\Inventario\Trabajadores;
 
 // Ruta para invitados (Login)
 Route::middleware('guest')->group(function () {
@@ -34,10 +35,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/catalogos/departamentos', Departamentos::class)->name('catalogos.departamentos');
     Route::get('/catalogos/procesadores', Procesadores::class)->name('catalogos.procesadores');
     Route::get('/catalogos/gpus', Gpus::class)->name('catalogos.gpus');
-
     // Inventarios
-
-
+    //Route::get('/trabajadores', \App\Livewire\Inventario\Trabajadores::class);
+    Route::get('/inventario/trabajadores', Trabajadores::class)->name('inventario.trabajadores');
 
     // Ruta simple para cerrar sesión
     Route::post('/logout', function () {

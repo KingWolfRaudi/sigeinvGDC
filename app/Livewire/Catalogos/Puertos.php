@@ -108,10 +108,16 @@ class Puertos extends Component
 
     public function eliminar($id)
     {
-        abort_if(Gate::denies('eliminar-puertos'), 403);
+        $puerto = Puerto::findOrFail($id);
 
-        Puerto::findOrFail($id)->delete();
-        $this->dispatch('mostrar-toast', mensaje: 'Puerto eliminado.');
+        // Protección de integridad en tabla pivote
+        if ($puerto->gpus()->exists()) {
+            $this->dispatch('toast', mensaje: 'No se puede eliminar: Existen Tarjetas de Video (GPUs) usando este puerto.', tipo: 'error');
+            return;
+        }
+
+        $puerto->delete();
+        $this->dispatch('toast', mensaje: 'Puerto de conexión eliminado.', tipo: 'success');
     }
 
     public function resetCampos()

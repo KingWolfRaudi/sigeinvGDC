@@ -19,6 +19,8 @@ class Gpus extends Component
     public $gpu_detalle;
     public bool $activo = true;
     public $tituloModal = 'Nueva GPU';
+    public $nueva_marca = '';
+    public $creando_marca = false;
 
     public $search = '';
     public $sortField = 'id';
@@ -74,6 +76,25 @@ class Gpus extends Component
         $this->resetCampos();
         $this->tituloModal = 'Nueva GPU';
         $this->dispatch('abrir-modal', id: 'modalGpu');
+    }
+
+    public function guardarMarca()
+    {
+        $this->validate([
+            'nueva_marca' => 'required|string|unique:marcas,nombre|min:2'
+        ]);
+
+        // Guardamos la marca sin forzar mayúsculas (según nuestras convenciones V2.1)
+        $marca = \App\Models\Marca::create([
+            'nombre' => $this->nueva_marca,
+            'activo' => true
+        ]);
+
+        $this->marca_id = $marca->id;
+        $this->creando_marca = false;
+        $this->nueva_marca = '';
+
+        $this->dispatch('toast', mensaje: 'Marca creada y seleccionada', tipo: 'success');
     }
 
     public function guardar()
@@ -169,6 +190,8 @@ class Gpus extends Component
             'bus', 'frecuencia', 'gpu_detalle'
         ]);
         $this->puertos_seleccionados = [];
+        // Variables para creación rápida de Marca
+        
         $this->activo = true;
         $this->resetValidation();
     }

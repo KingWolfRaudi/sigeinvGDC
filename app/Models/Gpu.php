@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes; // 1. Importar SoftDeletes
 
 class Gpu extends Model
 {
-    use HasFactory;
+    // 2. Añadir SoftDeletes al lado de HasFactory
+    use HasFactory, SoftDeletes; 
 
     protected $table = 'gpus';
 

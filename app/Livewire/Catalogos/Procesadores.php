@@ -19,6 +19,9 @@ class Procesadores extends Component
     public $procesador_detalle;
     public bool $activo = true;
     public $tituloModal = 'Nuevo Procesador';
+    // Variables para creación rápida de Marca
+    public $nueva_marca = '';
+    public $creando_marca = false;
 
     public $search = '';
     public $sortField = 'id';
@@ -71,6 +74,26 @@ class Procesadores extends Component
         $this->resetCampos();
         $this->tituloModal = 'Nuevo Procesador';
         $this->dispatch('abrir-modal', id: 'modalProcesador');
+        $this->creando_marca = false;
+        $this->nueva_marca = '';
+    }
+
+    public function guardarMarca()
+    {
+        $this->validate([
+            'nueva_marca' => 'required|string|unique:marcas,nombre|min:2'
+        ]);
+
+        // Guardamos la marca tal cual la escribe el usuario (sin strtoupper)
+        $marca = \App\Models\Marca::create([
+            'nombre' => $this->nueva_marca,
+            'activo' => true
+        ]);
+
+        // Asignamos el ID, cerramos el modo de creación rápida y limpiamos el input
+        $this->marca_id = $marca->id;
+
+        $this->dispatch('toast', mensaje: 'Marca creada y seleccionada', tipo: 'success');
     }
 
     public function guardar()
@@ -157,6 +180,8 @@ class Procesadores extends Component
             'procesador_id', 'marca_id', 'modelo', 'generacion', 
             'frecuencia_base', 'frecuencia_maxima', 'nucleos', 'hilos', 'procesador_detalle'
         ]);
+        $this->creando_marca = false;
+        $this->nueva_marca = '';
         $this->activo = true;
         $this->resetValidation();
     }

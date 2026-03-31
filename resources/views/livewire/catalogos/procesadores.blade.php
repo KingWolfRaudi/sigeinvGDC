@@ -86,15 +86,34 @@
                 <form wire:submit.prevent="guardar">
                     <div class="modal-body">
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="mb-3">
                                 <label class="form-label">Marca <span class="text-danger">*</span></label>
-                                <select class="form-select @error('marca_id') is-invalid @enderror" wire:model="marca_id">
-                                    <option value="">Seleccione una marca...</option>
-                                    @foreach($marcas as $marca)
-                                        <option value="{{ $marca->id }}">{{ $marca->nombre }}</option>
-                                    @endforeach
-                                </select>
-                                @error('marca_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                
+                                @if(!$creando_marca)
+                                    <div class="input-group">
+                                        <select class="form-select @error('marca_id') is-invalid @enderror" wire:model="marca_id">
+                                            <option value="">Seleccione una marca...</option>
+                                            @foreach($marcas as $m)
+                                                <option value="{{ $m->id }}">{{ $m->nombre }}</option>
+                                            @endforeach
+                                        </select>
+                                        <button class="btn btn-outline-secondary" type="button" wire:click="$set('creando_marca', true)" title="Crear nueva marca">
+                                            <i class="bi bi-plus"></i> Nuevo
+                                        </button>
+                                    </div>
+                                    @error('marca_id') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                                @else
+                                    <div class="input-group">
+                                        <input type="text" class="form-control @error('nueva_marca') is-invalid @enderror" wire:model="nueva_marca" placeholder="Nombre de la nueva marca...">
+                                        <button class="btn btn-success" type="button" wire:click="guardarMarca">
+                                            Guardar
+                                        </button>
+                                        <button class="btn btn-danger" type="button" wire:click="$set('creando_marca', false)" title="Cancelar">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                    @error('nueva_marca') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                @endif
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Modelo <span class="text-danger">*</span></label>

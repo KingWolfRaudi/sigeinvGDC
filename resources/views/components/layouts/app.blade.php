@@ -130,6 +130,13 @@
                     </a>
                     <div class="collapse {{ request()->routeIs('inventario.*') ? 'show' : '' }}" id="submenuInventario" data-bs-parent="#menuLateral">
                         <ul class="nav flex-column ms-3 mt-1" style="border-left: 1px solid rgba(255,255,255,0.1);">
+                            @can('ver-trabajadores')
+                            <li class="nav-item">
+                                <a href="{{ route('inventario.trabajadores') }}" class="nav-link {{ request()->routeIs('inventario.trabajadores') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-person-badge me-2"></i> Trabajadores
+                                </a>
+                            </li>
+                            @endcan
                             <li class="nav-item">
                                 <a href="#" class="nav-link text-white-50 px-3 py-1 text-sm d-flex align-items-center">
                                     <i class="bi bi-laptop me-2"></i> Computadores
@@ -213,12 +220,13 @@
         </div>
     </div>
     @endauth
-
-    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1055;">
-        <div id="liveToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055;">
+        <div id="liveToast" class="toast align-items-center text-white border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
-                <div class="toast-body" id="toastMessage"></div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                <div class="toast-body" id="toastMessage">
+                    </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
             </div>
         </div>
     </div>
@@ -228,39 +236,67 @@
     <script>
         document.addEventListener('livewire:initialized', () => {
             
-            // Escuchar evento para ABRIR modal
+            // 1. Escuchar evento para ABRIR modal
             Livewire.on('abrir-modal', (event) => {
-                let data = event[0] || event;
+                let data = Array.isArray(event) ? event[0] : event;
                 if (data && data.id) {
                     let modal = new bootstrap.Modal(document.getElementById(data.id));
                     modal.show();
                 }
             });
 
-            // Escuchar evento para CERRAR modal
+            // 2. Escuchar evento para CERRAR modal (Mejorado)
             Livewire.on('cerrar-modal', (event) => {
-                let data = event[0] || event;
+                let data = event ? (Array.isArray(event) ? event[0] : event) : null;
+                
+                // Si envías un ID específico, cierra ese modal
                 if (data && data.id) {
                     let modalEl = document.getElementById(data.id);
-                    let modal = bootstrap.Modal.getInstance(modalEl);
-                    if (modal) { 
-                        modal.hide(); 
+                    if (modalEl) {
+                        let modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) modal.hide();
+                    }
+                } else {
+                    // Fallback Inteligente: Si no envías ID, cierra CUALQUIER modal que esté abierto
+                    let openModal = document.querySelector('.modal.show');
+                    if (openModal) {
+                        let modal = bootstrap.Modal.getInstance(openModal);
+                        if (modal) modal.hide();
                     }
                 }
             });
 
-            // Escuchar evento para MOSTRAR toast
-            Livewire.on('mostrar-toast', (event) => {
-                let data = event[0] || event;
+            // 3. Sistema Unificado de Toasts
+            const procesarToast = (event) => {
+                let data = Array.isArray(event) ? event[0] : event;
+                
                 if (data && data.mensaje) {
-                    document.getElementById('toastMessage').innerText = data.mensaje;
                     let toastEl = document.getElementById('liveToast');
-                    let toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+                    document.getElementById('toastMessage').innerText = data.mensaje;
+                    
+                    // Limpiamos los colores de notificaciones anteriores
+                    toastEl.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info', 'bg-secondary');
+                    
+                    // Aplicamos el nuevo color dinámicamente
+                    if (data.tipo === 'error') {
+                        toastEl.classList.add('bg-danger');
+                    } else if (data.tipo === 'success') {
+                        toastEl.classList.add('bg-success');
+                    } else {
+                        toastEl.classList.add('bg-secondary');
+                    }
+
+                    // Disparamos la animación
+                    let toast = new bootstrap.Toast(toastEl, { delay: 4000 });
                     toast.show();
                 }
-            });
+            };
 
+            // Vinculamos la función tanto al nombre nuevo como al viejo para no romper tu código anterior
+            Livewire.on('toast', procesarToast);
+            Livewire.on('mostrar-toast', procesarToast);
         });
     </script>
+
 </body>
 </html>

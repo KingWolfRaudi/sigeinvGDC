@@ -110,10 +110,23 @@ class Marcas extends Component
 
     public function eliminar($id)
     {
-        abort_if(Gate::denies('eliminar-marcas'), 403);
+        $marca = Marca::findOrFail($id);
 
-        Marca::findOrFail($id)->delete();
-        $this->dispatch('mostrar-toast', mensaje: 'Marca eliminada.');
+        // 1. Verificamos si tiene procesadores asociados
+        if ($marca->procesadores()->exists()) {
+            $this->dispatch('toast', mensaje: 'No se puede eliminar: Tiene procesadores asociados.', tipo: 'error');
+            return; // Cortamos la ejecución aquí
+        }
+
+        // 2. Verificamos si tiene GPUs asociadas
+        if ($marca->gpus()->exists()) {
+            $this->dispatch('toast', mensaje: 'No se puede eliminar: Tiene tarjetas de video (GPUs) asociadas.', tipo: 'error');
+            return;
+        }
+
+        // 3. Si pasa las validaciones, procedemos con el SoftDelete
+        $marca->delete();
+        $this->dispatch('toast', mensaje: 'Marca eliminada correctamente.', tipo: 'success');
     }
 
     public function resetCampos()
