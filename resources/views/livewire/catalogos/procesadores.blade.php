@@ -1,0 +1,161 @@
+<div>
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-5">
+            <h3 class="mb-0">Catálogo de Procesadores</h3>
+        </div>
+        <div class="col-md-4">
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar por modelo o marca...">
+            </div>
+        </div>
+        <div class="col-md-3 text-end">
+            @can('crear-procesadores')
+                <button wire:click="crear" class="btn btn-primary w-100">
+                    <i class="bi bi-cpu me-1"></i> Nuevo Procesador
+                </button>
+            @endcan
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th wire:click="sortBy('marca_id')" style="cursor: pointer;">Marca @if($sortField === 'marca_id') <i class="bi bi-sort-down ms-1"></i> @endif</th>
+                            <th wire:click="sortBy('modelo')" style="cursor: pointer;">Modelo @if($sortField === 'modelo') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif</th>
+                            <th>Especificaciones</th>
+                            <th wire:click="sortBy('activo')" style="cursor: pointer;">Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($procesadores as $proc)
+                            <tr>
+                                <td><span class="badge bg-secondary">{{ $proc->marca->nombre }}</span></td>
+                                <td><strong>{{ $proc->modelo }}</strong> <br><small class="text-muted">{{ $proc->generacion }}</small></td>
+                                <td>
+                                    <small class="text-muted">
+                                        {{ $proc->nucleos ? $proc->nucleos.' Núcleos' : '' }} 
+                                        {{ $proc->frecuencia_base ? '| '.$proc->frecuencia_base : '' }}
+                                    </small>
+                                </td>
+                                <td>
+                                    @if($proc->activo)
+                                        <span class="badge bg-success">Activo</span>
+                                    @else
+                                        <span class="badge bg-danger">Inactivo</span>
+                                    @endif
+                                </td>
+                                <td class="text-end">
+                                    @can('cambiar-estatus-procesadores')
+                                        <button wire:click="toggleActivo({{ $proc->id }})" class="btn btn-sm {{ $proc->activo ? 'btn-success' : 'btn-secondary' }} text-white" title="Alternar Estado">
+                                            <i class="bi {{ $proc->activo ? 'bi-toggle-on' : 'bi-toggle-off' }}"></i>
+                                        </button>
+                                    @endcan
+                                    @can('ver-procesadores')
+                                        <button wire:click="ver({{ $proc->id }})" class="btn btn-sm btn-info text-white" title="Ver Detalles"><i class="bi bi-eye"></i></button>
+                                    @endcan
+                                    @can('editar-procesadores')
+                                        <button wire:click="editar({{ $proc->id }})" class="btn btn-sm btn-primary" title="Editar"><i class="bi bi-pencil-square"></i></button>
+                                    @endcan
+                                    @can('eliminar-procesadores')
+                                        <button wire:click="eliminar({{ $proc->id }})" wire:confirm="¿Deseas eliminar este procesador?" class="btn btn-sm btn-danger" title="Eliminar"><i class="bi bi-trash"></i></button>
+                                    @endcan
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="5" class="text-center text-muted py-4">No se encontraron procesadores.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-3">{{ $procesadores->links() }}</div>
+        </div>
+    </div>
+
+    <div wire:ignore.self class="modal fade" id="modalProcesador" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ $tituloModal }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetCampos"></button>
+                </div>
+                <form wire:submit.prevent="guardar">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Marca <span class="text-danger">*</span></label>
+                                <select class="form-select @error('marca_id') is-invalid @enderror" wire:model="marca_id">
+                                    <option value="">Seleccione una marca...</option>
+                                    @foreach($marcas as $marca)
+                                        <option value="{{ $marca->id }}">{{ $marca->nombre }}</option>
+                                    @endforeach
+                                </select>
+                                @error('marca_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Modelo <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control @error('modelo') is-invalid @enderror" wire:model="modelo" placeholder="Ej: Core i7, Ryzen 5">
+                                @error('modelo') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Generación</label>
+                                <input type="text" class="form-control" wire:model="generacion" placeholder="Ej: 12va Gen, Zen 3">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Frecuencia Base</label>
+                                <input type="text" class="form-control" wire:model="frecuencia_base" placeholder="Ej: 2.5 GHz">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Frecuencia Máxima (Turbo)</label>
+                                <input type="text" class="form-control" wire:model="frecuencia_maxima" placeholder="Ej: 4.8 GHz">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">Núcleos</label>
+                                <input type="number" class="form-control" wire:model="nucleos" min="1">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">Hilos</label>
+                                <input type="number" class="form-control" wire:model="hilos" min="1">
+                            </div>
+                        </div>
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" id="activo" wire:model="activo">
+                            <label class="form-check-label" for="activo">Activo en el sistema</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="resetCampos">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div wire:ignore.self class="modal fade" id="modalDetalle" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title"><i class="bi bi-cpu me-2"></i>Detalles del Procesador</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    @if($procesador_detalle)
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item"><strong>Marca:</strong> {{ $procesador_detalle->marca->nombre ?? 'N/A' }}</li>
+                            <li class="list-group-item"><strong>Modelo:</strong> {{ $procesador_detalle->modelo }}</li>
+                            <li class="list-group-item"><strong>Generación:</strong> {{ $procesador_detalle->generacion ?? 'N/A' }}</li>
+                            <li class="list-group-item"><strong>Frec. Base:</strong> {{ $procesador_detalle->frecuencia_base ?? 'N/A' }}</li>
+                            <li class="list-group-item"><strong>Frec. Máxima:</strong> {{ $procesador_detalle->frecuencia_maxima ?? 'N/A' }}</li>
+                            <li class="list-group-item"><strong>Núcleos / Hilos:</strong> {{ $procesador_detalle->nucleos ?? '-' }} / {{ $procesador_detalle->hilos ?? '-' }}</li>
+                        </ul>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

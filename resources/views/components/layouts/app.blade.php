@@ -55,42 +55,100 @@
             </a>
             <hr>
 
-            <ul class="nav nav-pills flex-column mb-auto overflow-auto" id="menuLateral">
+            <ul class="nav nav-pills flex-column mb-auto overflow-y-auto flex-nowrap w-100" id="menuLateral" style="overflow-x: hidden;">
+                
                 <li class="nav-item mb-1">
-                    <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : 'text-white' }}">Dashboard</a>
+                    <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : 'text-white' }} d-flex align-items-center">
+                        <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                    </a>
                 </li>
 
                 <li class="nav-item mb-1">
-                    <a href="#submenuCatalogos" data-bs-toggle="collapse" class="nav-link text-white d-flex justify-content-between align-items-center">
-                        Catálogos <small>▼</small>
+                    <a href="#submenuCatalogos" data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('catalogos.*') ? 'true' : 'false' }}" class="nav-link text-white d-flex justify-content-between align-items-center">
+                        <div><i class="bi bi-folder me-2"></i> Catálogos</div>
+                        <i class="bi bi-chevron-down" style="font-size: 0.8rem;"></i>
                     </a>
-                    <div class="collapse" id="submenuCatalogos" data-bs-parent="#menuLateral">
-                        <ul class="nav flex-column ms-3 mt-1">
+                    <div class="collapse {{ request()->routeIs('catalogos.*') ? 'show' : '' }}" id="submenuCatalogos" data-bs-parent="#menuLateral">
+                        <ul class="nav flex-column ms-3 mt-1" style="border-left: 1px solid rgba(255,255,255,0.1);">
                             @can('ver-marcas')
                             <li class="nav-item">
-                                <a href="{{ route('catalogos.marcas') }}" class="nav-link {{ request()->routeIs('catalogos.marcas') ? 'text-white' : 'text-white-50' }} px-2 py-1">Marcas</a>
+                                <a href="{{ route('catalogos.marcas') }}" class="nav-link {{ request()->routeIs('catalogos.marcas') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-tags me-2"></i> Marcas
+                                </a>
                             </li>
                             @endcan
-                            <li class="nav-item"><a href="#" class="nav-link text-white-50 px-2 py-1">Tipos de Dispositivo</a></li>
-                            <li class="nav-item"><a href="#" class="nav-link text-white-50 px-2 py-1">Sistemas Operativos</a></li>
-                            <li class="nav-item"><a href="#" class="nav-link text-white-50 px-2 py-1">Puertos</a></li>
-                            <li class="nav-item"><a href="#" class="nav-link text-white-50 px-2 py-1">Departamentos</a></li>
+                            @can('ver-tipos-dispositivo')
+                            <li class="nav-item">
+                                <a href="{{ route('catalogos.tipos-dispositivo') }}" class="nav-link {{ request()->routeIs('catalogos.tipos-dispositivo') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-pc-display me-2"></i> Tipos de Disp.
+                                </a>
+                            </li>
+                            @endcan
+                            @can('ver-sistemas-operativos')
+                            <li class="nav-item">
+                                <a href="{{ route('catalogos.sistemas-operativos') }}" class="nav-link {{ request()->routeIs('catalogos.sistemas-operativos') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-windows me-2"></i> Sist. Operativos
+                                </a>
+                            </li>
+                            @endcan
+                            @can('ver-puertos')
+                            <li class="nav-item">
+                                <a href="{{ route('catalogos.puertos') }}" class="nav-link {{ request()->routeIs('catalogos.puertos') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-usb-plug me-2"></i> Puertos
+                                </a>
+                            </li>
+                            @endcan
+                            @can('ver-departamentos')
+                            <li class="nav-item">
+                                <a href="{{ route('catalogos.departamentos') }}" class="nav-link {{ request()->routeIs('catalogos.departamentos') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-building me-2"></i> Departamentos
+                                </a>
+                            </li>
+                            @endcan
+                            @can('ver-procesadores')
+                            <li class="nav-item">
+                                <a href="{{ route('catalogos.procesadores') }}" class="nav-link {{ request()->routeIs('catalogos.procesadores') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-cpu me-2"></i> Procesadores
+                                </a>
+                            </li>
+                            @endcan
+                            @can('ver-gpus')
+                            <li class="nav-item">
+                                <a href="{{ route('catalogos.gpus') }}" class="nav-link {{ request()->routeIs('catalogos.gpus') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-cpu me-2"></i> Gpus
+                                </a>
+                            </li>
+                            @endcan
                         </ul>
                     </div>
                 </li>
 
                 <li class="nav-item mb-1">
-                    <a href="#submenuInventario" data-bs-toggle="collapse" class="nav-link text-white d-flex justify-content-between align-items-center">
-                        Inventario <small>▼</small>
+                    <a href="#submenuInventario" data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('inventario.*') ? 'true' : 'false' }}" class="nav-link text-white d-flex justify-content-between align-items-center">
+                        <div><i class="bi bi-box-seam me-2"></i> Inventario</div>
+                        <i class="bi bi-chevron-down" style="font-size: 0.8rem;"></i>
                     </a>
-                    <div class="collapse" id="submenuInventario" data-bs-parent="#menuLateral">
-                        <ul class="nav flex-column ms-3 mt-1">
-                            <li class="nav-item"><a href="#" class="nav-link text-white-50 px-2 py-1">Computadores</a></li>
-                            <li class="nav-item"><a href="#" class="nav-link text-white-50 px-2 py-1">Dispositivos</a></li>
-                            <li class="nav-item"><a href="#" class="nav-link text-white-50 px-2 py-1">Consumibles</a></li>
+                    <div class="collapse {{ request()->routeIs('inventario.*') ? 'show' : '' }}" id="submenuInventario" data-bs-parent="#menuLateral">
+                        <ul class="nav flex-column ms-3 mt-1" style="border-left: 1px solid rgba(255,255,255,0.1);">
+                            <li class="nav-item">
+                                <a href="#" class="nav-link text-white-50 px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-laptop me-2"></i> Computadores
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link text-white-50 px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-router me-2"></i> Dispositivos
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link text-white-50 px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-printer me-2"></i> Consumibles
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </li>
+
                 @canany(['ver-roles', 'crear-roles', 'editar-roles', 'eliminar-roles', 'ver-usuarios', 'crear-usuarios', 'editar-usuarios', 'cambiar-estatus-usuarios', 'eliminar-usuarios'])
                 <li class="nav-item mb-1 mt-3">
                     <h6 class="sidebar-heading px-3 mt-4 mb-1 text-white-50 text-uppercase" style="font-size: 0.75rem;">
@@ -98,6 +156,7 @@
                     </h6>
                 </li>
                 @endcanany
+
                 @can('ver-roles')
                 <li class="nav-item mb-1">
                     <a href="{{ route('admin.roles') }}" class="nav-link {{ request()->routeIs('admin.roles') ? 'active' : 'text-white' }} d-flex align-items-center">
