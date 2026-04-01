@@ -19,7 +19,7 @@ return new class extends Migration
         Schema::table('departamentos', function (Blueprint $table) { $table->softDeletes(); });
         Schema::table('procesadores', function (Blueprint $table) { $table->softDeletes(); });
         Schema::table('gpus', function (Blueprint $table) { $table->softDeletes(); });
-        Schema::table('trabajadores', function (Blueprint $table) { $table->softDeletes(); });
+        //Schema::table('trabajadores', function (Blueprint $table) { $table->softDeletes(); });
     }
 
     /**
@@ -35,6 +35,6 @@ return new class extends Migration
         Schema::table('departamentos', function (Blueprint $table) { $table->dropSoftDeletes(); });
         Schema::table('procesadores', function (Blueprint $table) { $table->dropSoftDeletes(); });
         Schema::table('gpus', function (Blueprint $table) { $table->dropSoftDeletes(); });
-        Schema::table('trabajadores', function (Blueprint $table) { $table->dropSoftDeletes(); });
+        //Schema::table('trabajadores', function (Blueprint $table) { $table->dropSoftDeletes(); });
     }
 };

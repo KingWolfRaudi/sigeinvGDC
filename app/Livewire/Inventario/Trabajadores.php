@@ -112,7 +112,10 @@ class Trabajadores extends Component
         $this->validate([
             'nombres' => 'required|string|max:255',
             'apellidos' => 'required|string|max:255',
-            'cedula' => 'required|string|unique:trabajadores,cedula,' . $this->trabajador_id,
+            
+            // CAMBIO AQUÍ: Cambiamos 'required' por 'nullable'
+            'cedula' => 'nullable|string|unique:trabajadores,cedula,' . $this->trabajador_id,
+            
             'departamento_id' => 'required|exists:departamentos,id',
         ]);
 

@@ -122,7 +122,7 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label">Cédula <span class="text-danger">*</span></label>
+                                <label class="form-label">Cédula (Opcional)</label>
                                 <input type="text" class="form-control @error('cedula') is-invalid @enderror" wire:model="cedula">
                                 @error('cedula') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>

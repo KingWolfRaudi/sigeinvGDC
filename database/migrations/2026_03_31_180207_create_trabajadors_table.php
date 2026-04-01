@@ -12,20 +12,20 @@ return new class extends Migration
             $table->id();
             $table->string('nombres');
             $table->string('apellidos');
-            $table->string('cedula')->unique();
+            $table->string('cedula')->nullable()->unique();
             $table->string('cargo')->nullable();
             
-            // Relación con el catálogo de Departamentos
-            $table->foreignId('departamento_id')
-                  ->constrained('departamentos')
-                  ->onDelete('restrict'); // Integridad referencial estricta
-                  
-            // Estado del trabajador
-            $table->boolean('activo')->default(true);
+            $table->foreignId('departamento_id')->constrained('departamentos')->onDelete('restrict');
             
+            // AGREGAR ESTA LÍNEA (El vínculo con la cuenta de usuario)
+            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('restrict');
+            
+            $table->boolean('activo')->default(true);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
+    
 
     public function down(): void
     {

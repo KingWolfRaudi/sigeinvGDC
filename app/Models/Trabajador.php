@@ -4,39 +4,32 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes; // 1. Importar SoftDeletes
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Trabajador extends Model
 {
-    // 2. Añadir SoftDeletes al lado de HasFactory
-    use HasFactory, SoftDeletes; 
+    use HasFactory, SoftDeletes;
 
-    // Forzamos el nombre de la tabla en español
     protected $table = 'trabajadores';
 
+    // 1. Agrega 'user_id' aquí:
     protected $fillable = [
-        'nombres',
-        'apellidos',
-        'cedula',
-        'cargo',
-        'departamento_id',
-        'activo',
+        'nombres', 'apellidos', 'cedula', 'cargo', 
+        'departamento_id', 'user_id', 'activo'
     ];
 
-    // Casteo de datos obligatorio
     protected $casts = [
         'activo' => 'boolean',
     ];
 
-    // Relación: Un trabajador pertenece a un departamento
     public function departamento()
     {
         return $this->belongsTo(Departamento::class);
     }
 
-    // Relación: Un trabajador puede estar vinculado a un usuario del sistema (Observer)
+    // 2. Agrega la relación si no la tenías:
     public function user()
     {
-        return $this->hasOne(User::class);
+        return $this->belongsTo(User::class);
     }
 }

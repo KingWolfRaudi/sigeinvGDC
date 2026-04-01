@@ -4,50 +4,51 @@ namespace App\Livewire\Inventario;
 
 use Livewire\Component;
 use Livewire\WithPagination;
+use Illuminate\Support\Facades\Gate;
 use App\Models\Computador;
+use App\Models\ComputadorDisco;
+use App\Models\ComputadorRam;
 use App\Models\Marca;
 use App\Models\TipoDispositivo;
 use App\Models\SistemaOperativo;
 use App\Models\Procesador;
 use App\Models\Gpu;
+use App\Models\Trabajador;
 use App\Models\Puerto;
+use App\Models\Departamento;
 
 class Computadores extends Component
 {
     use WithPagination;
-    
     protected $paginationTheme = 'bootstrap';
 
-    // Búsqueda y Ordenamiento
+    // Campos principales
+    public $computador_id, $bien_nacional, $serial, $marca_id, $tipo_dispositivo_id, $sistema_operativo_id;
+    public $procesador_id, $gpu_id, $departamento_id, $trabajador_id, $tipo_ram, $mac, $ip, $tipo_conexion;
+    public $estado_fisico = 'operativo';
+    public $observaciones;
+    public bool $activo = true;
+
+    // Relaciones Multiples (Arrays Dinámicos)
+    public $discos = [];
+    public $rams = [];
+    public $puertos_seleccionados = [];
+
+    // Creación Rápida On The Fly (Select vs Input)
+    public $creando_marca = false, $nueva_marca;
+    public $creando_tipo = false, $nuevo_tipo;
+    public $creando_so = false, $nuevo_so;
+    public $creando_procesador = false, $nuevo_procesador_modelo, $nuevo_procesador_marca_id;
+    public $creando_gpu = false, $nueva_gpu_modelo, $nueva_gpu_marca_id;
+    // Variables para el Modal Completo de Trabajador
+    public $nuevo_trab_nombres, $nuevo_trab_apellidos, $nuevo_trab_cedula, $nuevo_trab_departamento_id; 
+    // (Agrega aquí otras variables si tu tabla trabajadores pide correo, cédula, etc.)
+
+    public $computador_detalle;
+    public $tituloModal = 'Nuevo Computador';
     public $search = '';
     public $sortField = 'id';
     public $sortAsc = false;
-    public $tituloModal = 'Nuevo Computador';
-    public $computador_detalle = null;
-
-    // Campos del Formulario Principal
-    public $computador_id, $bien_nacional, $serial, $nombre_equipo;
-    public $marca_id, $tipo_dispositivo_id, $sistema_operativo_id, $procesador_id, $gpu_id;
-    public $memoria_ram, $tipo_memoria, $almacenamiento, $tipo_almacenamiento, $observaciones;
-    public $activo = true;
-    
-    // Array para los checkboxes de la tabla pivote
-    public $puertos_seleccionados = [];
-
-    // --- VARIABLES PARA CREACIÓN RÁPIDA (EN LÍNEA) ---
-    public $creando_marca = false;
-    public $nueva_marca = '';
-
-    public $creando_tipo = false;
-    public $nuevo_tipo = '';
-
-    public $creando_so = false;
-    public $nuevo_so = '';
-
-        // --- VARIABLES PARA CREACIÓN RÁPIDA DE PROCESADOR Y GPU ---
-    public $proc_marca_id, $proc_modelo, $proc_generacion, $proc_frecuencia_base, $proc_frecuencia_maxima, $proc_nucleos, $proc_hilos;
-    public $gr_marca_id, $gr_modelo, $gr_memoria, $gr_tipo_memoria, $gr_frecuencia, $gr_bus;
-    public $gr_puertos_seleccionados = [];
 
     public function updatingSearch()
     {
@@ -60,254 +61,342 @@ class Computadores extends Component
             $this->sortAsc = !$this->sortAsc;
         } else {
             $this->sortAsc = true;
+            $this->sortField = $field;
         }
-        $this->sortField = $field;
     }
 
+    public function mount()
+    {
+        // Inicializamos con un disco y una ram por defecto
+        $this->addDisco();
+        $this->addRam();
+    }
+
+    // --- MÉTODOS PARA FORMULARIOS DINÁMICOS ---
+    public function addDisco()
+    {
+        $this->discos[] = ['capacidad' => '', 'tipo' => ''];
+    }
+
+    public function removeDisco($index)
+    {
+        unset($this->discos[$index]);
+        $this->discos = array_values($this->discos); // Reindexar
+    }
+
+    public function addRam()
+    {
+        if(count($this->rams) < 6) {
+            $this->rams[] = ['capacidad' => '', 'slot' => count($this->rams) + 1];
+        } else {
+            $this->dispatch('mostrar-toast', mensaje: 'Máximo 6 slots de RAM permitidos.', tipo: 'warning');
+        }
+    }
+
+    public function removeRam($index)
+    {
+        unset($this->rams[$index]);
+        $this->rams = array_values($this->rams);
+        // Reasignar números de slot lógicos
+        foreach($this->rams as $i => $ram) {
+            $this->rams[$i]['slot'] = $i + 1;
+        }
+    }
+    // ------------------------------------------
+    // Este método se ejecuta AUTOMÁTICAMENTE cuando $departamento_id cambia en la vista
+    public function updatedDepartamentoId($value)
+    {
+        $this->trabajador_id = null; // Reseteamos al trabajador para forzar la actualización
+    }
+    
     public function render()
     {
-        // Cargamos todos los catálogos activos para los Selects y Checkboxes
-        $marcas = Marca::where('activo', true)->orderBy('nombre')->get();
-        $tipos = TipoDispositivo::where('activo', true)->orderBy('nombre')->get();
-        $sistemas = SistemaOperativo::where('activo', true)->orderBy('nombre')->get();
-        $procesadores = Procesador::where('activo', true)->orderBy('modelo')->get();
-        $gpus = Gpu::where('activo', true)->orderBy('modelo')->get();
-        $puertos = Puerto::where('activo', true)->orderBy('nombre')->get();
-
-        // Buscador Resiliente (V2.5) con relaciones
-        $computadores = Computador::with(['marca', 'tipoDispositivo', 'sistemaOperativo', 'procesador'])
+        $computadores = Computador::with(['marca', 'tipoDispositivo', 'trabajador', 'discos', 'rams'])
             ->where(function ($query) {
                 $query->where('bien_nacional', 'like', '%' . $this->search . '%')
                       ->orWhere('serial', 'like', '%' . $this->search . '%')
-                      ->orWhere('nombre_equipo', 'like', '%' . $this->search . '%')
-                      ->orWhereHas('marca', function ($q) { $q->where('nombre', 'like', '%' . $this->search . '%'); })
-                      ->orWhereHas('tipoDispositivo', function ($q) { $q->where('nombre', 'like', '%' . $this->search . '%'); })
-                      ->orWhereHas('sistemaOperativo', function ($q) { $q->where('nombre', 'like', '%' . $this->search . '%'); });
+                      ->orWhere('ip', 'like', '%' . $this->search . '%')
+                      
+                      // Búsqueda en relación Marca
+                      ->orWhereHas('marca', function($q) {
+                          $q->where('nombre', 'like', '%' . $this->search . '%');
+                      })
+                      
+                      // Búsqueda en relación Trabajador
+                      ->orWhereHas('trabajador', function($q) {
+                          // OJO AQUÍ: Si en tu tabla trabajadores la columna se llama "nombres" en plural, 
+                          // debes cambiar 'nombre' por 'nombres' en la línea de abajo.
+                          $q->where('nombres', 'like', '%' . $this->search . '%');
+                      });
             })
             ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
             ->paginate(10);
 
+        // Catálogos para los selects
+        $marcas = Marca::where('activo', true)->orderBy('nombre')->get();
+        $tipos = TipoDispositivo::where('activo', true)->orderBy('nombre')->get();
+        $sistemas = SistemaOperativo::where('activo', true)->orderBy('nombre')->get();
+        $procesadores = Procesador::with('marca')->where('activo', true)->orderBy('modelo')->get();
+        $gpus = Gpu::with('marca')->where('activo', true)->orderBy('modelo')->get();
+        $trabajadores = Trabajador::where('activo', true)->orderBy('nombres')->get();
+        $puertos = Puerto::where('activo', true)->orderBy('nombre')->get();
+        $departamentos = Departamento::where('activo', true)->orderBy('nombre')->get();
+
+        // Filtramos trabajadores por departamento si hay uno seleccionado
+        $trabajadores = Trabajador::where('activo', true)
+            ->when($this->departamento_id, function($query) {
+                return $query->where('departamento_id', $this->departamento_id);
+            })
+            ->orderBy('nombres')
+            ->get();
+            
         return view('livewire.inventario.computadores', compact(
-            'computadores', 'marcas', 'tipos', 'sistemas', 'procesadores', 'gpus', 'puertos'
+            'computadores', 'marcas', 'tipos', 'sistemas', 'procesadores', 'gpus', 'trabajadores', 'puertos', 'departamentos'
         ));
     }
 
     public function crear()
     {
+        abort_if(Gate::denies('crear-computadores'), 403);
         $this->resetCampos();
         $this->tituloModal = 'Nuevo Computador';
-    }
-
-    public function ver($id)
-    {
-        // Cargamos el computador con todas sus relaciones, incluyendo la pivote (puertos)
-        $this->computador_detalle = Computador::with(['marca', 'tipoDispositivo', 'sistemaOperativo', 'procesador', 'gpu', 'puertos'])->findOrFail($id);
-    }
-
-    public function editar($id)
-    {
-        $this->resetCampos();
-        $this->tituloModal = 'Editar Computador';
-        $computador = Computador::findOrFail($id);
-        
-        $this->computador_id = $computador->id;
-        $this->bien_nacional = $computador->bien_nacional;
-        $this->serial = $computador->serial;
-        $this->nombre_equipo = $computador->nombre_equipo;
-        $this->marca_id = $computador->marca_id;
-        $this->tipo_dispositivo_id = $computador->tipo_dispositivo_id;
-        $this->sistema_operativo_id = $computador->sistema_operativo_id;
-        $this->procesador_id = $computador->procesador_id;
-        $this->gpu_id = $computador->gpu_id;
-        $this->memoria_ram = $computador->memoria_ram;
-        $this->tipo_memoria = $computador->tipo_memoria;
-        $this->almacenamiento = $computador->almacenamiento;
-        $this->tipo_almacenamiento = $computador->tipo_almacenamiento;
-        $this->observaciones = $computador->observaciones;
-        $this->activo = $computador->activo;
-
-        // Extraemos solo los IDs de los puertos asociados a este computador para llenar los checkboxes
-        $this->puertos_seleccionados = $computador->puertos->pluck('id')->toArray();
+        $this->dispatch('abrir-modal', id: 'modalComputador');
     }
 
     public function guardar()
     {
+        abort_if(Gate::denies($this->computador_id ? 'editar-computadores' : 'crear-computadores'), 403);
+
+        // Validación base
         $this->validate([
-            'marca_id' => 'required|exists:marcas,id',
-            'tipo_dispositivo_id' => 'required|exists:tipo_dispositivos,id',
-            // Corregimos el nombre de la tabla en la validación
-            'sistema_operativo_id' => 'required|exists:sistemas_operativos,id',
-            'procesador_id' => 'required|exists:procesadores,id',
-            'bien_nacional' => 'nullable|unique:computadores,bien_nacional,' . $this->computador_id,
-            'serial' => 'nullable|unique:computadores,serial,' . $this->computador_id,
-            'memoria_ram' => 'required|numeric|min:1',
-            'tipo_memoria' => 'required|string',
-            'almacenamiento' => 'required|numeric|min:1',
-            'tipo_almacenamiento' => 'required|string',
-            'puertos_seleccionados' => 'array'
+            'bien_nacional' => 'nullable|string|unique:computadores,bien_nacional,' . $this->computador_id,
+            'serial' => 'nullable|string|unique:computadores,serial,' . $this->computador_id,
+            'ip' => 'nullable|ipv4',
+            'mac' => 'nullable|string|unique:computadores,mac,' . $this->computador_id,
+            'estado_fisico' => 'required|string',
+            'tipo_ram' => 'required|string',
         ]);
 
+        // Procesar Creación Rápida "On The Fly"
+        if ($this->creando_marca && !empty($this->nueva_marca)) {
+            $marca = Marca::firstOrCreate(['nombre' => $this->nueva_marca], ['activo' => true]);
+            $this->marca_id = $marca->id;
+        }
+        if ($this->creando_tipo && !empty($this->nuevo_tipo)) {
+            $tipo = TipoDispositivo::firstOrCreate(['nombre' => $this->nuevo_tipo], ['activo' => true]);
+            $this->tipo_dispositivo_id = $tipo->id;
+        }
+        if ($this->creando_so && !empty($this->nuevo_so)) {
+            $so = SistemaOperativo::firstOrCreate(['nombre' => $this->nuevo_so], ['activo' => true]);
+            $this->sistema_operativo_id = $so->id;
+        }
+        if ($this->creando_procesador && !empty($this->nuevo_procesador_modelo) && !empty($this->nuevo_procesador_marca_id)) {
+            $proc = Procesador::firstOrCreate([
+                'modelo' => $this->nuevo_procesador_modelo,
+                'marca_id' => $this->nuevo_procesador_marca_id
+            ], ['activo' => true]);
+            $this->procesador_id = $proc->id;
+        }
+
+        if ($this->creando_gpu && !empty($this->nueva_gpu_modelo) && !empty($this->nueva_gpu_marca_id)) {
+            $gpu = Gpu::firstOrCreate([
+                'modelo' => $this->nueva_gpu_modelo,
+                'marca_id' => $this->nueva_gpu_marca_id
+            ], ['activo' => true]);
+            $this->gpu_id = $gpu->id;
+        }
+
+
+        // 1. Guardar el Computador
         $computador = Computador::updateOrCreate(
             ['id' => $this->computador_id],
             [
                 'bien_nacional' => $this->bien_nacional,
                 'serial' => $this->serial,
-                'nombre_equipo' => $this->nombre_equipo,
                 'marca_id' => $this->marca_id,
                 'tipo_dispositivo_id' => $this->tipo_dispositivo_id,
-                // Mapeamos tu variable de Livewire al nombre de la columna en la BD
-                'sistemas_operativo_id' => $this->sistema_operativo_id, 
+                'sistema_operativo_id' => $this->sistema_operativo_id,
                 'procesador_id' => $this->procesador_id,
-                'gpu_id' => empty($this->gpu_id) ? null : $this->gpu_id,
-                'memoria_ram' => $this->memoria_ram,
-                'tipo_memoria' => strtoupper($this->tipo_memoria),
-                'almacenamiento' => $this->almacenamiento,
-                'tipo_almacenamiento' => strtoupper($this->tipo_almacenamiento),
+                'gpu_id' => $this->gpu_id ?: null,
+                'departamento_id' => $this->departamento_id ?: null,
+                'trabajador_id' => $this->trabajador_id ?: null,
+                'tipo_ram' => $this->tipo_ram,
+                'mac' => $this->mac,
+                'ip' => $this->ip,
+                'tipo_conexion' => $this->tipo_conexion ?: null,
+                'estado_fisico' => $this->estado_fisico,
                 'observaciones' => $this->observaciones,
-                'activo' => $this->activo,
+                'activo' => $this->activo ? 1 : 0
             ]
         );
 
+        // 2. Sincronizar Puertos (Tabla Pivote)
         $computador->puertos()->sync($this->puertos_seleccionados);
 
+        // 3. Procesar Discos
+        // Borramos los anteriores (SoftDeletes) y creamos los nuevos para mantener historial limpio
+        if($this->computador_id) { ComputadorDisco::where('computador_id', $computador->id)->delete(); }
+        foreach ($this->discos as $disco) {
+            if (!empty($disco['capacidad']) && !empty($disco['tipo'])) {
+                $computador->discos()->create([
+                    'capacidad' => $disco['capacidad'] . 'GB', // Forzamos el sufijo
+                    'tipo' => $disco['tipo']
+                ]);
+            }
+        }
+
+        // 4. Procesar RAMs
+        if($this->computador_id) { ComputadorRam::where('computador_id', $computador->id)->delete(); }
+        foreach ($this->rams as $index => $ram) {
+            if (!empty($ram['capacidad'])) {
+                $computador->rams()->create([
+                    'capacidad' => $ram['capacidad'] . 'GB',
+                    'slot' => $index + 1
+                ]);
+            }
+        }
+
+        $this->dispatch('cerrar-modal', id: 'modalComputador');
+        $this->dispatch('mostrar-toast', mensaje: $this->computador_id ? 'Computador actualizado.' : 'Computador registrado.');
         $this->resetCampos();
-        $this->dispatch('cerrar-modal'); 
-        $this->dispatch('toast', mensaje: 'Computador guardado exitosamente', tipo: 'success');
     }
 
-    public function toggleActivo($id)
+    public function editar($id)
     {
-        $computador = Computador::findOrFail($id);
-        $computador->activo = !$computador->activo;
-        $computador->save();
-        $this->dispatch('toast', mensaje: 'Estado actualizado', tipo: 'success');
+        abort_if(Gate::denies('editar-computadores'), 403);
+        $this->resetValidation();
+        $computador = Computador::with(['puertos', 'discos', 'rams'])->findOrFail($id);
+        
+        $this->computador_id = $computador->id;
+        $this->bien_nacional = $computador->bien_nacional;
+        $this->serial = $computador->serial;
+        $this->marca_id = $computador->marca_id;
+        $this->tipo_dispositivo_id = $computador->tipo_dispositivo_id;
+        $this->sistema_operativo_id = $computador->sistema_operativo_id;
+        $this->procesador_id = $computador->procesador_id;
+        $this->gpu_id = $computador->gpu_id;
+        $this->departamento_id = $computador->departamento_id;
+        $this->trabajador_id = $computador->trabajador_id;
+        $this->tipo_ram = $computador->tipo_ram;
+        $this->mac = $computador->mac;
+        $this->ip = $computador->ip;
+        $this->tipo_conexion = $computador->tipo_conexion;
+        $this->estado_fisico = $computador->estado_fisico;
+        $this->observaciones = $computador->observaciones;
+        $this->activo = (bool) $computador->activo; 
+
+        // Recuperar Puertos
+        $this->puertos_seleccionados = $computador->puertos->pluck('id')->toArray();
+
+        // Recuperar Discos (Limpiando el 'GB' para el input numérico)
+        $this->discos = [];
+        foreach($computador->discos as $disco) {
+            $this->discos[] = [
+                'capacidad' => str_replace('GB', '', $disco->capacidad),
+                'tipo' => $disco->tipo
+            ];
+        }
+        if(count($this->discos) === 0) $this->addDisco();
+
+        // Recuperar RAM
+        $this->rams = [];
+        foreach($computador->rams as $ram) {
+            $this->rams[] = [
+                'capacidad' => str_replace('GB', '', $ram->capacidad),
+                'slot' => $ram->slot
+            ];
+        }
+        if(count($this->rams) === 0) $this->addRam();
+        
+        $this->tituloModal = 'Editar Computador';
+        $this->dispatch('abrir-modal', id: 'modalComputador');
+    }
+
+    public function ver($id)
+    {
+        abort_if(Gate::denies('ver-computadores'), 403);
+        $this->computador_detalle = Computador::with(['marca', 'tipoDispositivo', 'sistemaOperativo', 'procesador', 'gpu', 'trabajador', 'discos', 'rams', 'puertos'])->findOrFail($id);
+        $this->dispatch('abrir-modal', id: 'modalDetalle');
     }
 
     public function eliminar($id)
     {
-        $computador = Computador::findOrFail($id);
-        
-        // Eliminación Segura: Aquí verificaremos si el computador está asignado a un trabajador (Próximo módulo)
-        // if ($computador->asignaciones()->exists()) {
-        //     $this->dispatch('toast', mensaje: 'No se puede eliminar: El equipo está asignado a un trabajador.', tipo: 'error');
-        //     return;
-        // }
-
-        $computador->delete();
-        $this->dispatch('toast', mensaje: 'Computador eliminado (SoftDelete)', tipo: 'success');
-    }
-
-    // --- MÉTODOS DE CREACIÓN RÁPIDA ---
-    
-    public function guardarMarcaRapida() {
-        $this->validate(['nueva_marca' => 'required|unique:marcas,nombre|min:2']);
-        $obj = Marca::create(['nombre' => $this->nueva_marca, 'activo' => true]);
-        $this->marca_id = $obj->id;
-        $this->creando_marca = false; $this->nueva_marca = '';
-        $this->dispatch('toast', mensaje: 'Marca añadida', tipo: 'success');
-    }
-
-    public function guardarTipoRapido() {
-        $this->validate(['nuevo_tipo' => 'required|unique:tipo_dispositivos,nombre|min:2']);
-        $obj = TipoDispositivo::create(['nombre' => $this->nuevo_tipo, 'activo' => true]);
-        $this->tipo_dispositivo_id = $obj->id;
-        $this->creando_tipo = false; $this->nuevo_tipo = '';
-        $this->dispatch('toast', mensaje: 'Tipo añadido', tipo: 'success');
-    }
-
-    public function guardarSORapido() {
-        $this->validate(['nuevo_so' => 'required|unique:sistema_operativos,nombre|min:2']);
-        $obj = SistemaOperativo::create(['nombre' => $this->nuevo_so, 'activo' => true]);
-        $this->sistema_operativo_id = $obj->id;
-        $this->creando_so = false; $this->nuevo_so = '';
-        $this->dispatch('toast', mensaje: 'Sistema Operativo añadido', tipo: 'success');
-    }
-
-
-
-    // --- MÉTODOS ---
-
-    public function guardarProcesadorRapido()
-    {
-        // 1. Relajamos la validación: Solo marca y modelo son obligatorios
-        $this->validate([
-            'proc_marca_id' => 'required|exists:marcas,id',
-            'proc_modelo' => 'required|string',
-            'proc_nucleos' => 'nullable|numeric|min:1',
-            'proc_hilos' => 'nullable|numeric|min:1',
-            'proc_frecuencia_base' => 'nullable|numeric|min:1',
-            'proc_frecuencia_maxima' => 'nullable|numeric|min:1',
-        ]);
-
-        // 2. Guardamos. Los valores vacíos se irán como NULL a la base de datos
-        $proc = Procesador::create([
-            'marca_id' => $this->proc_marca_id,
-            'modelo' => $this->proc_modelo,
-            'generacion' => $this->proc_generacion,
-            'nucleos' => $this->proc_nucleos,
-            'hilos' => $this->proc_hilos,
-            'frecuencia_base' => $this->proc_frecuencia_base,
-            'frecuencia_maxima' => $this->proc_frecuencia_maxima,
-            'activo' => true
-        ]);
-
-        $this->procesador_id = $proc->id;
-        $this->reset(['proc_marca_id', 'proc_modelo', 'proc_generacion', 'proc_nucleos', 'proc_hilos', 'proc_frecuencia_base', 'proc_frecuencia_maxima']);
-        
-        $this->dispatch('cerrar-modal', id: 'modalProcesadorRapido');
-        $this->dispatch('abrir-modal', id: 'modalComputador');
-        $this->dispatch('toast', mensaje: 'Procesador añadido exitosamente', tipo: 'success');
-    }
-
-    public function guardarGpuRapida()
-    {
-        // 1. Relajamos la validación: Solo marca y modelo son obligatorios
-        $this->validate([
-            'gr_marca_id' => 'required|exists:marcas,id',
-            'gr_modelo' => 'required|string',
-            'gr_memoria' => 'nullable|numeric|min:1',
-            'gr_tipo_memoria' => 'nullable|string',
-            'gr_frecuencia' => 'nullable|numeric|min:1',
-            'gr_bus' => 'nullable|numeric|min:1',
-            'gr_puertos_seleccionados' => 'array', // Validamos el array de puertos
-        ]);
-
-        // 2. Guardamos. Validamos el strtoupper para que no falle si el campo viene vacío (null)
-        $gpu = Gpu::create([
-            'marca_id' => $this->gr_marca_id,
-            'modelo' => $this->gr_modelo,
-            'memoria' => $this->gr_memoria,
-            'tipo_memoria' => $this->gr_tipo_memoria ? strtoupper($this->gr_tipo_memoria) : null,
-            'frecuencia' => $this->gr_frecuencia,
-            'bus' => $this->gr_bus,
-            'activo' => true
-        ]);
-
-        // 3. Sincronizamos la tabla pivote de la GPU
-        if (!empty($this->gr_puertos_seleccionados)) {
-            $gpu->puertos()->sync($this->gr_puertos_seleccionados);
-        }
-
-        $this->gpu_id = $gpu->id;
-        
-        // Limpiamos las variables incluyendo los puertos
-        $this->reset(['gr_marca_id', 'gr_modelo', 'gr_memoria', 'gr_tipo_memoria', 'gr_frecuencia', 'gr_bus', 'gr_puertos_seleccionados']);
-        
-        $this->dispatch('cerrar-modal', id: 'modalGpuRapida');
-        $this->dispatch('abrir-modal', id: 'modalComputador');
-        $this->dispatch('toast', mensaje: 'Tarjeta de Video añadida exitosamente', tipo: 'success');
+        abort_if(Gate::denies('eliminar-computadores'), 403);
+        Computador::findOrFail($id)->delete(); // Hará SoftDelete en cascada si está configurado en DB, o individual.
+        $this->dispatch('mostrar-toast', mensaje: 'Computador eliminado (Baja).');
     }
 
     public function resetCampos()
     {
         $this->reset([
-            'computador_id', 'bien_nacional', 'serial', 'nombre_equipo', 
-            'marca_id', 'tipo_dispositivo_id', 'sistema_operativo_id', 'procesador_id', 'gpu_id', 
-            'memoria_ram', 'tipo_memoria', 'almacenamiento', 'tipo_almacenamiento', 'observaciones',
-            'computador_detalle', 'puertos_seleccionados',
-            'creando_marca', 'nueva_marca', 'creando_tipo', 'nuevo_tipo', 'creando_so', 'nuevo_so'
+            'computador_id', 'bien_nacional', 'serial', 'marca_id', 'tipo_dispositivo_id', 
+            'sistema_operativo_id', 'procesador_id', 'gpu_id', 'departamento_id', 'trabajador_id', 'tipo_ram', 
+            'mac', 'ip', 'tipo_conexion', 'estado_fisico', 'observaciones', 'computador_detalle',
+            'nueva_marca', 'nuevo_tipo', 'nuevo_so'
         ]);
+        
+        $this->creando_marca = false;
+        $this->creando_tipo = false;
+        $this->creando_so = false;
+        $this->creando_procesador = false;
+        $this->creando_gpu = false;
+        $this->creando_trabajador = false;
         $this->activo = true;
+        
+        $this->discos = [];
+        $this->rams = [];
+        $this->addDisco();
+        $this->addRam();
+        
+        $this->puertos_seleccionados = [];
         $this->resetValidation();
+    }
+
+    // --- MÉTODOS PARA EL MODAL DE TRABAJADOR ---
+
+    public function abrirModalTrabajador()
+    {
+        // Ocultamos el modal principal y abrimos el secundario
+        $this->dispatch('cerrar-modal', id: 'modalComputador');
+        $this->dispatch('abrir-modal', id: 'modalTrabajador');
+    }
+
+    public function cancelarModalTrabajador()
+    {
+        $this->reset([
+            'nuevo_trab_nombres', 
+            'nuevo_trab_apellidos', 
+            'nuevo_trab_cedula', 
+            'nuevo_trab_departamento_id'
+        ]);
+        
+        $this->dispatch('cerrar-modal', id: 'modalTrabajador');
+        $this->dispatch('abrir-modal', id: 'modalComputador');
+    }
+
+    public function guardarTrabajadorRapido()
+    {
+        $this->validate([
+            'nuevo_trab_nombres' => 'required|string|max:255',
+            'nuevo_trab_apellidos' => 'required|string|max:255',
+            'nuevo_trab_cedula' => 'nullable|string|unique:trabajadores,cedula', // Ya no es required
+            'nuevo_trab_departamento_id' => 'required|exists:departamentos,id',
+        ]);
+
+        // Al crear el trabajador, el Observer se dispara automáticamente y crea el usuario
+        $trab = Trabajador::create([
+            'nombres' => $this->nuevo_trab_nombres,
+            'apellidos' => $this->nuevo_trab_apellidos,
+            'cedula' => $this->nuevo_trab_cedula,
+            'departamento_id' => $this->nuevo_trab_departamento_id,
+            'activo' => true
+        ]);
+
+        $this->trabajador_id = $trab->id;
+
+        $this->reset(['nuevo_trab_nombres', 'nuevo_trab_apellidos', 'nuevo_trab_cedula', 'nuevo_trab_departamento_id']);
+        $this->dispatch('cerrar-modal', id: 'modalTrabajador');
+        $this->dispatch('abrir-modal', id: 'modalComputador');
+        $this->dispatch('mostrar-toast', mensaje: 'Trabajador y cuenta de usuario creados.');
     }
 }

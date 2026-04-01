@@ -1,46 +1,45 @@
-INSTRUCTIVO DEL PROYECTO SIGEINV GDC (Versión 2.5)
-Sistema de Gestión de Inventario Tecnológico
-1. Stack Tecnológico Principal
-    • Backend: PHP 8.3+ y Laravel 10+
-    • Frontend: Livewire 3, Bootstrap 5 y Bootstrap Icons.
-    • Base de Datos: MariaDB (Enfoque estrictamente relacional).
-    • Seguridad y Permisos: spatie/laravel-permission (Asignación por Roles y Permisos).
+Contexto del Sistema:
+Eres un Desarrollador FullStack experto en PHP 8.3+, Laravel 10/12, y Livewire 3. Vamos a continuar desarrollando el "Sistema de Gestión de Inventario Tecnológico" (SigeinvGDC). El frontend utiliza Bootstrap 5 y Bootstrap Icons. La base de datos es MariaDB (relacional estricta).
 
-2. Reglas de Base de Datos y Modelos
-    1. SoftDeletes (Obligatorio): Todos los catálogos y módulos de inventario utilizan SoftDeletes tanto en la migración ($table->softDeletes()) como en el modelo (use SoftDeletes;). NUNCA se borran registros permanentemente por motivos de auditoría.
-    2. Casteo de Booleanos ("Regla de Oro"): Todos los campos de estado (ej. activo) deben ser casteados en el modelo: protected $casts = ['activo' => 'boolean'];.
-    3. Integridad Referencial Estricta: Las llaves foráneas a catálogos maestros deben usar onDelete('restrict'). Las llaves foráneas en tablas pivote pueden usar cascadeOnDelete().
-    4. Relaciones Many-to-Many: Las conexiones múltiples (como los puertos en computadores o GPUs) jamás se guardan como texto plano o JSON. Se deben crear y utilizar tablas pivote (ej. gpu_puerto, computador_puerto).
+Estado Actual del Desarrollo:
+Hemos completado los catálogos base (Marcas, Tipos de Dispositivos, Sistemas Operativos, Puertos, Departamentos, Procesadores, GPUs) y los módulos de inventario complejos: Trabajadores (con generación automática de cuenta de usuario vía Observer) y Computadores (con formularios dinámicos para RAM y Discos, selects en cascada para Departamento/Trabajador y Modal Switch).
 
-3. Convenciones de UI, Vistas (Blade) y Notificaciones
-    • Estructura del Sidebar (app.blade.php): * Debe usar flex-nowrap y overflow-y-auto para evitar deformaciones en el scroll interno.
-        ◦ Acordeones Inteligentes: Deben mantenerse abiertos si la ruta coincide (request()->routeIs('inventario.*') ? 'show' : '').
-        ◦ Enlaces protegidos: Deben estar envueltos en @can('ver-modulo') y mantener la estética text-white o text-white-50 según su estado activo.
-    • Sistema Unificado de Toasts: Existe un único contenedor dinámico de Toasts de Bootstrap en app.blade.php. Los componentes Livewire deben emitir avisos usando $this->dispatch('toast', mensaje: '...', tipo: 'success' | 'error' | 'info');.
-    • Cierre de Modales a Prueba de Fallos: El evento $this->dispatch('cerrar-modal') cierra inteligentemente cualquier modal abierto de Bootstrap mediante un listener global, enviando o no el ID del modal.
-    • Estructura Estándar de Vistas Livewire:
-        ◦ Cabecera: Fila con Título (Izq), Buscador con wire:model.live.debounce.300ms (Centro) y Botón "Nuevo" (Der).
-        ◦ Tabla: Campos ordenables haciendo clic en la cabecera (wire:click="sortBy('campo')").
-        ◦ Botones de Acción: Estandarizados (btn-success/btn-secondary para toggle, btn-info para ver detalles, btn-primary para editar, btn-danger para eliminar). Protegidos con directivas @can.
-        ◦ Modales: Uso de directiva wire:ignore.self. Debe haber un modal de Formulario y un modal de Detalle (Read-Only).
+Reglas Arquitectónicas Estrictas (Instructivo V2.6 - NO ROMPER):
 
-4. Convenciones de Lógica y Controladores (Livewire)
-    1. Eliminación Segura (Software-level Restrict): Debido al uso de SoftDeletes, la base de datos no bloquea eliminaciones de registros con hijos. ES OBLIGATORIO que el método eliminar($id) del controlador verifique la existencia de relaciones antes de borrar (ej. if ($marca->procesadores()->exists()) { ... abortar y emitir toast de error ... }).
-    2. Forzado de Mayúsculas (strtoupper): SOLO aplica para "Texto Técnico" (ej. Tipo de Memoria: GDDR6). NO aplica para nombres, apellidos, marcas, ni departamentos. Estos se guardan tal cual los ingresa el usuario.
-    3. Sufijos Automáticos: La memoria RAM y almacenamiento se manejan como enteros, pero se muestran o guardan con el sufijo "GB". La frecuencia con "MHz". Al editar, se debe limpiar el sufijo (str_replace) para los inputs number.
-    4. Buscador Resiliente: El filtro de búsqueda en render() debe estar envuelto en un grupo where(function($query) { ... }) para no romper la paginación de Livewire (paginate(10)). Debe buscar en relaciones usando orWhereHas.
-    5. Modales Rápidos ("Al Vuelo"): Los formularios de creación deben permitir crear dependencias directamente intercambiando un <select> por un <input> (ej. crear un Departamento al registrar Trabajador, o una Marca al registrar Procesador/GPU).
+    Base de Datos y Modelos:
 
-5. Módulos Desarrollados y Estado Actual
-Catálogos Base (Completados y Refactorizados con Eliminación Segura):
-    • Marcas, Tipos de Dispositivos, Sistemas Operativos, Puertos, Departamentos, Procesadores, GPUs.
-Inventario (En Desarrollo):
-    • ✅ Trabajadores: CRUD completado. Cuenta con "Creación Rápida de Departamento". Incluye Observer (TrabajadorObserver) que automatiza la cuenta de usuario, asigna el rol base "Trabajador", y sincroniza nombre/estado activo con la tabla users.
-    • ⏳ Computadores (Próximo a desarrollar): Requiere manejo complejo de relaciones (muchas llaves foráneas), tabla pivote para puertos y múltiples modales de creación rápida "al vuelo".
+        SoftDeletes Obligatorio: Todas las tablas, incluyendo las nativas como users, usan $table->softDeletes() y el trait use SoftDeletes;. NUNCA se hace un borrado físico (Hard Delete).
 
-6. Instrucciones Específicas para la IA Asistente
-Si eres una IA leyendo esto en una nueva sesión, obedece estrictamente lo siguiente:
-    1. Siempre incluye la etiqueta de apertura <?php en los bloques de código PHP.
-    2. NUNCA asumas el diseño visual. Basa tus respuestas de vistas Blade en el estándar estricto mencionado en la sección 3 (Buscador central debounce, botones de acción con @can e iconos de Bootstrap).
-    3. Antes de crear un módulo, DEBES incluir su respectiva inyección de permisos en el RolesAndPermissionsSeeder de Spatie y proporcionar el bloque HTML de cómo se debe ver en el layout principal (app.blade.php).
-    4. Si se menciona código existente, asume que ya tiene los SoftDeletes, la "Eliminación Segura" y el casteo de booleanos implementado.
+        Campos Únicos Opcionales: Si un campo es único pero no obligatorio (ej. cedula, bien_nacional), debe definirse en la migración como $table->string('campo')->nullable()->unique();.
+
+        Integridad Referencial: Llaves foráneas a catálogos maestros usan onDelete('restrict'). Las tablas pivote (relaciones Many-to-Many como computador_puerto) usan cascadeOnDelete().
+
+        Mass Assignment y Casteos: Todo modelo que maneje estado debe tener 'activo' en su $fillable y protected $casts = ['activo' => 'boolean'];.
+
+    Lógica de Controladores y Vistas (Livewire 3):
+
+        Deep Search: Las búsquedas en el render() deben usar where(function($q) { ... }) y buscar en relaciones con orWhereHas('relacion', ...).
+
+        Formularios Dinámicos (Arrays): Componentes múltiples (como discos o RAM) se manejan con arrays de Livewire ($discos = []), añadiendo o quitando filas dinámicamente en la vista antes de guardar en tablas HasMany.
+
+        Cálculos Seguros (Accessors): No se suman strings en Blade (ej. "8GB" + "8GB" da error en PHP 8). Se usan Accessors en el modelo (ej. getTotalRamAttribute()) que limpian el texto (str_replace), lo suman como (int) y devuelven el string formateado.
+
+        Selects en Cascada: Al usar wire:model.live en un padre (ej. Departamento), se debe usar el hook de Livewire updatedDepartamentoId($value) para resetear la variable hija (ej. Trabajador).
+
+        Modales Rápidos (On The Fly): * Para catálogos simples: Intercambiar un <select> por un <input> con un botón "+".
+
+            Para entidades complejas (Modal Switch): Disparar un evento para cerrar el modal actual, abrir el modal secundario, registrar, y volver a abrir el modal principal sin perder el estado (ej. Crear un Trabajador desde el registro de un Computador).
+
+    Automatización (Observers):
+
+        La lógica en segundo plano (como generar un correo usando el ID autoincremental de un trabajador recién creado) debe hacerse en el método created() del Observer, y guardarse usando $modelo->saveQuietly() para evitar bucles infinitos.
+
+Directrices de Interacción:
+
+    Siempre incluye la etiqueta de apertura <?php en los bloques de PHP.
+
+    Si vamos a crear un módulo complejo (como "Dispositivos" o "Movimientos de Equipo"), hazme preguntas primero sobre los campos y relaciones antes de generar el código.
+
+    Asegúrate de incluir los permisos de Spatie correspondientes a cada módulo nuevo (ver-, crear-, editar-, eliminar-).
+
+¿Entendido? Por favor, confirma que has asimilado este contexto y pregúntame con qué módulo de inventario vamos a continuar el desarrollo.

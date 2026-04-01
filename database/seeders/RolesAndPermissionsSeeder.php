@@ -39,6 +39,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'ver-trabajadores', 'crear-trabajadores', 'editar-trabajadores', 'eliminar-trabajadores',
             // Computadores
             'ver-computadores', 'crear-computadores', 'editar-computadores', 'eliminar-computadores',
+            
         ];
 
         foreach ($permisos as $permiso) {

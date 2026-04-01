@@ -4,58 +4,45 @@ namespace App\Observers;
 
 use App\Models\Trabajador;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role;
+use Illuminate\Support\Str;
 
 class TrabajadorObserver
 {
-    /**
-     * Se dispara cuando un Trabajador ha sido creado.
-     */
-    public function created(Trabajador $trabajador): void
+    public function created(Trabajador $trabajador)
     {
+        // 1. Limpiamos nombres y apellidos (quitar espacios y a minúsculas)
+        $nombres = Str::slug($trabajador->nombres, '');
+        $apellidos = Str::slug($trabajador->apellidos, '');
+        
+        // 2. Obtenemos el dominio del .env
+        $dominio = env('DOMINIO_ORGANIZACION', '@organizacion.com');
+
+        // 3. Generamos el correo: nombres + apellidos + # + id + dominio
+        $emailGenerado = $nombres . $apellidos . '#' . $trabajador->id . $dominio;
+
+        // 4. Creamos el usuario vinculado
         $user = User::create([
-            'name' => $trabajador->nombres . ' ' . $trabajador->apellidos,
-            'email' => $trabajador->cedula . '@sistema.local', 
-            'password' => Hash::make($trabajador->cedula),
-            'activo' => $trabajador->activo, // Guardamos el estado inicial
+            'name'     => $trabajador->nombres . ' ' . $trabajador->apellidos,
+            'email'    => $emailGenerado,
+            'password' => bcrypt('12345678'), // Contraseña por defecto inicial
+            'activo'   => true, 
         ]);
 
-        // Buscamos y asignamos el rol "Trabajador"
-        $role = Role::where('name', 'Trabajador')->first();
-        if ($role) {
-            $user->assignRole($role);
-        }
+        // 5. Asignamos el rol base (ajusta el nombre del rol según tu seeder)
+        $user->assignRole('Trabajador');
+
+        // 6. Vinculamos el usuario al trabajador y guardamos sin disparar el observer de nuevo
+        $trabajador->user_id = $user->id;
+        $trabajador->saveQuietly();
     }
 
-    /**
-     * Se dispara cuando un Trabajador ha sido actualizado.
-     */
-    public function updated(Trabajador $trabajador): void
+    public function updated(Trabajador $trabajador)
     {
-        $user = User::where('email', $trabajador->cedula . '@sistema.local')->first();
-
-        if ($user) {
-            if ($trabajador->isDirty(['nombres', 'apellidos'])) {
-                $user->name = $trabajador->nombres . ' ' . $trabajador->apellidos;
-            }
-
-            if ($trabajador->isDirty('activo')) {
-                $user->activo = $trabajador->activo; 
-            }
-
-            $user->save();
-        }
-    }
-
-    /**
-     * Se dispara si eliminas permanentemente a un trabajador
-     */
-    public function deleted(Trabajador $trabajador): void
-    {
-        $user = User::where('email', $trabajador->cedula . '@sistema.local')->first();
-        if ($user) {
-            $user->delete();
+        // Si cambia el estado activo del trabajador, sincronizamos con el usuario
+        if ($trabajador->user) {
+            $trabajador->user->update([
+                'active' => $trabajador->activo
+            ]);
         }
     }
 }

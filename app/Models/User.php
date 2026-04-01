@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes; // 1. Importar SoftDeletes
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles; // <-- Agregar HasRoles
+    use HasApiTokens, HasFactory, SoftDeletes, Notifiable, HasRoles; // <-- Agregar HasRoles
 
     protected $fillable = [
         'name',
