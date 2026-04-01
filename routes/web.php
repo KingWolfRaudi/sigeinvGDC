@@ -14,6 +14,7 @@ use App\Livewire\Catalogos\Departamentos;
 use App\Livewire\Catalogos\Procesadores;
 use App\Livewire\Catalogos\Gpus;
 use App\Livewire\Inventario\Trabajadores;
+use App\Livewire\Inventario\Computadores;
 
 // Ruta para invitados (Login)
 Route::middleware('guest')->group(function () {
@@ -36,8 +37,19 @@ Route::middleware('auth')->group(function () {
     Route::get('/catalogos/procesadores', Procesadores::class)->name('catalogos.procesadores');
     Route::get('/catalogos/gpus', Gpus::class)->name('catalogos.gpus');
     // Inventarios
+    // Módulos de Inventario
+    Route::prefix('inventario')->name('inventario.')->group(function () {
+        
+        // Ruta que ya arreglaste para Trabajadores
+        Route::get('/trabajadores', Trabajadores::class)->name('trabajadores');
+        
+        // NUEVA: Ruta para el módulo de Computadores
+        Route::get('/computadores', Computadores::class)->name('computadores');
+        
+        // Aquí irán las futuras rutas (dispositivos, consumibles, etc.)
+    });
     //Route::get('/trabajadores', \App\Livewire\Inventario\Trabajadores::class);
-    Route::get('/inventario/trabajadores', Trabajadores::class)->name('inventario.trabajadores');
+    //Route::get('/inventario/trabajadores', Trabajadores::class)->name('inventario.trabajadores');
 
     // Ruta simple para cerrar sesión
     Route::post('/logout', function () {

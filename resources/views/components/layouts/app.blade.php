@@ -137,11 +137,13 @@
                                 </a>
                             </li>
                             @endcan
+                            @can('ver-computadores')
                             <li class="nav-item">
-                                <a href="#" class="nav-link text-white-50 px-3 py-1 text-sm d-flex align-items-center">
-                                    <i class="bi bi-laptop me-2"></i> Computadores
+                                <a href="{{ route('inventario.computadores') }}" class="nav-link {{ request()->routeIs('inventario.computadores') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-pc-display me-2"></i> Computadores
                                 </a>
                             </li>
+                            @endcan
                             <li class="nav-item">
                                 <a href="#" class="nav-link text-white-50 px-3 py-1 text-sm d-flex align-items-center">
                                     <i class="bi bi-router me-2"></i> Dispositivos
@@ -220,7 +222,7 @@
         </div>
     </div>
     @endauth
-    
+
     <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055;">
         <div id="liveToast" class="toast align-items-center text-white border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
