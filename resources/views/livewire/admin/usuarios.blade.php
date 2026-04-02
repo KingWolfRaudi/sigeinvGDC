@@ -8,17 +8,48 @@
         @endcan
     </div>
 
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <input type="text" class="form-control" placeholder="Buscar por nombre, usuario o correo..." wire:model.live="search">
+        </div>
+        @can('ver-estado-usuarios')
+            <div class="col-md-3">
+                <select class="form-select" wire:model.live="filtro_estado">
+                    <option value="todos">Todos los Estados</option>
+                    <option value="activos">Solo Activos</option>
+                    <option value="inactivos">Solo Inactivos</option>
+                </select>
+            </div>
+        @endcan
+    </div>
+
     <div class="card shadow-sm border-0">
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Usuario / Correo</th>
+                            <th wire:click="sortBy('id')" style="cursor: pointer;">
+                                ID 
+                                @if($sortField === 'id') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            </th>
+                            <th wire:click="sortBy('name')" style="cursor: pointer;">
+                                Nombre 
+                                @if($sortField === 'name') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            </th>
+                            <th wire:click="sortBy('username')" style="cursor: pointer;">
+                                Usuario / Correo 
+                                @if($sortField === 'username') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            </th>
+                            
                             <th>Roles</th>
-                            <th>Estado</th>
+                            
+                            @can('ver-estado-usuarios')
+                            <th wire:click="sortBy('activo')" style="cursor: pointer;">
+                                Estado
+                                @if($sortField === 'activo') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            </th>
+                            @endcan
                             <th class="text-end">Acciones</th>
                         </tr>
                     </thead>
@@ -37,18 +68,28 @@
                                     <div class="text-muted small">{{ $user->email }}</div>
                                 </td>
                                 <td>
-                                    @foreach($user->roles as $rol)
+                                    @forelse($user->roles as $rol)
                                         <span class="badge bg-dark">{{ $rol->name }}</span>
-                                    @endforeach
+                                    @empty
+                                        <span class="text-muted small">Sin rol</span>
+                                    @endforelse
                                 </td>
-                                <td>
-                                    @if($user->activo)
-                                        <span class="badge bg-success">Activo</span>
-                                    @else
-                                        <span class="badge bg-danger">Inactivo</span>
-                                    @endif
-                                </td>
+                                @can('ver-estado-usuarios')
+                                    <td>
+                                        @if($user->activo)
+                                            <span class="badge bg-success">Activo</span>
+                                        @else
+                                            <span class="badge bg-danger">Inactivo</span>
+                                        @endif
+                                    </td>
+                                @endcan
                                 <td class="text-end">
+                                    @can('ver-usuarios')
+                                        <button wire:click="ver({{ $user->id }})" class="btn btn-sm btn-info text-white" title="Ver Detalles">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    @endcan
+
                                     @can('cambiar-estatus-usuarios')
                                         <button wire:click="toggleActivo({{ $user->id }})" class="btn btn-sm {{ $user->activo ? 'btn-success' : 'btn-secondary' }} text-white" title="Alternar Estado" {{ Auth::id() == $user->id ? 'disabled' : '' }}>
                                             <i class="bi {{ $user->activo ? 'bi-toggle-on' : 'bi-toggle-off' }}"></i>
@@ -70,7 +111,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-4">No hay usuarios registrados.</td>
+                                <td colspan="6" class="text-center text-muted py-4">No hay usuarios registrados que coincidan con la búsqueda.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -83,7 +124,8 @@
     </div>
 
     <div wire:ignore.self class="modal fade" id="modalUsuario" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg"> <div class="modal-content">
+        <div class="modal-dialog modal-lg"> 
+            <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">{{ $tituloModal }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetCampos"></button>
@@ -118,10 +160,12 @@
                                     @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
 
-                                <div class="form-check form-switch mt-3">
-                                    <input class="form-check-input" type="checkbox" id="activo" wire:model="activo" {{ Auth::id() == $user_id ? 'disabled' : '' }}>
-                                    <label class="form-check-label" for="activo">Usuario Activo en el sistema</label>
-                                </div>
+                                @can('cambiar-estatus-usuarios')
+                                    <div class="form-check form-switch mt-3">
+                                        <input class="form-check-input" type="checkbox" id="activo" wire:model="activo" {{ Auth::id() == $user_id ? 'disabled' : '' }}>
+                                        <label class="form-check-label" for="activo">Usuario Activo en el sistema</label>
+                                    </div>
+                                @endcan
                             </div>
 
                             <div class="col-md-6 pl-3">
@@ -139,7 +183,7 @@
                                             </label>
                                         </div>
                                     @empty
-                                        <div class="text-muted small">No hay roles creados.</div>
+                                        <div class="text-muted small">No hay roles disponibles.</div>
                                     @endforelse
                                 </div>
                             </div>
@@ -153,6 +197,55 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <div wire:ignore.self class="modal fade" id="modalDetalleUsuario" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-info">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title"><i class="bi bi-person-vcard me-2"></i>Detalles del Usuario</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" wire:click="resetCampos"></button>
+                </div>
+                <div class="modal-body">
+                    @if($usuario_detalle)
+                        <ul class="list-group list-group-flush">
+                            @can('ver-estado-usuarios')
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <strong>Estado:</strong>
+                                    @if($usuario_detalle->activo)
+                                        <span class="badge bg-success">Activo</span>
+                                    @else
+                                        <span class="badge bg-danger">Inactivo</span>
+                                    @endif
+                                </li>
+                            @endcan
+                            
+                            <li class="list-group-item">
+                                <strong>Nombre:</strong> {{ $usuario_detalle->name }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Username:</strong> {{ $usuario_detalle->username }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Correo Electrónico:</strong> {{ $usuario_detalle->email }}
+                            </li>
+                            
+                            <li class="list-group-item bg-light">
+                                <strong><i class="bi bi-shield-lock me-1"></i> Roles Asignados:</strong><br>
+                                @forelse($usuario_detalle->roles as $rol)
+                                    <span class="badge bg-dark mt-1">{{ str_replace('-', ' ', $rol->name) }}</span>
+                                @empty
+                                    <span class="text-muted fst-italic small">No tiene roles asignados</span>
+                                @endforelse
+                            </li>
+                        </ul>
+                    @endif
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="resetCampos">Cerrar</button>
+                </div>
             </div>
         </div>
     </div>

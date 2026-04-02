@@ -20,6 +20,15 @@
 
     <div class="card shadow-sm border-0">
         <div class="card-body">
+            @can('ver-estado-trabajadores')
+                <div class="col-md-3">
+                    <select class="form-select" wire:model.live="filtro_estado">
+                        <option value="todos">Todos los Estados</option>
+                        <option value="activos">Solo Activos</option>
+                        <option value="inactivos">Solo Inactivos</option>
+                    </select>
+                </div>
+            @endcan
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
@@ -37,10 +46,12 @@
                                 @if($sortField === 'cargo') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
                             </th>
                             <th>Departamento</th>
+                            @can('ver-estado-trabajadores')
                             <th wire:click="sortBy('activo')" style="cursor: pointer;">
                                 Estado
                                 @if($sortField === 'activo') <i class="bi bi-sort-down ms-1"></i> @endif
                             </th>
+                            @endcan
                             <th class="text-end">Acciones</th>
                         </tr>
                     </thead>
@@ -60,7 +71,7 @@
                                 </td>
                                 <td class="text-end">
                                     
-                                    @can('editar-trabajadores')
+                                    @can('ver-estado-trabajadores')
                                         <button wire:click="toggleActivo({{ $trabajador->id }})" class="btn btn-sm {{ $trabajador->activo ? 'btn-success' : 'btn-secondary' }} text-white" title="Alternar Estado">
                                             <i class="bi {{ $trabajador->activo ? 'bi-toggle-on' : 'bi-toggle-off' }}"></i>
                                         </button>

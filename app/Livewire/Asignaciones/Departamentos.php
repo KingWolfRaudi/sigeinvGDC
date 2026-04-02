@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Catalogos;
+namespace App\Livewire\Asignaciones;
 
 use Livewire\Component;
 use App\Models\Departamento;
@@ -19,6 +19,7 @@ class Departamentos extends Component
     public $search = '';
     public $sortField = 'id';
     public $sortAsc = false;
+    public $filtro_estado = 'todos';
 
     public function updatingSearch()
     {
@@ -37,11 +38,27 @@ class Departamentos extends Component
 
     public function render()
     {
-        $departamentos = Departamento::where('nombre', 'like', '%' . $this->search . '%')
-                       ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
-                       ->paginate(10);
+        // 1. Iniciamos la consulta base
+        $query = Departamento::query();
+
+        // 2. LÓGICA DE ESTADOS Y VISIBILIDAD (Data Scoping)
+        if (\Illuminate\Support\Facades\Gate::allows('ver-estado-departamentos')) {
+            if ($this->filtro_estado === 'activos') {
+                $query->where('activo', true);
+            } elseif ($this->filtro_estado === 'inactivos') {
+                $query->where('activo', false);
+            }
+        } else {
+            // Usuario sin permisos solo ve activos
+            $query->where('activo', true);
+        }
+
+        // 3. Búsqueda y Paginación
+        $departamentos = $query->where('nombre', 'like', '%' . $this->search . '%')
+                               ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
+                               ->paginate(10);
                        
-        return view('livewire.catalogos.departamentos', compact('departamentos'));
+        return view('livewire.asignaciones.departamentos', compact('departamentos'));
     }
 
     public function crear()

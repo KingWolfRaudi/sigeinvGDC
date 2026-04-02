@@ -15,22 +15,90 @@ class Usuarios extends Component
     use WithPagination;
     protected $paginationTheme = 'bootstrap';
 
+    // Variables de búsqueda y filtros
+    public $search = '';
+    public $sortField = 'id';
+    public $sortAsc = false;
+    public $filtro_estado = 'todos';
+
+    // Variables del formulario
     public $user_id, $name, $username, $email, $password;
     public bool $activo = true;
-    public $roles_seleccionados = []; // Arreglo para los roles
+    public $roles_seleccionados = []; 
     public $tituloModal = 'Nuevo Usuario';
+    
+    // Variable para el modal de detalle
+    public $usuario_detalle;
+
+    // Resetear paginación al buscar
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    // Método para ordenar columnas
+    public function sortBy($field)
+    {
+        if ($this->sortField === $field) {
+            $this->sortAsc = !$this->sortAsc;
+        } else {
+            $this->sortAsc = true;
+            $this->sortField = $field;
+        }
+    }
 
     public function render()
     {
-        $usuarios = User::orderBy('id', 'desc')->paginate(10);
-        $roles = Role::orderBy('name', 'asc')->get();
+        // 1. Iniciamos la consulta excluyendo al super-admin
+        $query = User::with('roles')->whereDoesntHave('roles', function ($q) {
+            $q->where('name', 'super-admin');
+        });
+
+        // 2. Lógica de Estados y Visibilidad
+        if (Gate::allows('ver-estado-usuarios')) {
+            if ($this->filtro_estado === 'activos') {
+                $query->where('activo', true);
+            } elseif ($this->filtro_estado === 'inactivos') {
+                $query->where('activo', false);
+            }
+        } else {
+            // Sin permiso, solo ve activos
+            $query->where('activo', true);
+        }
+
+        // 3. Búsqueda
+        $query->where(function ($q) {
+            $q->where('name', 'like', '%' . $this->search . '%')
+              ->orWhere('username', 'like', '%' . $this->search . '%')
+              ->orWhere('email', 'like', '%' . $this->search . '%');
+        });
+
+        $usuarios = $query->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
+                          ->paginate(10);
+        
+        // 4. Cargamos roles excluyendo el super-admin para que no pueda ser asignado
+        $roles = Role::where('name', '!=', 'super-admin')->orderBy('name', 'asc')->get();
         
         return view('livewire.admin.usuarios', compact('usuarios', 'roles'));
     }
 
+    public function ver($id)
+    {
+        abort_if(Gate::denies('ver-usuarios'), 403);
+        
+        $this->usuario_detalle = User::with('roles')->findOrFail($id);
+        
+        // Medida de seguridad adicional: No permitir ver detalle del super-admin si logran inyectar el ID
+        if ($this->usuario_detalle->hasRole('super-admin')) {
+            abort(403, 'Acceso denegado al superusuario.');
+        }
+
+        $this->dispatch('abrir-modal', id: 'modalDetalleUsuario');
+    }
+
     public function crear()
     {
-        abort_if(Gate::denies('crear-usuarios'), 403); // PROTECCIÓN
+        abort_if(Gate::denies('crear-usuarios'), 403);
 
         $this->resetCampos();
         $this->tituloModal = 'Nuevo Usuario';
@@ -40,7 +108,7 @@ class Usuarios extends Component
     public function guardar()
     {
         abort_if(Gate::denies($this->user_id ? 'editar-usuarios' : 'crear-usuarios'), 403);
-        // Reglas de validación dinámicas (la contraseña es obligatoria solo si es usuario nuevo)
+        
         $reglas = [
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users,username,' . $this->user_id,
@@ -50,7 +118,6 @@ class Usuarios extends Component
 
         $this->validate($reglas);
 
-        // Preparamos los datos base
         $datos = [
             'name' => $this->name,
             'username' => strtolower($this->username),
@@ -58,19 +125,22 @@ class Usuarios extends Component
             'activo' => $this->activo ? 1 : 0
         ];
 
-        // Si escribió una contraseña, la encriptamos y la agregamos a los datos
         if (!empty($this->password)) {
             $datos['password'] = Hash::make($this->password);
         }
 
-        // Creamos o actualizamos
         $usuario = User::updateOrCreate(['id' => $this->user_id], $datos);
 
-        // Sincronizamos los roles usando Spatie
-        $usuario->syncRoles($this->roles_seleccionados);
+        // Prevenir que mediante inyección en el frontend intenten asignarse 'super-admin'
+        $rolesValidos = Role::whereIn('name', $this->roles_seleccionados)
+                            ->where('name', '!=', 'super-admin')
+                            ->pluck('name')
+                            ->toArray();
+
+        $usuario->syncRoles($rolesValidos);
 
         $this->dispatch('cerrar-modal', id: 'modalUsuario');
-        $this->dispatch('mostrar-toast', mensaje: $this->user_id ? 'Usuario actualizado exitosamente.' : 'Usuario creado exitosamente.');
+        $this->dispatch('mostrar-toast', mensaje: $this->user_id ? 'Usuario actualizado exitosamente.' : 'Usuario creado exitosamente.', tipo: 'success');
         
         $this->resetCampos();
     }
@@ -79,16 +149,20 @@ class Usuarios extends Component
     {
         abort_if(Gate::denies('editar-usuarios'), 403);
         $this->resetValidation();
+        
         $usuario = User::findOrFail($id);
+        
+        if ($usuario->hasRole('super-admin')) {
+            abort(403, 'No se puede editar al superusuario.');
+        }
         
         $this->user_id = $usuario->id;
         $this->name = $usuario->name;
         $this->username = $usuario->username;
         $this->email = $usuario->email;
         $this->activo = (bool) $usuario->activo;
-        $this->password = ''; // Dejamos la contraseña en blanco por seguridad
+        $this->password = ''; 
         
-        // Extraemos los roles actuales del usuario
         $this->roles_seleccionados = $usuario->roles->pluck('name')->toArray();
         
         $this->tituloModal = 'Editar Usuario';
@@ -97,35 +171,50 @@ class Usuarios extends Component
 
     public function toggleActivo($id)
     {
-        abort_if(Gate::denies('cambiar-estatus-usuarios'), 403); // PROTECCIÓN
+        abort_if(Gate::denies('cambiar-estatus-usuarios'), 403); 
+        
         if (Auth::id() == $id) {
-            $this->dispatch('mostrar-toast', mensaje: 'No puedes desactivar tu propia cuenta.');
+            $this->dispatch('mostrar-toast', mensaje: 'No puedes desactivar tu propia cuenta.', tipo: 'warning');
             return;
         }
 
         $usuario = User::findOrFail($id);
+
+        if ($usuario->hasRole('super-admin')) {
+            $this->dispatch('mostrar-toast', mensaje: 'El superusuario no puede ser desactivado.', tipo: 'error');
+            return;
+        }
+
         $usuario->activo = !$usuario->activo;
         $usuario->save();
 
         $estado = $usuario->activo ? 'activado' : 'desactivado';
-        $this->dispatch('mostrar-toast', mensaje: "Usuario {$estado} exitosamente.");
+        $this->dispatch('mostrar-toast', mensaje: "Usuario {$estado} exitosamente.", tipo: 'success');
     }
 
     public function eliminar($id)
     {
         abort_if(Gate::denies('eliminar-usuarios'), 403);
+        
         if (Auth::id() == $id) {
-            $this->dispatch('mostrar-toast', mensaje: 'No puedes eliminar tu propia cuenta.');
+            $this->dispatch('mostrar-toast', mensaje: 'No puedes eliminar tu propia cuenta.', tipo: 'warning');
             return;
         }
 
-        User::findOrFail($id)->delete();
-        $this->dispatch('mostrar-toast', mensaje: 'Usuario eliminado exitosamente.');
+        $usuario = User::findOrFail($id);
+
+        if ($usuario->hasRole('super-admin')) {
+            $this->dispatch('mostrar-toast', mensaje: 'El superusuario no puede ser eliminado.', tipo: 'error');
+            return;
+        }
+
+        $usuario->delete();
+        $this->dispatch('mostrar-toast', mensaje: 'Usuario eliminado exitosamente.', tipo: 'success');
     }
 
     public function resetCampos()
     {
-        $this->reset(['user_id', 'name', 'username', 'email', 'password', 'roles_seleccionados']);
+        $this->reset(['user_id', 'name', 'username', 'email', 'password', 'roles_seleccionados', 'usuario_detalle']);
         $this->activo = true;
         $this->resetValidation();
     }

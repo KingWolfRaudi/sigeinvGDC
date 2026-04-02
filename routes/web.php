@@ -10,10 +10,10 @@ use App\Livewire\Catalogos\Marcas;
 use App\Livewire\Catalogos\TiposDispositivo;
 use App\Livewire\Catalogos\SistemasOperativos;
 use App\Livewire\Catalogos\Puertos;
-use App\Livewire\Catalogos\Departamentos;
 use App\Livewire\Catalogos\Procesadores;
 use App\Livewire\Catalogos\Gpus;
-use App\Livewire\Inventario\Trabajadores;
+use App\Livewire\Asignaciones\Trabajadores;
+use App\Livewire\Asignaciones\Departamentos;
 use App\Livewire\Inventario\Computadores;
 
 // Ruta para invitados (Login)
@@ -33,15 +33,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/catalogos/tipos-dispositivo', TiposDispositivo::class)->name('catalogos.tipos-dispositivo');
     Route::get('/catalogos/sistemas-operativos', SistemasOperativos::class)->name('catalogos.sistemas-operativos');
     Route::get('/catalogos/puertos', Puertos::class)->name('catalogos.puertos');
-    Route::get('/catalogos/departamentos', Departamentos::class)->name('catalogos.departamentos');
     Route::get('/catalogos/procesadores', Procesadores::class)->name('catalogos.procesadores');
     Route::get('/catalogos/gpus', Gpus::class)->name('catalogos.gpus');
-    // Inventarios
+    // Asignaciones
+    Route::get('/asignaciones/departamentos', Departamentos::class)->name('asignaciones.departamentos');
+    Route::get('/asignaciones/trabajadores', Departamentos::class)->name('asignaciones.trabajadores');
     // Módulos de Inventario
     Route::prefix('inventario')->name('inventario.')->group(function () {
         
         // Ruta que ya arreglaste para Trabajadores
-        Route::get('/trabajadores', Trabajadores::class)->name('trabajadores');
+        //Route::get('/trabajadores', Trabajadores::class)->name('trabajadores');
         
         // NUEVA: Ruta para el módulo de Computadores
         Route::get('/computadores', Computadores::class)->name('computadores');

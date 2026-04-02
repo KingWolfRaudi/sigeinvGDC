@@ -24,8 +24,11 @@ class Computadores extends Component
 
     // Campos principales
     public $computador_id, $bien_nacional, $serial, $marca_id, $tipo_dispositivo_id, $sistema_operativo_id;
-    public $procesador_id, $gpu_id, $departamento_id, $trabajador_id, $tipo_ram, $mac, $ip, $tipo_conexion;
+    public $procesador_id, $gpu_id, $departamento_id, $trabajador_id, $tipo_ram, $mac, $ip;
+    public $tipo_conexion = 'Ethernet'; // Valor por defecto
     public $estado_fisico = 'operativo';
+    public bool $unidad_dvd = true;
+    public bool $fuente_poder = true;
     public $observaciones;
     public bool $activo = true;
 
@@ -49,6 +52,7 @@ class Computadores extends Component
     public $search = '';
     public $sortField = 'id';
     public $sortAsc = false;
+    public $filtro_estado = 'todos'; // Por defecto muestra todos (para quien tenga permiso)
 
     public function updatingSearch()
     {
@@ -111,26 +115,42 @@ class Computadores extends Component
     
     public function render()
     {
-        $computadores = Computador::with(['marca', 'tipoDispositivo', 'trabajador', 'discos', 'rams'])
-            ->where(function ($query) {
-                $query->where('bien_nacional', 'like', '%' . $this->search . '%')
-                      ->orWhere('serial', 'like', '%' . $this->search . '%')
-                      ->orWhere('ip', 'like', '%' . $this->search . '%')
-                      
-                      // Búsqueda en relación Marca
-                      ->orWhereHas('marca', function($q) {
-                          $q->where('nombre', 'like', '%' . $this->search . '%');
-                      })
-                      
-                      // Búsqueda en relación Trabajador
-                      ->orWhereHas('trabajador', function($q) {
-                          // OJO AQUÍ: Si en tu tabla trabajadores la columna se llama "nombres" en plural, 
-                          // debes cambiar 'nombre' por 'nombres' en la línea de abajo.
-                          $q->where('nombres', 'like', '%' . $this->search . '%');
-                      });
-            })
-            ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
-            ->paginate(10);
+        // 1. Iniciamos la consulta base
+        $query = Computador::with(['marca', 'tipoDispositivo', 'trabajador', 'discos', 'rams']);
+
+        // 2. LÓGICA DE ESTADOS Y VISIBILIDAD
+        if (\Illuminate\Support\Facades\Gate::allows('ver-estado-computadores')) {
+            // Si TIENE permiso, aplicamos el filtro visual
+            if ($this->filtro_estado === 'activos') {
+                $query->where('activo', true);
+            } elseif ($this->filtro_estado === 'inactivos') {
+                $query->where('activo', false);
+            }
+        } else {
+            // Si NO TIENE permiso, forzamos a que solo vea los activos
+            $query->where('activo', true);
+        }
+
+        // 3. Búsqueda profunda (Deep Search) - Mantenemos exactamente tu lógica
+        $query->where(function ($q) {
+            $q->where('bien_nacional', 'like', '%' . $this->search . '%')
+              ->orWhere('serial', 'like', '%' . $this->search . '%')
+              ->orWhere('ip', 'like', '%' . $this->search . '%')
+              
+              // Búsqueda en relación Marca
+              ->orWhereHas('marca', function($subQ) {
+                  $subQ->where('nombre', 'like', '%' . $this->search . '%');
+              })
+              
+              // Búsqueda en relación Trabajador
+              ->orWhereHas('trabajador', function($subQ) {
+                  $subQ->where('nombres', 'like', '%' . $this->search . '%');
+              });
+        });
+
+        // 4. Ordenamos y Paginamos
+        $computadores = $query->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
+                              ->paginate(10);
 
         // Catálogos para los selects
         $marcas = Marca::where('activo', true)->orderBy('nombre')->get();
@@ -138,14 +158,13 @@ class Computadores extends Component
         $sistemas = SistemaOperativo::where('activo', true)->orderBy('nombre')->get();
         $procesadores = Procesador::with('marca')->where('activo', true)->orderBy('modelo')->get();
         $gpus = Gpu::with('marca')->where('activo', true)->orderBy('modelo')->get();
-        $trabajadores = Trabajador::where('activo', true)->orderBy('nombres')->get();
         $puertos = Puerto::where('activo', true)->orderBy('nombre')->get();
         $departamentos = Departamento::where('activo', true)->orderBy('nombre')->get();
 
         // Filtramos trabajadores por departamento si hay uno seleccionado
         $trabajadores = Trabajador::where('activo', true)
-            ->when($this->departamento_id, function($query) {
-                return $query->where('departamento_id', $this->departamento_id);
+            ->when($this->departamento_id, function($q) {
+                return $q->where('departamento_id', $this->departamento_id);
             })
             ->orderBy('nombres')
             ->get();
@@ -218,6 +237,8 @@ class Computadores extends Component
                 'sistema_operativo_id' => $this->sistema_operativo_id,
                 'procesador_id' => $this->procesador_id,
                 'gpu_id' => $this->gpu_id ?: null,
+                'unidad_dvd' => $this->unidad_dvd ? 1 : 0,    // <-- Agregado
+                'fuente_poder' => $this->fuente_poder ? 1 : 0, // <-- Agregado
                 'departamento_id' => $this->departamento_id ?: null,
                 'trabajador_id' => $this->trabajador_id ?: null,
                 'tipo_ram' => $this->tipo_ram,
@@ -275,6 +296,8 @@ class Computadores extends Component
         $this->sistema_operativo_id = $computador->sistema_operativo_id;
         $this->procesador_id = $computador->procesador_id;
         $this->gpu_id = $computador->gpu_id;
+        $this->unidad_dvd = (bool) $computador->unidad_dvd;     // <-- Agregado
+        $this->fuente_poder = (bool) $computador->fuente_poder; // <-- Agregado
         $this->departamento_id = $computador->departamento_id;
         $this->trabajador_id = $computador->trabajador_id;
         $this->tipo_ram = $computador->tipo_ram;
@@ -326,6 +349,17 @@ class Computadores extends Component
         $this->dispatch('mostrar-toast', mensaje: 'Computador eliminado (Baja).');
     }
 
+    public function toggleActivo($id)
+    {
+        abort_if(Gate::denies('cambiar-estatus-computadores'), 403);
+        $computador = Computador::findOrFail($id);
+        $computador->activo = !$computador->activo;
+        $computador->save();
+        
+        $estado = $computador->activo ? 'activado' : 'inactivado';
+        $this->dispatch('mostrar-toast', mensaje: "Computador $estado correctamente.");
+    }
+
     public function resetCampos()
     {
         $this->reset([
@@ -340,6 +374,9 @@ class Computadores extends Component
         $this->creando_so = false;
         $this->creando_procesador = false;
         $this->creando_gpu = false;
+        $this->unidad_dvd = true;
+        $this->fuente_poder = true;
+        $this->tipo_conexion = 'Ethernet';
         $this->creando_trabajador = false;
         $this->activo = true;
         

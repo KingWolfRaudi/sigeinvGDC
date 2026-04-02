@@ -26,6 +26,7 @@ class Procesadores extends Component
     public $search = '';
     public $sortField = 'id';
     public $sortAsc = false;
+    public $filtro_estado = 'todos';
 
     public function updatingSearch()
     {
@@ -44,23 +45,37 @@ class Procesadores extends Component
 
     public function render()
     {
-        $procesadores = Procesador::with('marca')
-            ->where(function ($query) {
-                // Agrupamos todas las condiciones de búsqueda
-                $query->where('modelo', 'like', '%' . $this->search . '%')
-                      ->orWhere('generacion', 'like', '%' . $this->search . '%')
-                      ->orWhere('frecuencia_base', 'like', '%' . $this->search . '%')
-                      ->orWhere('frecuencia_maxima', 'like', '%' . $this->search . '%')
-                      ->orWhere('nucleos', 'like', '%' . $this->search . '%')
-                      ->orWhere('hilos', 'like', '%' . $this->search . '%')
-                      
-                      // Búsqueda en la tabla relacionada (Marca)
-                      ->orWhereHas('marca', function($q) {
-                          $q->where('nombre', 'like', '%' . $this->search . '%');
-                      });
-            })
-            ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
-            ->paginate(10);
+        // 1. Iniciamos la consulta base con su relación
+        $query = Procesador::with('marca');
+
+        // 2. LÓGICA DE ESTADOS Y VISIBILIDAD (Data Scoping)
+        if (\Illuminate\Support\Facades\Gate::allows('ver-estado-procesadores')) {
+            if ($this->filtro_estado === 'activos') {
+                $query->where('activo', true);
+            } elseif ($this->filtro_estado === 'inactivos') {
+                $query->where('activo', false);
+            }
+        } else {
+            // Usuario sin permisos solo ve activos
+            $query->where('activo', true);
+        }
+
+        // 3. Búsqueda profunda (Tu código intacto)
+        $query->where(function ($q) {
+            $q->where('modelo', 'like', '%' . $this->search . '%')
+              ->orWhere('generacion', 'like', '%' . $this->search . '%')
+              ->orWhere('frecuencia_base', 'like', '%' . $this->search . '%')
+              ->orWhere('frecuencia_maxima', 'like', '%' . $this->search . '%')
+              ->orWhere('nucleos', 'like', '%' . $this->search . '%')
+              ->orWhere('hilos', 'like', '%' . $this->search . '%')
+              ->orWhereHas('marca', function($subQ) {
+                  $subQ->where('nombre', 'like', '%' . $this->search . '%');
+              });
+        });
+
+        // 4. Ordenamos y paginamos
+        $procesadores = $query->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
+                              ->paginate(10);
 
         // Cargamos solo las marcas activas para el formulario
         $marcas = Marca::where('activo', true)->orderBy('nombre')->get();

@@ -20,6 +20,15 @@
 
     <div class="card shadow-sm border-0">
         <div class="card-body">
+            @can('ver-estado-gpus')
+                <div class="col-md-3">
+                    <select class="form-select" wire:model.live="filtro_estado">
+                        <option value="todos">Todos los Estados</option>
+                        <option value="activos">Solo Activos</option>
+                        <option value="inactivos">Solo Inactivos</option>
+                    </select>
+                </div>
+            @endcan
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
@@ -27,7 +36,9 @@
                             <th wire:click="sortBy('marca_id')" style="cursor: pointer;">Marca</th>
                             <th wire:click="sortBy('modelo')" style="cursor: pointer;">Modelo @if($sortField === 'modelo') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif</th>
                             <th>Especificaciones</th>
-                            <th wire:click="sortBy('activo')" style="cursor: pointer;">Estado</th>
+                            @can('ver-estado-gpus')
+                                <th wire:click="sortBy('activo')" style="cursor: pointer;">Estado</th>
+                            @endcan
                             <th class="text-end">Acciones</th>
                         </tr>
                     </thead>
@@ -41,13 +52,15 @@
                                         {{ $gpu->memoria ?? 'N/A' }} {{ $gpu->tipo_memoria ?? '' }} | Bus: {{ $gpu->bus ?? '-' }}
                                     </small>
                                 </td>
-                                <td>
-                                    @if($gpu->activo)
-                                        <span class="badge bg-success">Activo</span>
-                                    @else
-                                        <span class="badge bg-danger">Inactivo</span>
-                                    @endif
-                                </td>
+                                @can('ver-estado-gpus')
+                                    <td>
+                                        @if($gpu->activo)
+                                            <span class="badge bg-success">Activo</span>
+                                        @else
+                                            <span class="badge bg-danger">Inactivo</span>
+                                        @endif
+                                    </td>
+                                @endcan
                                 <td class="text-end">
                                     @can('cambiar-estatus-gpus')
                                         <button wire:click="toggleActivo({{ $gpu->id }})" class="btn btn-sm {{ $gpu->activo ? 'btn-success' : 'btn-secondary' }} text-white" title="Alternar Estado"><i class="bi {{ $gpu->activo ? 'bi-toggle-on' : 'bi-toggle-off' }}"></i></button>

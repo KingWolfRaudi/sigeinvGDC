@@ -25,6 +25,7 @@ class Gpus extends Component
     public $search = '';
     public $sortField = 'id';
     public $sortAsc = false;
+    public $filtro_estado = 'todos';
 
     public function updatingSearch()
     {
@@ -43,27 +44,45 @@ class Gpus extends Component
 
     public function render()
     {
-        // Agregamos 'puertos' al with() para evitar problemas N+1
-        $gpus = Gpu::with(['marca', 'puertos'])
-            ->where(function ($query) {
-                $query->where('modelo', 'like', '%' . $this->search . '%')
-                      ->orWhere('memoria', 'like', '%' . $this->search . '%')
-                      ->orWhere('tipo_memoria', 'like', '%' . $this->search . '%')
-                      ->orWhere('bus', 'like', '%' . $this->search . '%')
-                      ->orWhere('frecuencia', 'like', '%' . $this->search . '%')
-                      
-                      // Búsqueda en Marca
-                      ->orWhereHas('marca', function($q) {
-                          $q->where('nombre', 'like', '%' . $this->search . '%');
-                      })
-                      // NUEVO: Búsqueda profunda en Puertos (¡Adiós problemas de minúsculas/mayúsculas!)
-                      ->orWhereHas('puertos', function($q) {
-                          $q->where('nombre', 'like', '%' . $this->search . '%');
-                      });
-            })
-            ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
-            ->paginate(10);
+        // 1. Iniciamos la consulta base evitando problemas N+1
+        $query = Gpu::with(['marca', 'puertos']);
 
+        // 2. LÓGICA DE ESTADOS Y VISIBILIDAD (Data Scoping)
+        if (\Illuminate\Support\Facades\Gate::allows('ver-estado-gpus')) {
+            // Si tiene el permiso, aplicamos el filtro del select
+            if ($this->filtro_estado === 'activos') {
+                $query->where('activo', true);
+            } elseif ($this->filtro_estado === 'inactivos') {
+                $query->where('activo', false);
+            }
+        } else {
+            // Si no tiene el permiso, forzamos a que solo vea los activos
+            $query->where('activo', true);
+        }
+
+        // 3. Búsqueda profunda (Deep Search) - Tu código intacto
+        $query->where(function ($q) {
+            $q->where('modelo', 'like', '%' . $this->search . '%')
+              ->orWhere('memoria', 'like', '%' . $this->search . '%')
+              ->orWhere('tipo_memoria', 'like', '%' . $this->search . '%')
+              ->orWhere('bus', 'like', '%' . $this->search . '%')
+              ->orWhere('frecuencia', 'like', '%' . $this->search . '%')
+              
+              // Búsqueda en Marca
+              ->orWhereHas('marca', function($subQ) {
+                  $subQ->where('nombre', 'like', '%' . $this->search . '%');
+              })
+              // Búsqueda profunda en Puertos
+              ->orWhereHas('puertos', function($subQ) {
+                  $subQ->where('nombre', 'like', '%' . $this->search . '%');
+              });
+        });
+
+        // 4. Ejecutamos el orden y la paginación
+        $gpus = $query->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
+                      ->paginate(10);
+
+        // Catálogos para los selects del formulario
         $marcas = Marca::where('activo', true)->orderBy('nombre')->get();
         $lista_puertos = Puerto::where('activo', true)->orderBy('nombre')->get();
                        
@@ -166,7 +185,7 @@ class Gpus extends Component
         $gpu = Gpu::findOrFail($id);
         $gpu->activo = !$gpu->activo;
         $gpu->save();
-        $this->dispatch('mostrar-toast', mensaje: "Estado cambiado.");
+        $this->dispatch('mostrar-toast', mensaje: "Estado cambiado.", tipo: 'success');
     }
 
     public function ver($id)

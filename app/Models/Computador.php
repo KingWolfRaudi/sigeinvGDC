@@ -14,13 +14,15 @@ class Computador extends Model
 
     protected $fillable = [
         'bien_nacional', 'serial', 'marca_id', 'tipo_dispositivo_id', 
-        'sistema_operativo_id', 'procesador_id', 'gpu_id', 'departamento_id','trabajador_id',
-        'tipo_ram', 'mac', 'ip', 'tipo_conexion', 'estado_fisico', 
+        'sistema_operativo_id', 'procesador_id', 'gpu_id', 'unidad_dvd', 'fuente_poder', 'departamento_id', // <-- Agregados aquí
+        'trabajador_id', 'tipo_ram', 'mac', 'ip', 'tipo_conexion', 'estado_fisico', 
         'observaciones', 'activo'
     ];
 
     protected $casts = [
         'activo' => 'boolean',
+        'unidad_dvd' => 'boolean',
+        'fuente_poder' => 'boolean',
     ];
 
     // Relaciones Simples (BelongsTo)

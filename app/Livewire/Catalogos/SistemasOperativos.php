@@ -19,6 +19,7 @@ class SistemasOperativos extends Component
     public $search = '';
     public $sortField = 'id';
     public $sortAsc = false;
+    public $filtro_estado = 'todos';
 
     public function updatingSearch()
     {
@@ -37,9 +38,25 @@ class SistemasOperativos extends Component
 
     public function render()
     {
-        $sistemas = SistemaOperativo::where('nombre', 'like', '%' . $this->search . '%')
-                       ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
-                       ->paginate(10);
+        // 1. Iniciamos la consulta base
+        $query = SistemaOperativo::query();
+
+        // 2. LÓGICA DE ESTADOS Y VISIBILIDAD (Data Scoping)
+        if (\Illuminate\Support\Facades\Gate::allows('ver-estado-sistemas-operativos')) {
+            if ($this->filtro_estado === 'activos') {
+                $query->where('activo', true);
+            } elseif ($this->filtro_estado === 'inactivos') {
+                $query->where('activo', false);
+            }
+        } else {
+            // Usuario sin permisos solo ve activos
+            $query->where('activo', true);
+        }
+
+        // 3. Búsqueda y Paginación
+        $sistemas = $query->where('nombre', 'like', '%' . $this->search . '%')
+                          ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
+                          ->paginate(10);
                        
         return view('livewire.catalogos.sistemas-operativos', compact('sistemas'));
     }

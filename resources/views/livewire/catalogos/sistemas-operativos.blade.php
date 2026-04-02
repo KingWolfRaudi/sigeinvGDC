@@ -20,6 +20,15 @@
 
     <div class="card shadow-sm border-0">
         <div class="card-body">
+            @can('ver-estado-sistemas-operativos')
+                <div class="col-md-3">
+                    <select class="form-select" wire:model.live="filtro_estado">
+                        <option value="todos">Todos los Estados</option>
+                        <option value="activos">Solo Activos</option>
+                        <option value="inactivos">Solo Inactivos</option>
+                    </select>
+                </div>
+            @endcan
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
@@ -30,9 +39,11 @@
                             <th wire:click="sortBy('nombre')" style="cursor: pointer;">
                                 Nombre @if($sortField === 'nombre') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
                             </th>
+                            @can('ver-estado-sistemas-operativos')
                             <th wire:click="sortBy('activo')" style="cursor: pointer;">
                                 Estado @if($sortField === 'activo') <i class="bi bi-sort-down ms-1"></i> @endif
                             </th>
+                            @endcan
                             <th class="text-end">Acciones</th>
                         </tr>
                     </thead>
@@ -41,13 +52,15 @@
                             <tr>
                                 <td>{{ $sistema->id }}</td>
                                 <td>{{ $sistema->nombre }}</td>
-                                <td>
-                                    @if($sistema->activo)
-                                        <span class="badge bg-success">Activo</span>
-                                    @else
-                                        <span class="badge bg-danger">Inactivo</span>
-                                    @endif
-                                </td>
+                                @can('ver-estado-sistemas-operativos')
+                                    <td>
+                                        @if($sistema->activo)
+                                            <span class="badge bg-success">Activo</span>
+                                        @else
+                                            <span class="badge bg-danger">Inactivo</span>
+                                        @endif
+                                    </td>
+                                @endcan
                                 <td class="text-end">
                                     @can('cambiar-estatus-sistemas-operativos')
                                         <button wire:click="toggleActivo({{ $sistema->id }})" class="btn btn-sm {{ $sistema->activo ? 'btn-success' : 'btn-secondary' }} text-white" title="Alternar Estado">

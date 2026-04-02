@@ -98,13 +98,6 @@
                                 </a>
                             </li>
                             @endcan
-                            @can('ver-departamentos')
-                            <li class="nav-item">
-                                <a href="{{ route('catalogos.departamentos') }}" class="nav-link {{ request()->routeIs('catalogos.departamentos') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
-                                    <i class="bi bi-building me-2"></i> Departamentos
-                                </a>
-                            </li>
-                            @endcan
                             @can('ver-procesadores')
                             <li class="nav-item">
                                 <a href="{{ route('catalogos.procesadores') }}" class="nav-link {{ request()->routeIs('catalogos.procesadores') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
@@ -122,6 +115,30 @@
                         </ul>
                     </div>
                 </li>
+                <li class="nav-item mb-1">
+                    <a href="#submenuAsignaciones" data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('asignaciones.*') ? 'true' : 'false' }}" class="nav-link text-white d-flex justify-content-between align-items-center">
+                        <div><i class="bi bi-box-seam me-2"></i> Asignaciones</div>
+                        <i class="bi bi-chevron-down" style="font-size: 0.8rem;"></i>
+                    </a>
+                    <div class="collapse {{ request()->routeIs('asignaciones.*') ? 'show' : '' }}" id="submenuAsignaciones" data-bs-parent="#menuLateral">
+                        <ul class="nav flex-column ms-3 mt-1" style="border-left: 1px solid rgba(255,255,255,0.1);">
+                            @can('ver-trabajadores')
+                            <li class="nav-item">
+                                <a href="{{ route('asignaciones.trabajadores') }}" class="nav-link {{ request()->routeIs('asignaciones.trabajadores') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-person-badge me-2"></i> Trabajadores
+                                </a>
+                            </li>
+                            @endcan
+                            @can('ver-departamentos')
+                            <li class="nav-item">
+                                <a href="{{ route('asignaciones.departamentos') }}" class="nav-link {{ request()->routeIs('asignaciones.departamentos') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-building me-2"></i> Departamentos
+                                </a>
+                            </li>
+                            @endcan
+                        </ul>
+                    </div>
+                <li>
 
                 <li class="nav-item mb-1">
                     <a href="#submenuInventario" data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('inventario.*') ? 'true' : 'false' }}" class="nav-link text-white d-flex justify-content-between align-items-center">
@@ -130,13 +147,6 @@
                     </a>
                     <div class="collapse {{ request()->routeIs('inventario.*') ? 'show' : '' }}" id="submenuInventario" data-bs-parent="#menuLateral">
                         <ul class="nav flex-column ms-3 mt-1" style="border-left: 1px solid rgba(255,255,255,0.1);">
-                            @can('ver-trabajadores')
-                            <li class="nav-item">
-                                <a href="{{ route('inventario.trabajadores') }}" class="nav-link {{ request()->routeIs('inventario.trabajadores') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
-                                    <i class="bi bi-person-badge me-2"></i> Trabajadores
-                                </a>
-                            </li>
-                            @endcan
                             @can('ver-computadores')
                             <li class="nav-item">
                                 <a href="{{ route('inventario.computadores') }}" class="nav-link {{ request()->routeIs('inventario.computadores') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
@@ -268,24 +278,40 @@
                 }
             });
 
-            // 3. Sistema Unificado de Toasts
+            // 3. Sistema Unificado de Toasts (A PRUEBA DE BALAS)
             const procesarToast = (event) => {
+                // 🕵️ CHIVATO: Abre la consola de tu navegador (F12) y mira qué imprime esto:
+                console.log("Toast recibido desde PHP:", event);
+
                 let data = Array.isArray(event) ? event[0] : event;
                 
                 if (data && data.mensaje) {
                     let toastEl = document.getElementById('liveToast');
                     document.getElementById('toastMessage').innerText = data.mensaje;
                     
-                    // Limpiamos los colores de notificaciones anteriores
-                    toastEl.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info', 'bg-secondary');
+                    // Limpiamos los colores de notificaciones anteriores, incluyendo el texto
+                    toastEl.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info', 'bg-secondary', 'text-white', 'text-dark');
                     
-                    // Aplicamos el nuevo color dinámicamente
-                    if (data.tipo === 'error') {
+                    // Le ponemos texto blanco por defecto para que se lea bien en fondos oscuros
+                    toastEl.classList.add('text-white');
+
+                    // EXTRAEMOS EL TIPO: 
+                    // 1. Buscamos 'tipo' o 'type' (por si acaso).
+                    // 2. Lo pasamos a minúsculas para que 'ERROR', 'Error' o 'error' funcionen igual.
+                    let tipoRaw = data.tipo || data.type || 'info';
+                    let tipo = String(tipoRaw).toLowerCase(); 
+                    
+                    // Aplicamos el nuevo color dinámicamente con múltiples opciones
+                    if (tipo === 'error' || tipo === 'danger') {
                         toastEl.classList.add('bg-danger');
-                    } else if (data.tipo === 'success') {
+                    } else if (tipo === 'success' || tipo === 'exito') {
                         toastEl.classList.add('bg-success');
+                    } else if (tipo === 'warning' || tipo === 'alerta') {
+                        toastEl.classList.add('bg-warning');
+                        toastEl.classList.remove('text-white'); // El warning se lee mejor con texto oscuro
+                        toastEl.classList.add('text-dark');
                     } else {
-                        toastEl.classList.add('bg-secondary');
+                        toastEl.classList.add('bg-info');
                     }
 
                     // Disparamos la animación

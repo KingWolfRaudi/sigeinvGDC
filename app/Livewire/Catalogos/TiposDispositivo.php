@@ -20,6 +20,7 @@ class TiposDispositivo extends Component
     public $search = '';
     public $sortField = 'id';
     public $sortAsc = false;
+    public $filtro_estado = 'todos';
 
     public function updatingSearch()
     {
@@ -38,7 +39,23 @@ class TiposDispositivo extends Component
 
     public function render()
     {
-        $tipos = TipoDispositivo::where('nombre', 'like', '%' . $this->search . '%')
+        // 1. Iniciamos la consulta base
+        $query = TipoDispositivo::query();
+
+        // 2. LÓGICA DE ESTADOS Y VISIBILIDAD (Data Scoping)
+        if (\Illuminate\Support\Facades\Gate::allows('ver-estado-tipos-dispositivo')) {
+            if ($this->filtro_estado === 'activos') {
+                $query->where('activo', true);
+            } elseif ($this->filtro_estado === 'inactivos') {
+                $query->where('activo', false);
+            }
+        } else {
+            // Usuario sin permisos solo ve activos
+            $query->where('activo', true);
+        }
+
+        // 3. Búsqueda y Paginación
+        $tipos = $query->where('nombre', 'like', '%' . $this->search . '%')
                        ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
                        ->paginate(10);
                        

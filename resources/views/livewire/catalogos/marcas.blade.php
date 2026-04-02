@@ -20,6 +20,15 @@
 
     <div class="card shadow-sm border-0">
         <div class="card-body">
+            @can('ver-estado-marcas')
+                <div class="col-md-3">
+                    <select class="form-select" wire:model.live="filtro_estado">
+                        <option value="todos">Todos los Estados</option>
+                        <option value="activos">Solo Activos</option>
+                        <option value="inactivos">Solo Inactivos</option>
+                    </select>
+                </div>
+            @endcan
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
@@ -32,10 +41,12 @@
                                 Nombre 
                                 @if($sortField === 'nombre') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
                             </th>
+                            @can('ver-estado-marcas')
                             <th wire:click="sortBy('activo')" style="cursor: pointer;">
                                 Estado
                                 @if($sortField === 'activo') <i class="bi bi-sort-down ms-1"></i> @endif
                             </th>
+                            @endcan
                             <th class="text-end">Acciones</th>
                         </tr>
                     </thead>
@@ -44,13 +55,15 @@
                             <tr>
                                 <td>{{ $marca->id }}</td>
                                 <td>{{ $marca->nombre }}</td>
-                                <td>
-                                    @if($marca->activo)
-                                        <span class="badge bg-success">Activo</span>
-                                    @else
-                                        <span class="badge bg-danger">Inactivo</span>
-                                    @endif
-                                </td>
+                                @can('ver-estado-marcas')
+                                    <td>
+                                        @if($marca->activo)
+                                            <span class="badge bg-success">Activo</span>
+                                        @else
+                                            <span class="badge bg-danger">Inactivo</span>
+                                        @endif
+                                    </td>
+                                @endcan
                                 <td class="text-end">
                                     
                                     @can('cambiar-estatus-marcas')

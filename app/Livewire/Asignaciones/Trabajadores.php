@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Inventario;
+namespace App\Livewire\Asignaciones;
 
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -18,6 +18,7 @@ class Trabajadores extends Component
     public $sortField = 'id';
     public $sortAsc = false;
     public $tituloModal = 'Nuevo Trabajador';
+    public $filtro_estado = 'todos';
 
     // Variables de formulario
     public $trabajador_id, $nombres, $apellidos, $cedula, $cargo, $departamento_id;
@@ -45,22 +46,41 @@ class Trabajadores extends Component
 
     public function render()
     {
+        // 1. Iniciamos la consulta base con la relación
+        $query = Trabajador::with('departamento');
+
+        // 2. LÓGICA DE ESTADOS Y VISIBILIDAD (Data Scoping)
+        if (\Illuminate\Support\Facades\Gate::allows('ver-estado-trabajadores')) {
+            // Si tiene el permiso, aplicamos el filtro del select
+            if ($this->filtro_estado === 'activos') {
+                $query->where('activo', true);
+            } elseif ($this->filtro_estado === 'inactivos') {
+                $query->where('activo', false);
+            }
+        } else {
+            // Si no tiene el permiso, solo puede ver a los activos
+            $query->where('activo', true);
+        }
+
+        // 3. Búsqueda profunda (Deep Search)
+        $query->where(function ($q) {
+            $q->where('nombres', 'like', '%' . $this->search . '%')
+            ->orWhere('apellidos', 'like', '%' . $this->search . '%')
+            ->orWhere('cedula', 'like', '%' . $this->search . '%')
+            ->orWhere('cargo', 'like', '%' . $this->search . '%')
+            ->orWhereHas('departamento', function ($subQ) {
+                $subQ->where('nombre', 'like', '%' . $this->search . '%');
+            });
+        });
+
+        // 4. Ejecución de la consulta con orden y paginación
+        $trabajadores = $query->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
+                            ->paginate(10);
+
+        // Catálogo para el select del formulario
         $departamentos = Departamento::orderBy('nombre', 'asc')->get();
 
-        $trabajadores = Trabajador::with('departamento')
-            ->where(function ($query) {
-                $query->where('nombres', 'like', '%' . $this->search . '%')
-                      ->orWhere('apellidos', 'like', '%' . $this->search . '%')
-                      ->orWhere('cedula', 'like', '%' . $this->search . '%')
-                      ->orWhere('cargo', 'like', '%' . $this->search . '%')
-                      ->orWhereHas('departamento', function ($q) {
-                          $q->where('nombre', 'like', '%' . $this->search . '%');
-                      });
-            })
-            ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
-            ->paginate(10);
-
-        return view('livewire.inventario.trabajadores', compact('trabajadores', 'departamentos'));
+        return view('livewire.asignaciones.trabajadores', compact('trabajadores', 'departamentos'));
     }
 
     public function crear()
@@ -139,6 +159,7 @@ class Trabajadores extends Component
 
     public function toggleActivo($id)
     {
+        abort_if(\Illuminate\Support\Facades\Gate::denies('cambiar-estatus-trabajadores'), 403);
         $trabajador = Trabajador::findOrFail($id);
         $trabajador->activo = !$trabajador->activo;
         $trabajador->save();

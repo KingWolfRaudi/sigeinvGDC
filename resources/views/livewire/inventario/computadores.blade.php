@@ -1,9 +1,9 @@
 <div>
     <div class="row mb-4 align-items-center">
-        <div class="col-md-5">
+        <div class="col-md-4">
             <h3 class="mb-0">Inventario de Computadores</h3>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-5">
             <div class="input-group">
                 <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
                 <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar por Bien Nacional, Serial o IP...">
@@ -20,6 +20,15 @@
 
     <div class="card shadow-sm border-0">
         <div class="card-body">
+            @can('ver-estado-computadores')
+                <div class="col-md-3">
+                    <select class="form-select" wire:model.live="filtro_estado">
+                        <option value="todos">Mostrar Todos</option>
+                        <option value="activos">Solo Activos</option>
+                        <option value="inactivos">Solo Inactivos</option>
+                    </select>
+                </div>
+            @endcan        
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
@@ -28,6 +37,9 @@
                             <th>Equipo</th>
                             <th>Red / IP</th>
                             <th>Estado Físico</th>
+                            @can('ver-estado-computadores')
+                                <th>Estado</th>
+                            @endcan
                             <th class="text-end">Acciones</th>
                         </tr>
                     </thead>
@@ -53,16 +65,27 @@
                                         {{ strtoupper($comp->estado_fisico) }}
                                     </span>
                                 </td>
+                                @can('ver-estado-computadores')
+                                    <td>
+                                        {!! $comp->activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>' !!}
+                                    </td>
+                                @endcan
                                 <td class="text-end">
                                     @can('ver-computadores')
                                         <button wire:click="ver({{ $comp->id }})" class="btn btn-sm btn-info text-white" title="Ver Detalles"><i class="bi bi-eye"></i></button>
                                     @endcan
+                                    @can('cambiar-estatus-computadores')
+                                        <button wire:click="toggleActivo({{ $comp->id }})" class="btn btn-sm {{ $comp->activo ? 'btn-success' : 'btn-secondary' }} text-white" title="Alternar Estado">
+                                            <i class="bi {{ $comp->activo ? 'bi-toggle-on' : 'bi-toggle-off' }}"></i>
+                                        </button>
+                                    @endcan
                                     @can('editar-computadores')
                                         <button wire:click="editar({{ $comp->id }})" class="btn btn-sm btn-primary" title="Editar"><i class="bi bi-pencil-square"></i></button>
                                     @endcan
-                                    @can('eliminar-computadores')
-                                        <button wire:click="eliminar({{ $comp->id }})" wire:confirm="¿Dar de baja este computador?" class="btn btn-sm btn-danger" title="Dar de Baja"><i class="bi bi-trash"></i></button>
-                                    @endcan
+                                    
+                                    @role('super-admin')
+                                        <button wire:click="eliminar({{ $comp->id }})" wire:confirm="¿Está seguro de dar de baja permanentemente este computador (Fin de vida útil)?" class="btn btn-sm btn-danger" title="Dar de Baja Definitiva"><i class="bi bi-trash"></i></button>
+                                    @endrole
                                 </td>
                             </tr>
                         @empty
@@ -189,6 +212,18 @@
                                         <button class="btn btn-outline-success" type="button" wire:click="$set('creando_gpu', true)" title="Crear rápida"><i class="bi bi-plus-lg"></i></button>
                                     </div>
                                 @endif
+                            </div>
+                            <div class="col-md-4 mb-3 d-flex flex-column justify-content-center">
+                                <label class="form-label d-none d-md-block">&nbsp;</label> <div class="d-flex gap-4">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="unidad_dvd" wire:model="unidad_dvd">
+                                        <label class="form-check-label" for="unidad_dvd">Unidad DVD</label>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="fuente_poder" wire:model="fuente_poder">
+                                        <label class="form-check-label" for="fuente_poder">Fuente de Poder</label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -346,10 +381,12 @@
                         
                     </div>
                     <div class="modal-footer bg-light">
-                        <div class="form-check form-switch me-auto">
-                            <input class="form-check-input" type="checkbox" id="activo" wire:model="activo">
-                            <label class="form-check-label" for="activo">Registro Activo</label>
-                        </div>
+                        @can('cambiar-estatus-computadores')
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="activo" wire:model="activo">
+                                <label class="form-check-label" for="activo">Equipo Operativo (Activo)</label>
+                            </div>
+                        @endcan
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="resetCampos">Cancelar</button>
                         <button type="submit" class="btn btn-primary">Guardar Computador</button>
                     </div>
@@ -359,36 +396,85 @@
     </div>
 
     <div wire:ignore.self class="modal fade" id="modalDetalle" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header bg-light">
-                    <h5 class="modal-title">Detalles del Equipo</h5>
+                    <h5 class="modal-title"><i class="bi bi-pc-display me-2"></i>Detalles del Equipo</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     @if($computador_detalle)
                         <div class="row">
-                            <div class="col-md-6">
-                                <h6>General</h6>
-                                <ul class="list-unstyled">
-                                    <li><strong>Bien Nacional:</strong> {{ $computador_detalle->bien_nacional ?? 'N/A' }}</li>
-                                    <li><strong>Marca/Tipo:</strong> {{ $computador_detalle->marca->nombre ?? '-' }} / {{ $computador_detalle->tipoDispositivo->nombre ?? '-' }}</li>
-                                    <li><strong>SO:</strong> {{ $computador_detalle->sistemaOperativo->nombre ?? '-' }}</li>
-                                    <li><strong>Procesador:</strong> {{ $computador_detalle->procesador->modelo ?? '-' }}</li>
-                                    <li><strong>Responsable:</strong> {{ $computador_detalle->trabajador->nombre ?? 'En Stock' }}</li>
+                            <div class="col-md-4 mb-4">
+                                <h6 class="border-bottom pb-2 text-primary">Identificación y Asignación</h6>
+                                <ul class="list-unstyled mb-0">
+                                    <li class="mb-1"><strong>Estado:</strong> 
+                                        {!! $computador_detalle->activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>' !!}
+                                    </li>
+                                    <li class="mb-1"><strong>Bien Nacional:</strong> {{ $computador_detalle->bien_nacional ?? 'No especificado' }}</li>
+                                    <li class="mb-1"><strong>Serial:</strong> {{ $computador_detalle->serial ?? 'No especificado' }}</li>
+                                    <li class="mb-1"><strong>Marca / Tipo:</strong> {{ $computador_detalle->marca->nombre ?? 'No especificado' }} - {{ $computador_detalle->tipoDispositivo->nombre ?? 'No especificado' }}</li>
+                                    <li class="mb-1"><strong>Departamento:</strong> {{ $computador_detalle->departamento->nombre ?? 'No especificado (En Stock)' }}</li>
+                                    <li class="mb-1"><strong>Trabajador:</strong> {{ $computador_detalle->trabajador->nombres ?? 'No' }} {{ $computador_detalle->trabajador->apellidos ?? 'especificado' }}</li>
                                 </ul>
                             </div>
-                            <div class="col-md-6">
-                                <h6>Hardware Interno</h6>
-                                <ul>
-                                    <li><strong>RAM ({{ $computador_detalle->tipo_ram }}):</strong> {{ $computador_detalle->total_ram }} en {{ $computador_detalle->rams->count() }} slots.</li>
-                                    <li><strong>Discos:</strong> 
-                                        @foreach($computador_detalle->discos as $d) [{{ $d->capacidad }} {{ $d->tipo }}] @endforeach
+
+                            <div class="col-md-4 mb-4">
+                                <h6 class="border-bottom pb-2 text-primary">Hardware y Especificaciones</h6>
+                                <ul class="list-unstyled mb-0">
+                                    <li class="mb-1"><strong>Sistema Operativo:</strong> {{ $computador_detalle->sistemaOperativo->nombre ?? 'No especificado' }}</li>
+                                    <li class="mb-1"><strong>Procesador:</strong> {{ $computador_detalle->procesador->marca->nombre ?? '' }} {{ $computador_detalle->procesador->modelo ?? 'No especificado' }}</li>
+                                    <li class="mb-1"><strong>GPU Dedicada:</strong> {{ $computador_detalle->gpu ? $computador_detalle->gpu->marca->nombre . ' ' . $computador_detalle->gpu->modelo : 'No posee / Integrada' }}</li>
+                                    <li class="mb-1"><strong>RAM ({{ $computador_detalle->tipo_ram ?? 'N/A' }}):</strong> {{ $computador_detalle->total_ram }} en {{ $computador_detalle->rams->count() }} módulos.</li>
+                                    <li class="mb-1"><strong>Almacenamiento:</strong> {{ $computador_detalle->total_almacenamiento }} total.
+                                        @if($computador_detalle->discos->count() > 0)
+                                            <ul class="mb-0 small text-muted">
+                                                @foreach($computador_detalle->discos as $d) 
+                                                    <li>{{ $d->capacidad }} ({{ $d->tipo }})</li> 
+                                                @endforeach
+                                            </ul>
+                                        @else
+                                            <span class="small text-muted">No especificado</span>
+                                        @endif
                                     </li>
                                 </ul>
                             </div>
+
+                            <div class="col-md-4 mb-4">
+                                <h6 class="border-bottom pb-2 text-primary">Conectividad y Otros</h6>
+                                <ul class="list-unstyled mb-0">
+                                    <li class="mb-1"><strong>Dirección MAC:</strong> {{ $computador_detalle->mac ?? 'No especificada' }}</li>
+                                    <li class="mb-1"><strong>Dirección IP:</strong> {{ $computador_detalle->ip ?? 'No especificada' }}</li>
+                                    <li class="mb-1"><strong>Tipo de Conexión:</strong> {{ $computador_detalle->tipo_conexion ?? 'No especificado' }}</li>
+                                    <li class="mb-1"><strong>Estado Físico:</strong> {{ ucfirst(str_replace('_', ' ', $computador_detalle->estado_fisico ?? 'No especificado')) }}</li>
+                                    <li class="mb-1"><strong>Unidad DVD:</strong> {{ $computador_detalle->unidad_dvd ? 'Sí posee' : 'No posee' }}</li>
+                                    <li class="mb-1"><strong>Fuente de Poder:</strong> {{ $computador_detalle->fuente_poder ? 'Posee (Interna)' : 'No posee / Adaptador' }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="border-bottom pb-2 text-primary">Puertos de Conexión</h6>
+                                @if($computador_detalle->puertos->count() > 0)
+                                    <div class="d-flex flex-wrap gap-1">
+                                        @foreach($computador_detalle->puertos as $puerto)
+                                            <span class="badge bg-secondary">{{ $puerto->nombre }}</span>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <span class="text-muted small">No se especificaron puertos.</span>
+                                @endif
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="border-bottom pb-2 text-primary">Observaciones Adicionales</h6>
+                                <p class="text-muted small mb-0">{{ $computador_detalle->observaciones ?? 'No hay observaciones registradas para este equipo.' }}</p>
+                            </div>
                         </div>
                     @endif
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
