@@ -8,7 +8,13 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     @livewireStyles
-
+    <style>
+    /* Estandarización de Tablas SigeinvGDC */
+    .th-id { width: 80px; min-width: 80px; }
+    .th-estado { width: 120px; min-width: 120px; }
+    .th-acciones { width: 140px; min-width: 140px; text-align: right; }
+    /* La columna principal (ej. Nombre) no lleva clase, tomará el 100% del espacio sobrante */
+    </style>
     <style>
         /* Transición suave para el menú lateral */
         #sidebarMenu {
@@ -117,7 +123,7 @@
                 </li>
                 <li class="nav-item mb-1">
                     <a href="#submenuAsignaciones" data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('asignaciones.*') ? 'true' : 'false' }}" class="nav-link text-white d-flex justify-content-between align-items-center">
-                        <div><i class="bi bi-box-seam me-2"></i> Asignaciones</div>
+                        <div><i class="bi bi-card-checklist me-2"></i> Asignaciones</div>
                         <i class="bi bi-chevron-down" style="font-size: 0.8rem;"></i>
                     </a>
                     <div class="collapse {{ request()->routeIs('asignaciones.*') ? 'show' : '' }}" id="submenuAsignaciones" data-bs-parent="#menuLateral">

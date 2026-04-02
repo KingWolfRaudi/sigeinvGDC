@@ -87,7 +87,7 @@ class Departamentos extends Component
         );
 
         $this->dispatch('cerrar-modal', id: 'modalDepartamento');
-        $this->dispatch('mostrar-toast', mensaje: $this->departamento_id ? 'Departamento actualizado.' : 'Departamento creado.');
+        $this->dispatch('mostrar-toast', mensaje: $this->departamento_id ? 'Departamento actualizado.' : 'Departamento creado.', tipo:'success');
         $this->resetCampos();
     }
 
@@ -112,7 +112,7 @@ class Departamentos extends Component
         $departamento = Departamento::findOrFail($id);
         $departamento->activo = !$departamento->activo;
         $departamento->save();
-        $this->dispatch('mostrar-toast', mensaje: "Estado cambiado.");
+        $this->dispatch('mostrar-toast', mensaje: "Estado cambiado.", tipo:'success');
     }
 
     public function ver($id)

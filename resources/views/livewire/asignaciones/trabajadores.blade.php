@@ -45,14 +45,17 @@
                                 Cargo
                                 @if($sortField === 'cargo') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
                             </th>
-                            <th>Departamento</th>
+                            <th wire:click="sortBy('departamento_id')" style="cursor: pointer;">
+                                Departamento
+                                @if($sortField === 'departamento_id') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            </th>
                             @can('ver-estado-trabajadores')
-                            <th wire:click="sortBy('activo')" style="cursor: pointer;">
+                            <th class="th-estado" wire:click="sortBy('activo')" style="cursor: pointer;">
                                 Estado
                                 @if($sortField === 'activo') <i class="bi bi-sort-down ms-1"></i> @endif
                             </th>
                             @endcan
-                            <th class="text-end">Acciones</th>
+                            <th class="text-end th-acciones">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>

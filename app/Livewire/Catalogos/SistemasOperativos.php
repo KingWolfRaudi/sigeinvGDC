@@ -87,7 +87,7 @@ class SistemasOperativos extends Component
         );
 
         $this->dispatch('cerrar-modal', id: 'modalSistema');
-        $this->dispatch('mostrar-toast', mensaje: $this->sistema_id ? 'Sistema Operativo actualizado.' : 'Sistema Operativo creado.');
+        $this->dispatch('mostrar-toast', mensaje: $this->sistema_id ? 'Sistema Operativo actualizado.' : 'Sistema Operativo creado.', tipo:'success');
         $this->resetCampos();
     }
 
@@ -112,7 +112,7 @@ class SistemasOperativos extends Component
         $sistema = SistemaOperativo::findOrFail($id);
         $sistema->activo = !$sistema->activo;
         $sistema->save();
-        $this->dispatch('mostrar-toast', mensaje: "Estado cambiado.");
+        $this->dispatch('mostrar-toast', mensaje: "Estado cambiado.", tipo:'success');
     }
 
     public function ver($id)
@@ -128,7 +128,7 @@ class SistemasOperativos extends Component
         abort_if(Gate::denies('eliminar-sistemas-operativos'), 403);
 
         SistemaOperativo::findOrFail($id)->delete();
-        $this->dispatch('mostrar-toast', mensaje: 'Sistema Operativo eliminado.');
+        $this->dispatch('mostrar-toast', mensaje: 'Sistema Operativo eliminado.', tipo:'success');
     }
 
     public function resetCampos()

@@ -278,7 +278,7 @@ class Computadores extends Component
         }
 
         $this->dispatch('cerrar-modal', id: 'modalComputador');
-        $this->dispatch('mostrar-toast', mensaje: $this->computador_id ? 'Computador actualizado.' : 'Computador registrado.');
+        $this->dispatch('mostrar-toast', mensaje: $this->computador_id ? 'Computador actualizado.' : 'Computador registrado.', tipo:'success');
         $this->resetCampos();
     }
 
@@ -346,7 +346,7 @@ class Computadores extends Component
     {
         abort_if(Gate::denies('eliminar-computadores'), 403);
         Computador::findOrFail($id)->delete(); // Hará SoftDelete en cascada si está configurado en DB, o individual.
-        $this->dispatch('mostrar-toast', mensaje: 'Computador eliminado (Baja).');
+        $this->dispatch('mostrar-toast', mensaje: 'Computador eliminado (Baja).', tipo:'success');
     }
 
     public function toggleActivo($id)
@@ -357,7 +357,7 @@ class Computadores extends Component
         $computador->save();
         
         $estado = $computador->activo ? 'activado' : 'inactivado';
-        $this->dispatch('mostrar-toast', mensaje: "Computador $estado correctamente.");
+        $this->dispatch('mostrar-toast', mensaje: "Computador $estado correctamente.", tipo:'success');
     }
 
     public function resetCampos()
@@ -434,6 +434,6 @@ class Computadores extends Component
         $this->reset(['nuevo_trab_nombres', 'nuevo_trab_apellidos', 'nuevo_trab_cedula', 'nuevo_trab_departamento_id']);
         $this->dispatch('cerrar-modal', id: 'modalTrabajador');
         $this->dispatch('abrir-modal', id: 'modalComputador');
-        $this->dispatch('mostrar-toast', mensaje: 'Trabajador y cuenta de usuario creados.');
+        $this->dispatch('mostrar-toast', mensaje: 'Trabajador y cuenta de usuario creados.', tipo:'success');
     }
 }

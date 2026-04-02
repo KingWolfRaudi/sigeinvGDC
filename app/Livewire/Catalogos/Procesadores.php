@@ -140,7 +140,7 @@ class Procesadores extends Component
         );
 
         $this->dispatch('cerrar-modal', id: 'modalProcesador');
-        $this->dispatch('mostrar-toast', mensaje: $this->procesador_id ? 'Procesador actualizado.' : 'Procesador creado.');
+        $this->dispatch('mostrar-toast', mensaje: $this->procesador_id ? 'Procesador actualizado.' : 'Procesador creado.', tipo:'success');
         $this->resetCampos();
     }
 
@@ -170,7 +170,7 @@ class Procesadores extends Component
         $procesador = Procesador::findOrFail($id);
         $procesador->activo = !$procesador->activo;
         $procesador->save();
-        $this->dispatch('mostrar-toast', mensaje: "Estado cambiado.");
+        $this->dispatch('mostrar-toast', mensaje: "Estado cambiado.", tipo:'success');
     }
 
     public function ver($id)
@@ -186,7 +186,7 @@ class Procesadores extends Component
         // Validar si está en uso por una computadora antes de eliminar
         // (Esto lo agregaremos más adelante cuando hagamos la tabla computadoras)
         Procesador::findOrFail($id)->delete();
-        $this->dispatch('mostrar-toast', mensaje: 'Procesador eliminado.');
+        $this->dispatch('mostrar-toast', mensaje: 'Procesador eliminado.', tipo:'success');
     }
 
     public function resetCampos()

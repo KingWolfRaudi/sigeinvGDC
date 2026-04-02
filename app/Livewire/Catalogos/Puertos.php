@@ -87,7 +87,7 @@ class Puertos extends Component
         );
 
         $this->dispatch('cerrar-modal', id: 'modalPuerto');
-        $this->dispatch('mostrar-toast', mensaje: $this->puerto_id ? 'Puerto actualizado.' : 'Puerto creado.');
+        $this->dispatch('mostrar-toast', mensaje: $this->puerto_id ? 'Puerto actualizado.' : 'Puerto creado.', tipo:'success');
         $this->resetCampos();
     }
 
@@ -112,7 +112,7 @@ class Puertos extends Component
         $puerto = Puerto::findOrFail($id);
         $puerto->activo = !$puerto->activo;
         $puerto->save();
-        $this->dispatch('mostrar-toast', mensaje: "Estado cambiado.");
+        $this->dispatch('mostrar-toast', mensaje: "Estado cambiado.", tipo:'success');
     }
 
     public function ver($id)

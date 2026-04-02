@@ -33,14 +33,31 @@
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th wire:click="sortBy('bien_nacional')" style="cursor: pointer;">Identificador</th>
-                            <th>Equipo</th>
-                            <th>Red / IP</th>
-                            <th>Estado Físico</th>
+                            <th wire:click="sortBy('bien_nacional')" style="cursor: pointer; min-width: 140px;">
+                                Identificación 
+                                @if($sortField === 'bien_nacional') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            </th>
+                            
+                            <th>Equipo / Detalles</th>
+                            
+                            <th wire:click="sortBy('ip')" style="cursor: pointer;">
+                                Red 
+                                @if($sortField === 'ip') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            </th>
+
+                            <th wire:click="sortBy('estado_fisico')" style="cursor: pointer;">
+                                Condición 
+                                @if($sortField === 'estado_fisico') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            </th>
+
                             @can('ver-estado-computadores')
-                                <th>Estado</th>
+                            <th class="th-estado" wire:click="sortBy('activo')" style="cursor: pointer;">
+                                Estado 
+                                @if($sortField === 'activo') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            </th>
                             @endcan
-                            <th class="text-end">Acciones</th>
+                            
+                            <th class="th-acciones">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -89,7 +106,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="5" class="text-center text-muted py-4">No se encontraron computadores registrados.</td></tr>
+                            <tr><td colspan="6" class="text-center text-muted py-4">No se encontraron computadores registrados.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

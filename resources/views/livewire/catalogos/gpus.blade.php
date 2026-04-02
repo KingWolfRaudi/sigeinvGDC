@@ -33,13 +33,13 @@
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th wire:click="sortBy('marca_id')" style="cursor: pointer;">Marca</th>
+                            <th class="th-id" wire:click="sortBy('marca_id')" style="cursor: pointer;">Marca</th>
                             <th wire:click="sortBy('modelo')" style="cursor: pointer;">Modelo @if($sortField === 'modelo') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif</th>
                             <th>Especificaciones</th>
                             @can('ver-estado-gpus')
-                                <th wire:click="sortBy('activo')" style="cursor: pointer;">Estado</th>
+                                <th class="th-estado" wire:click="sortBy('activo')" style="cursor: pointer;">Estado</th>
                             @endcan
-                            <th class="text-end">Acciones</th>
+                            <th class="text-end th-acciones">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>

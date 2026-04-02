@@ -53,7 +53,7 @@ class Roles extends Component
         if ($this->role_id) {
             $rolActual = Role::find($this->role_id);
             if ($rolActual->name === 'super-admin' && $this->name !== 'super-admin') {
-                $this->dispatch('mostrar-toast', mensaje: 'No puedes modificar la base del Super Admin.');
+                $this->dispatch('mostrar-toast', mensaje: 'No puedes modificar la base del Super Admin.', tipo: 'danger');
                 return;
             }
         }
@@ -72,7 +72,7 @@ class Roles extends Component
         }
 
         $this->dispatch('cerrar-modal', id: 'modalRol');
-        $this->dispatch('mostrar-toast', mensaje: $this->role_id ? 'Rol y permisos actualizados.' : 'Rol creado exitosamente.');
+        $this->dispatch('mostrar-toast', mensaje: $this->role_id ? 'Rol y permisos actualizados.' : 'Rol creado exitosamente.', tipo: 'success');
         
         $this->resetCampos();
     }
@@ -100,12 +100,12 @@ class Roles extends Component
         $rol = Role::findOrFail($id);
         
         if ($rol->name === 'super-admin') {
-            $this->dispatch('mostrar-toast', mensaje: 'El rol Super Admin no puede ser eliminado.');
+            $this->dispatch('mostrar-toast', mensaje: 'El rol Super Admin no puede ser eliminado.', tipo: 'danger');
             return;
         }
 
         $rol->delete();
-        $this->dispatch('mostrar-toast', mensaje: 'Rol eliminado exitosamente.');
+        $this->dispatch('mostrar-toast', mensaje: 'Rol eliminado exitosamente.', tipo:'success');
     }
 
     public function resetCampos()

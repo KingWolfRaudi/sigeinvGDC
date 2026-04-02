@@ -152,7 +152,7 @@ class Gpus extends Component
         $gpu->puertos()->sync($this->puertos_seleccionados);
 
         $this->dispatch('cerrar-modal', id: 'modalGpu');
-        $this->dispatch('mostrar-toast', mensaje: $this->gpu_id ? 'GPU actualizada.' : 'GPU creada.');
+        $this->dispatch('mostrar-toast', mensaje: $this->gpu_id ? 'GPU actualizada.' : 'GPU creada.', tipo:'sucess');
         $this->resetCampos();
     }
 
@@ -199,7 +199,7 @@ class Gpus extends Component
     {
         abort_if(Gate::denies('eliminar-gpus'), 403);
         Gpu::findOrFail($id)->delete();
-        $this->dispatch('mostrar-toast', mensaje: 'GPU eliminada.');
+        $this->dispatch('mostrar-toast', mensaje: 'GPU eliminada.', tipo:'success');
     }
 
     public function resetCampos()

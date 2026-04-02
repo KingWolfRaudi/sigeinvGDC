@@ -29,28 +29,22 @@
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th wire:click="sortBy('id')" style="cursor: pointer;">
-                                ID 
-                                @if($sortField === 'id') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            <th class="th-id" wire:click="sortBy('id')" style="cursor: pointer;">
+                                ID @if($sortField === 'id') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
                             </th>
                             <th wire:click="sortBy('name')" style="cursor: pointer;">
-                                Nombre 
-                                @if($sortField === 'name') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                                Nombre @if($sortField === 'name') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
                             </th>
                             <th wire:click="sortBy('username')" style="cursor: pointer;">
-                                Usuario / Correo 
-                                @if($sortField === 'username') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                                Usuario / Correo @if($sortField === 'username') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
                             </th>
-                            
                             <th>Roles</th>
-                            
                             @can('ver-estado-usuarios')
-                            <th wire:click="sortBy('activo')" style="cursor: pointer;">
-                                Estado
-                                @if($sortField === 'activo') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            <th class="th-estado" wire:click="sortBy('activo')" style="cursor: pointer;">
+                                Estado @if($sortField === 'activo') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
                             </th>
                             @endcan
-                            <th class="text-end">Acciones</th>
+                            <th class="th-acciones">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>

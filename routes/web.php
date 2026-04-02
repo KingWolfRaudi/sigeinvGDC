@@ -37,7 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/catalogos/gpus', Gpus::class)->name('catalogos.gpus');
     // Asignaciones
     Route::get('/asignaciones/departamentos', Departamentos::class)->name('asignaciones.departamentos');
-    Route::get('/asignaciones/trabajadores', Departamentos::class)->name('asignaciones.trabajadores');
+    Route::get('/asignaciones/trabajadores', Trabajadores::class)->name('asignaciones.trabajadores');
     // Módulos de Inventario
     Route::prefix('inventario')->name('inventario.')->group(function () {
         

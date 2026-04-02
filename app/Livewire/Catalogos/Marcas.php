@@ -89,7 +89,7 @@ class Marcas extends Component
         );
 
         $this->dispatch('cerrar-modal', id: 'modalMarca');
-        $this->dispatch('mostrar-toast', mensaje: $this->marca_id ? 'Marca actualizada.' : 'Marca creada.');
+        $this->dispatch('mostrar-toast', mensaje: $this->marca_id ? 'Marca actualizada.' : 'Marca creada.', tipo:'success');
         $this->resetCampos();
     }
 
@@ -114,7 +114,7 @@ class Marcas extends Component
         $marca = Marca::findOrFail($id);
         $marca->activo = !$marca->activo;
         $marca->save();
-        $this->dispatch('mostrar-toast', mensaje: "Estado cambiado.");
+        $this->dispatch('mostrar-toast', mensaje: "Estado cambiado.", tipo:'success');
     }
 
     public function ver($id)

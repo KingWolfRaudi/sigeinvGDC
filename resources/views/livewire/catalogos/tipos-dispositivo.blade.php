@@ -33,18 +33,18 @@
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th wire:click="sortBy('id')" style="cursor: pointer;">
+                            <th class="th-id" wire:click="sortBy('id')" style="cursor: pointer;">
                                 ID @if($sortField === 'id') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
                             </th>
                             <th wire:click="sortBy('nombre')" style="cursor: pointer;">
                                 Nombre @if($sortField === 'nombre') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
                             </th>
                             @can('ver-estado-tipos-dispositivo')
-                            <th wire:click="sortBy('activo')" style="cursor: pointer;">
-                                Estado @if($sortField === 'activo') <i class="bi bi-sort-down ms-1"></i> @endif
+                            <th class="th-estado" wire:click="sortBy('activo')" style="cursor: pointer;">
+                                Estado @if($sortField === 'activo') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
                             </th>
                             @endcan
-                            <th class="text-end">Acciones</th>
+                            <th class="th-acciones">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>

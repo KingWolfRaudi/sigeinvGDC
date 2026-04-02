@@ -88,7 +88,7 @@ class TiposDispositivo extends Component
         );
 
         $this->dispatch('cerrar-modal', id: 'modalTipo');
-        $this->dispatch('mostrar-toast', mensaje: $this->tipo_id ? 'Tipo actualizado exitosamente.' : 'Tipo creado exitosamente.');
+        $this->dispatch('mostrar-toast', mensaje: $this->tipo_id ? 'Tipo de dispositivo actualizado exitosamente.' : 'Tipo de dispositivo creado exitosamente.', tipo:'success');
         $this->resetCampos();
     }
 
@@ -113,7 +113,7 @@ class TiposDispositivo extends Component
         $tipo = TipoDispositivo::findOrFail($id);
         $tipo->activo = !$tipo->activo;
         $tipo->save();
-        $this->dispatch('mostrar-toast', mensaje: "Estado cambiado.");
+        $this->dispatch('mostrar-toast', mensaje: "Estado cambiado.", tipo:'success');
     }
 
     public function ver($id)
@@ -129,7 +129,7 @@ class TiposDispositivo extends Component
         abort_if(Gate::denies('eliminar-tipos-dispositivo'), 403);
 
         TipoDispositivo::findOrFail($id)->delete();
-        $this->dispatch('mostrar-toast', mensaje: 'Tipo de dispositivo eliminado.');
+        $this->dispatch('mostrar-toast', mensaje: 'Tipo de dispositivo eliminado.', tipo:'success');
     }
 
     public function resetCampos()
