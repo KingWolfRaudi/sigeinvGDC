@@ -1,7 +1,9 @@
 <div>
     <div class="row mb-4 align-items-center">
         <div class="col-md-4">
-            <h3 class="mb-0">Gestión de Trabajadores</h3>
+            @if(!$ocultarTitulos)
+                <h3 class="mb-0">Gestión de Trabajadores</h3>
+            @endif
         </div>
         <div class="col-md-5">
             <div class="input-group">
@@ -81,7 +83,7 @@
                                     @endcan
 
                                     @can('ver-trabajadores')
-                                        <button wire:click="ver({{ $trabajador->id }})" class="btn btn-sm btn-info text-white" title="Ver Detalles" data-bs-toggle="modal" data-bs-target="#modalDetalle">
+                                        <button wire:click="ver({{ $trabajador->id }})" class="btn btn-sm btn-info text-white" title="Ver Detalles" data-bs-toggle="modal" data-bs-target="#modalDetalleTrabajador">
                                             <i class="bi bi-eye"></i>
                                         </button>
                                     @endcan
@@ -195,7 +197,7 @@
         </div>
     </div>
 
-    <div wire:ignore.self class="modal fade" id="modalDetalle" tabindex="-1" aria-hidden="true">
+    <div wire:ignore.self class="modal fade" id="modalDetalleTrabajador" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-light">
@@ -227,7 +229,14 @@
                         </div>
                     @endif
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer d-flex justify-content-between">
+                    @if($trabajador_detalle)
+                        <a href="{{ route('asociaciones', ['tipo' => 'trabajador', 'id' => $trabajador_detalle->id]) }}" class="btn btn-outline-primary shadow-sm">
+                            <i class="bi bi-diagram-3 me-1"></i> Ver Asociaciones Completas
+                        </a>
+                    @else
+                        <div></div>
+                    @endif
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="$set('trabajador_detalle', null)">Cerrar</button>
                 </div>
             </div>

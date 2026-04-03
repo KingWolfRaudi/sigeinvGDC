@@ -32,7 +32,6 @@
                 @endif
             </button>
         </li>
-        @can('movimientos-computadores-aprobar')
         <li class="nav-item">
             <button wire:click="$set('pestana', 'pendientes')"
                 class="nav-link {{ $pestana === 'pendientes' ? 'active' : '' }}">
@@ -42,7 +41,6 @@
                 @endif
             </button>
         </li>
-        @endcan
         <li class="nav-item">
             <button wire:click="$set('pestana', 'historico')"
                 class="nav-link {{ $pestana === 'historico' ? 'active' : '' }}">
@@ -134,6 +132,17 @@
                                     <i class="bi bi-send"></i>
                                 </button>
                                 @endcan
+                                {{-- Editar justificación del borrador --}}
+                                <button wire:click="abrirEdicionBorrador({{ $mov->id }})"
+                                    class="btn btn-sm btn-outline-primary" title="Editar Justificación">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                {{-- Eliminar borrador (cancelar) --}}
+                                <button wire:click="eliminarBorrador({{ $mov->id }})"
+                                    wire:confirm="¿Eliminar este borrador? Esta acción no se puede deshacer."
+                                    class="btn btn-sm btn-outline-danger" title="Cancelar Borrador">
+                                    <i class="bi bi-trash"></i>
+                                </button>
                                 @endif
 
                                 {{-- Aprobar / Rechazar (solo pendientes) --}}
@@ -255,4 +264,39 @@
             </div>
         </div>
     </div>
+
+    {{-- Modal: Editar Justificación del Borrador --}}
+    <div wire:ignore.self class="modal fade" id="modalEditarBorrador" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Editar Borrador</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        wire:click="$set('editando_borrador_id', null)"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Puedes corregir la justificación antes de enviar el borrador a revisión.
+                        Para cambiar los datos del equipo, elimina este borrador y
+                        edita el registro directamente desde el inventario.
+                    </p>
+                    <label class="form-label fw-bold">Justificación <span class="text-danger">*</span></label>
+                    <textarea wire:model="edit_justificacion"
+                        class="form-control @error('edit_justificacion') is-invalid @enderror"
+                        rows="5"
+                        placeholder="Describa el motivo del cambio (mínimo 10 caracteres)..."></textarea>
+                    @error('edit_justificacion') <span class="text-danger small">{{ $message }}</span> @enderror
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        wire:click="$set('editando_borrador_id', null)">Cancelar</button>
+                    <button wire:click="guardarEdicionBorrador" class="btn btn-primary">
+                        <i class="bi bi-save me-1"></i> Guardar Cambios
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>

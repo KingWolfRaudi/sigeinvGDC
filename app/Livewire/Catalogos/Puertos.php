@@ -17,8 +17,8 @@ class Puertos extends Component
     public $tituloModal = 'Nuevo Puerto';
 
     public $search = '';
-    public $sortField = 'id';
-    public $sortAsc = false;
+    public $sortField = 'nombre';
+    public $sortAsc = true;
     public $filtro_estado = 'todos';
 
     public function updatingSearch()

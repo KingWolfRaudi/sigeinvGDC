@@ -17,8 +17,8 @@ class Departamentos extends Component
     public $tituloModal = 'Nuevo Departamento';
 
     public $search = '';
-    public $sortField = 'id';
-    public $sortAsc = false;
+    public $sortField = 'nombre';
+    public $sortAsc = true;
     public $filtro_estado = 'todos';
 
     public function updatingSearch()
@@ -53,9 +53,17 @@ class Departamentos extends Component
             $query->where('activo', true);
         }
 
-        // 3. Búsqueda y Paginación
-        $departamentos = $query->where('nombre', 'like', '%' . $this->search . '%')
-                               ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
+        // 3. Búsqueda y Paginación (Deep Search)
+        $query->where(function($q) {
+            $search = '%' . $this->search . '%';
+            
+            $q->where('nombre', 'like', $search)
+              ->orWhereHas('trabajadores', fn($t) => $t->where('nombres', 'like', $search)->orWhere('apellidos', 'like', $search)->orWhere('cedula', 'like', $search))
+              ->orWhereHas('computadores', fn($c) => $c->where('bien_nacional', 'like', $search)->orWhere('serial', 'like', $search))
+              ->orWhereHas('dispositivos', fn($d) => $d->where('codigo', 'like', $search)->orWhere('serial', 'like', $search));
+        });
+
+        $departamentos = $query->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
                                ->paginate(10);
                        
         return view('livewire.asignaciones.departamentos', compact('departamentos'));
@@ -120,7 +128,7 @@ class Departamentos extends Component
         abort_if(Gate::denies('ver-departamentos'), 403);
         
         $this->departamento_detalle = Departamento::findOrFail($id);
-        $this->dispatch('abrir-modal', id: 'modalDetalle');
+        $this->dispatch('abrir-modal', id: 'modalDetalleDepartamento');
     }
 
     public function eliminar($id)

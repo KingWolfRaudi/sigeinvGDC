@@ -23,6 +23,16 @@ class Trabajadores extends Component
     // Variables de formulario
     public $trabajador_id, $nombres, $apellidos, $cedula, $cargo, $departamento_id;
     public $activo = true;
+    
+    // Variables de Anidación
+    public $presetFiltro = [];
+    public $ocultarTitulos = false;
+
+    public function mount($presetFiltro = [], $ocultarTitulos = false)
+    {
+        $this->presetFiltro = $presetFiltro;
+        $this->ocultarTitulos = $ocultarTitulos;
+    }
 
     // Variables para departamento rápido y detalle
     public $nuevo_departamento = '';
@@ -62,14 +72,34 @@ class Trabajadores extends Component
             $query->where('activo', true);
         }
 
-        // 3. Búsqueda profunda (Deep Search)
+        // Filtros Prediseñados (Cuando el componente se renderiza dentro de un Asociaciones Dashboard)
+        if (!empty($this->presetFiltro)) {
+            foreach($this->presetFiltro as $col => $val) {
+                if ($val !== null) {
+                    $query->where($col, $val);
+                }
+            }
+        }
+
+        // 3. Búsqueda profunda (Deep Search) Multiples tablas
         $query->where(function ($q) {
-            $q->where('nombres', 'like', '%' . $this->search . '%')
-            ->orWhere('apellidos', 'like', '%' . $this->search . '%')
-            ->orWhere('cedula', 'like', '%' . $this->search . '%')
-            ->orWhere('cargo', 'like', '%' . $this->search . '%')
-            ->orWhereHas('departamento', function ($subQ) {
-                $subQ->where('nombre', 'like', '%' . $this->search . '%');
+            $search = '%' . $this->search . '%';
+            
+            $q->where('nombres', 'like', $search)
+            ->orWhere('apellidos', 'like', $search)
+            ->orWhere('cedula', 'like', $search)
+            ->orWhere('cargo', 'like', $search)
+            ->orWhereHas('departamento', function ($subQ) use ($search) {
+                $subQ->where('nombre', 'like', $search);
+            })
+            // Buscar por equipos que el trabajador tenga asignados
+            ->orWhereHas('computadores', function ($subQ) use ($search) {
+                $subQ->where('bien_nacional', 'like', $search)
+                     ->orWhere('serial', 'like', $search);
+            })
+            ->orWhereHas('dispositivos', function ($subQ) use ($search) {
+                $subQ->where('codigo', 'like', $search)
+                     ->orWhere('serial', 'like', $search);
             });
         });
 

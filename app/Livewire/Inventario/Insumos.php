@@ -31,6 +31,7 @@ class Insumos extends Component
     // Workflow de Movimientos
     public $justificacion = '';
     public bool $es_edicion = false;
+    public $movimiento_preview = null;
 
     // On The Fly
     public $creando_marca = false, $nueva_marca;
@@ -42,6 +43,16 @@ class Insumos extends Component
     public $sortField = 'id';
     public $sortAsc = false;
     public $filtro_estado = 'todos'; 
+    
+    // Variables para Reutilización y Anidación
+    public $presetFiltro = [];
+    public $ocultarTitulos = false;
+
+    public function mount($presetFiltro = [], $ocultarTitulos = false)
+    {
+        $this->presetFiltro = $presetFiltro;
+        $this->ocultarTitulos = $ocultarTitulos;
+    }
 
     public function updatingSearch() { $this->resetPage(); }
 
@@ -57,10 +68,12 @@ class Insumos extends Component
 
     public function render()
     {
+        $userId = Auth::id();
         $query = Insumo::with(['marca', 'categoriaInsumo'])
-            ->withCount(['movimientos as pendientes_count' => function ($q) {
-                $q->where('estado_workflow', 'pendiente');
-            }]);
+            ->withCount([
+                'movimientos as pendientes_count'     => fn($q) => $q->where('estado_workflow', 'pendiente'),
+                'movimientos as mis_borradores_count'  => fn($q) => $q->where('estado_workflow', 'borrador')->where('solicitante_id', $userId),
+            ]);
 
         if (\Illuminate\Support\Facades\Gate::allows('ver-estado-insumos')) {
             if ($this->filtro_estado === 'activos') $query->where('activo', true);
@@ -69,16 +82,23 @@ class Insumos extends Component
             $query->where('activo', true);
         }
 
+        // Filtros Prediseñados (Cuando el componente se renderiza dentro de un Asociaciones Dashboard)
+        if (!empty($this->presetFiltro)) {
+            foreach($this->presetFiltro as $col => $val) {
+                if ($val !== null) {
+                    $query->where($col, $val);
+                }
+            }
+        }
+
         $query->where(function ($q) {
-            $q->where('bien_nacional', 'like', '%' . $this->search . '%')
-              ->orWhere('serial', 'like', '%' . $this->search . '%')
-              ->orWhere('nombre', 'like', '%' . $this->search . '%')
-              ->orWhereHas('marca', function($subQ) {
-                  $subQ->where('nombre', 'like', '%' . $this->search . '%');
-              })
-              ->orWhereHas('categoriaInsumo', function($subQ) {
-                  $subQ->where('nombre', 'like', '%' . $this->search . '%');
-              });
+            $search = '%' . $this->search . '%';
+            $q->where('bien_nacional', 'like', $search)
+              ->orWhere('serial', 'like', $search)
+              ->orWhere('nombre', 'like', $search)
+              ->orWhere('descripcion', 'like', $search)
+              ->orWhereHas('marca', fn($subQ) => $subQ->where('nombre', 'like', $search))
+              ->orWhereHas('categoriaInsumo', fn($subQ) => $subQ->where('nombre', 'like', $search));
         });
 
         $insumos = $query->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')->paginate(10);
@@ -155,6 +175,40 @@ class Insumos extends Component
             $insumo = Insumo::findOrFail($this->insumo_id);
             $payloadAnterior = $insumo->toArray();
 
+            // ── Computar solo los campos que CAMBIARON ──
+            $candidatoNuevo = [
+                'bien_nacional'        => $this->bien_nacional ?: null,
+                'serial'               => $this->serial ?: null,
+                'nombre'               => $this->nombre,
+                'descripcion'          => $this->descripcion,
+                'marca_id'             => $this->marca_id,
+                'categoria_insumo_id'  => $this->categoria_insumo_id,
+                'unidad_medida'        => $this->unidad_medida,
+                'medida_actual'        => $this->medida_actual,
+                'medida_minima'        => $this->medida_minima,
+                'reutilizable'         => $this->reutilizable,
+                'instalable_en_equipo' => $this->instalable_en_equipo,
+                'estado_fisico'        => $this->estado_fisico,
+                'activo'               => $this->activo,
+            ];
+            $boolCampos = ['activo', 'reutilizable', 'instalable_en_equipo'];
+            $payloadNuevo = [];
+            foreach ($candidatoNuevo as $k => $v) {
+                $ant = $payloadAnterior[$k] ?? null;
+                $iguales = in_array($k, $boolCampos)
+                    ? ((bool)$ant === (bool)$v)
+                    : ((string)($ant ?? '') === (string)($v ?? ''));
+                if (!$iguales) {
+                    $payloadNuevo[$k] = $v;
+                }
+            }
+            if (empty($payloadNuevo)) {
+                $this->dispatch('mostrar-toast', mensaje: 'No se detectaron cambios para registrar.', tipo: 'info');
+                $this->dispatch('cerrar-modal', id: 'modalInsumo');
+                $this->resetCampos();
+                return;
+            }
+
             if (Gate::allows('movimientos-insumos-ejecutar-directo')) {
                 $insumo->update($payloadNuevo);
                 MovimientoInsumo::create([
@@ -224,7 +278,50 @@ class Insumos extends Component
     {
         abort_if(Gate::denies('ver-insumos'), 403);
         $this->insumo_detalle = Insumo::with(['marca', 'categoriaInsumo'])->findOrFail($id);
-        $this->dispatch('abrir-modal', id: 'modalDetalle');
+        $this->dispatch('abrir-modal', id: 'modalDetalleInsumo');
+    }
+
+    public function verCambioPendiente(int $insumoId): void
+    {
+        abort_if(Gate::denies('ver-insumos'), 403);
+        $this->movimiento_preview = MovimientoInsumo::with('solicitante')
+            ->where('insumo_id', $insumoId)
+            ->whereIn('estado_workflow', ['pendiente', 'borrador'])
+            ->orderByRaw("CASE estado_workflow WHEN 'pendiente' THEN 0 ELSE 1 END")
+            ->latest()
+            ->first();
+        if ($this->movimiento_preview) {
+            $this->dispatch('abrir-modal', id: 'modalCambioPendiente');
+        }
+    }
+
+    public function aprobarMovimientoPreview(): void
+    {
+        abort_if(Gate::denies('movimientos-insumos-aprobar'), 403);
+        if (!$this->movimiento_preview || $this->movimiento_preview->estado_workflow !== 'pendiente') {
+            $this->dispatch('mostrar-toast', mensaje: 'Solo se pueden aprobar movimientos en estado Pendiente.', tipo: 'warning');
+            return;
+        }
+        try {
+            $mov    = MovimientoInsumo::where('estado_workflow', 'pendiente')->findOrFail($this->movimiento_preview->id);
+            $insumo = Insumo::withTrashed()->findOrFail($mov->insumo_id);
+
+            match ($mov->tipo_operacion) {
+                'baja'          => $insumo->delete(),
+                'toggle_activo' => $insumo->update(['activo' => $mov->payload_nuevo['activo'] ?? !$insumo->activo]),
+                'entrada_stock' => $insumo->increment('medida_actual', $mov->cantidad_movida ?? 0),
+                'salida_consumo'=> $insumo->decrement('medida_actual', $mov->cantidad_movida ?? 0),
+                default         => $insumo->update($mov->payload_nuevo),
+            };
+
+            $mov->update(['estado_workflow' => 'aprobado', 'aprobador_id' => Auth::id(), 'aprobado_at' => now()]);
+            $this->movimiento_preview = null;
+            $this->dispatch('cerrar-modal', id: 'modalCambioPendiente');
+            $this->dispatch('mostrar-toast', mensaje: 'Movimiento aprobado y aplicado.', tipo: 'success');
+        } catch (\Exception $e) {
+            Log::error('Error aprobando movimiento desde inventario: ' . $e->getMessage());
+            $this->dispatch('mostrar-toast', mensaje: 'Error al aprobar.', tipo: 'error');
+        }
     }
 
     public function eliminar($id)

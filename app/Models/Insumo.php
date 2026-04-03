@@ -23,4 +23,9 @@ class Insumo extends Model
 
     // Trazabilidad de Movimientos
     public function movimientos() { return $this->hasMany(MovimientoInsumo::class, 'insumo_id'); }
+
+    public function incidencias()
+    {
+        return $this->morphMany(Incidencia::class, 'modelo');
+    }
 }

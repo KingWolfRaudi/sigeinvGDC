@@ -17,8 +17,8 @@ class Marcas extends Component
 
     // 1. Variables para Búsqueda y Filtros
     public $search = '';
-    public $sortField = 'id';
-    public $sortAsc = false; // false = descendente (más nuevos primero)
+    public $sortField = 'nombre';
+    public $sortAsc = true;
     public $filtro_estado = 'todos';
 
     // 2. Resetear la paginación cuando el usuario escribe en el buscador

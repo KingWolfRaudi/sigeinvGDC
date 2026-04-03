@@ -43,6 +43,14 @@ class Computador extends Model
     public function movimientos() { return $this->hasMany(MovimientoComputador::class, 'computador_id'); }
 
     /**
+     * Incidencias asociadas
+     */
+    public function incidencias()
+    {
+        return $this->morphMany(Incidencia::class, 'modelo');
+    }
+
+    /**
      * ACCESOR: Calcula el total de RAM limpiando el 'GB' para poder sumar
      */
     public function getTotalRamAttribute()

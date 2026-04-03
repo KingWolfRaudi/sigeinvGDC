@@ -21,11 +21,15 @@ class PanelComputadores extends Component
     public string $search = '';
     public string $filtro_tipo = '';
 
-    // Para el modal de rechazo
+    // Modal de rechazo
     public ?int $rechazando_id = null;
     public string $motivo_rechazo = '';
 
-    // Para ver detalle de un movimiento
+    // Edición de Borrador
+    public ?int $editando_borrador_id = null;
+    public string $edit_justificacion = '';
+
+    // Detalle de movimiento
     public $movimiento_detalle = null;
 
     public function updatingSearch() { $this->resetPage(); }
@@ -61,6 +65,52 @@ class PanelComputadores extends Component
         ];
 
         return view('livewire.movimientos.panel-computadores', compact('movimientos', 'conteo'));
+    }
+
+    // ── Acciones sobre Borradores Propios ────────────────────────────────
+
+    public function abrirEdicionBorrador(int $id): void
+    {
+        $mov = MovimientoComputador::where('id', $id)
+            ->where('solicitante_id', Auth::id())
+            ->where('estado_workflow', 'borrador')
+            ->firstOrFail();
+        $this->editando_borrador_id = $id;
+        $this->edit_justificacion   = $mov->justificacion ?? '';
+        $this->dispatch('abrir-modal', id: 'modalEditarBorrador');
+    }
+
+    public function guardarEdicionBorrador(): void
+    {
+        $this->validate(['edit_justificacion' => 'required|string|min:10']);
+        try {
+            MovimientoComputador::where('id', $this->editando_borrador_id)
+                ->where('solicitante_id', Auth::id())
+                ->where('estado_workflow', 'borrador')
+                ->firstOrFail()
+                ->update(['justificacion' => $this->edit_justificacion]);
+
+            $this->editando_borrador_id = null;
+            $this->edit_justificacion   = '';
+            $this->dispatch('cerrar-modal', id: 'modalEditarBorrador');
+            $this->dispatch('mostrar-toast', mensaje: 'Borrador actualizado.', tipo: 'success');
+        } catch (\Exception $e) {
+            $this->dispatch('mostrar-toast', mensaje: 'Error al actualizar el borrador.', tipo: 'error');
+        }
+    }
+
+    public function eliminarBorrador(int $id): void
+    {
+        try {
+            MovimientoComputador::where('id', $id)
+                ->where('solicitante_id', Auth::id())
+                ->where('estado_workflow', 'borrador')
+                ->firstOrFail()
+                ->delete();
+            $this->dispatch('mostrar-toast', mensaje: 'Borrador eliminado.', tipo: 'warning');
+        } catch (\Exception $e) {
+            $this->dispatch('mostrar-toast', mensaje: 'Error al eliminar el borrador.', tipo: 'error');
+        }
     }
 
     // ── Acciones del Técnico ───────────────────────────────────────────────

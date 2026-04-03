@@ -18,8 +18,19 @@ class User extends Authenticatable
         'email',
         'username', // <-- Agregado
         'password',
+        'avatar',   // <-- Agregado
         'activo',   // <-- Agregado
     ];
+
+    public function trabajador()
+    {
+        return $this->hasOne(Trabajador::class);
+    }
+
+    public function solicitudesPerfil()
+    {
+        return $this->hasMany(SolicitudPerfil::class);
+    }
 
     protected $hidden = [
         'password',

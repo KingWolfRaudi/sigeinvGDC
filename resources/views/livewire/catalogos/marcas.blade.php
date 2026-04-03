@@ -33,9 +33,7 @@
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th class="th-id" wire:click="sortBy('id')" style="cursor: pointer;">
-                                ID @if($sortField === 'id') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
-                            </th>
+
                             
                             <th wire:click="sortBy('nombre')" style="cursor: pointer;">
                                 Nombre @if($sortField === 'nombre') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
@@ -53,7 +51,7 @@
                     <tbody>
                         @forelse($marcas as $marca)
                             <tr>
-                                <td>{{ $marca->id }}</td>
+
                                 <td>{{ $marca->nombre }}</td>
                                 @can('ver-estado-marcas')
                                     <td>
@@ -94,7 +92,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center text-muted py-4">No se encontraron marcas que coincidan con la búsqueda.</td>
+                                <td colspan="3" class="text-center text-muted py-4">No se encontraron marcas que coincidan con la búsqueda.</td>
                             </tr>
                         @endforelse
                     </tbody>

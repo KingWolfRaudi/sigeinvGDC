@@ -24,8 +24,8 @@ class Procesadores extends Component
     public $creando_marca = false;
 
     public $search = '';
-    public $sortField = 'id';
-    public $sortAsc = false;
+    public $sortField = 'modelo';
+    public $sortAsc = true;
     public $filtro_estado = 'todos';
 
     public function updatingSearch()

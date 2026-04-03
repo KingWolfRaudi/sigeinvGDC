@@ -27,9 +27,23 @@ class Trabajador extends Model
         return $this->belongsTo(Departamento::class);
     }
 
-    // 2. Agrega la relación si no la tenías:
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function computadores()
+    {
+        return $this->hasMany(Computador::class);
+    }
+
+    public function dispositivos()
+    {
+        return $this->hasMany(Dispositivo::class);
+    }
+
+    public function incidencias()
+    {
+        return $this->hasMany(Incidencia::class);
     }
 }

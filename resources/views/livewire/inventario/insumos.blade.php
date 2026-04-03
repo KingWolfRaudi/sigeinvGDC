@@ -1,7 +1,9 @@
 <div>
     <div class="row mb-4 align-items-center">
         <div class="col-md-4">
-            <h3 class="mb-0">Almacén General (Insumos)</h3>
+            @if(!$ocultarTitulos)
+                <h3 class="mb-0">Almacén General (Insumos)</h3>
+            @endif
         </div>
         <div class="col-md-5">
             <div class="input-group">
@@ -71,9 +73,18 @@
                             <td>
                                 <strong>BN:</strong> {{ $insumo->bien_nacional ?? 'N/A' }}
                                 @if($insumo->pendientes_count > 0)
-                                    <a href="{{ route('movimientos.insumos') }}" class="badge bg-warning text-dark px-1 py-0 shadow-sm deco-none" title="Tiene {{ $insumo->pendientes_count }} cambio(s) pendiente(s) por aprobar">
-                                        <i class="bi bi-clock-history"></i> Pendiente
-                                    </a>
+                                    <button wire:click="verCambioPendiente({{ $insumo->id }})"
+                                        class="badge bg-warning text-dark border-0 ms-1"
+                                        title="{{ $insumo->pendientes_count }} cambio(s) en revisión — clic para ver">
+                                        <i class="bi bi-hourglass-split"></i> En revisión
+                                    </button>
+                                @endif
+                                @if($insumo->mis_borradores_count > 0)
+                                    <button wire:click="verCambioPendiente({{ $insumo->id }})"
+                                        class="badge bg-info text-white border-0 ms-1"
+                                        title="{{ $insumo->mis_borradores_count }} borrador(es) tuyos — clic para ver">
+                                        <i class="bi bi-pencil"></i> Borrador
+                                    </button>
                                 @endif
                                 <br>
                                 <small class="text-muted">Serial: {{ $insumo->serial ?? 'N/A' }}</small>
@@ -305,7 +316,7 @@
     </div>
 
     <!-- Modal Detalles -->
-    <div wire:ignore.self class="modal fade" id="modalDetalle" tabindex="-1" aria-hidden="true">
+    <div wire:ignore.self class="modal fade" id="modalDetalleInsumo" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-light">
@@ -359,4 +370,95 @@
             </div>
         </div>
     </div>
+
+    {{-- Modal: Vista Rápida de Cambio Pendiente --}}
+    <div wire:ignore.self class="modal fade" id="modalCambioPendiente" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                @if($movimiento_preview)
+                @php
+                    $est = $movimiento_preview->estado_workflow;
+                    $esRevisión = $est === 'pendiente';
+                    $tiposLabel = [
+                        'entrada_stock'       => 'Entrada de Stock',
+                        'salida_consumo'      => 'Salida de Consumo',
+                        'prestamo'            => 'Préstamo',
+                        'devolucion'          => 'Devolución',
+                        'actualizacion_datos' => 'Actualización de Datos',
+                        'toggle_activo'       => 'Cambio de Estatus',
+                        'baja'                => 'Baja del Sistema',
+                    ];
+                @endphp
+                <div class="modal-header {{ $esRevisión ? 'bg-warning text-dark' : 'bg-info text-white' }}">
+                    <h5 class="modal-title">
+                        <i class="bi bi-{{ $esRevisión ? 'hourglass-split' : 'pencil-square' }} me-2"></i>
+                        Cambio {{ $esRevisión ? 'En Revisión' : 'En Borrador' }}
+                    </h5>
+                    <button type="button"
+                        class="btn-close {{ $esRevisión ? '' : 'btn-close-white' }}"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex align-items-start gap-3 p-3 bg-light rounded mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white fw-bold"
+                                style="width:42px;height:42px;font-size:1rem;">
+                                {{ strtoupper(substr($movimiento_preview->solicitante->name ?? 'U', 0, 1)) }}
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold">{{ $movimiento_preview->solicitante->name ?? 'Usuario desconocido' }}</div>
+                            <div class="text-muted small">
+                                <i class="bi bi-clock me-1"></i>
+                                Solicitado {{ $movimiento_preview->created_at->diffForHumans() }}
+                                · {{ $movimiento_preview->created_at->format('d/m/Y H:i') }}
+                            </div>
+                            <div class="mt-1">
+                                <span class="badge bg-secondary fw-normal">
+                                    {{ $tiposLabel[$movimiento_preview->tipo_operacion] ?? ucwords(str_replace('_',' ',$movimiento_preview->tipo_operacion)) }}
+                                </span>
+                                <span class="badge {{ $esRevisión ? 'bg-warning text-dark' : 'bg-info' }} fw-normal ms-1">
+                                    {{ $esRevisión ? 'En Revisión' : 'Borrador' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    @if($movimiento_preview->justificacion)
+                    <div class="mb-3">
+                        <p class="small text-muted mb-1 fw-semibold"><i class="bi bi-chat-quote me-1"></i>Justificación:</p>
+                        <blockquote class="blockquote-footer ps-3 border-start border-3 mb-0">
+                            <em>{{ $movimiento_preview->justificacion }}</em>
+                        </blockquote>
+                    </div>
+                    @endif
+                    <div class="border rounded p-3">
+                        <h6 class="text-success mb-3">
+                            <i class="bi bi-pencil-square me-1"></i>Modificación Propuesta
+                        </h6>
+                        @include('livewire.movimientos._detalle-cambios', [
+                            'movimiento_detalle' => $movimiento_preview
+                        ])
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                    @if($esRevisión)
+                        @can('movimientos-insumos-aprobar')
+                        <button wire:click="aprobarMovimientoPreview"
+                            wire:confirm="¿Confirmar aprobación y aplicar cambios al insumo?"
+                            class="btn btn-success btn-sm">
+                            <i class="bi bi-check-lg me-1"></i> Aprobar
+                        </button>
+                        @endcan
+                    @endif
+                    <a href="{{ route('movimientos.insumos') }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-arrow-right me-1"></i>Ir a Movimientos
+                    </a>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
 </div>
+

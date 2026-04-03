@@ -33,9 +33,7 @@
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th class="th-id" wire:click="sortBy('id')" style="cursor: pointer;">
-                                ID @if($sortField === 'id') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
-                            </th>
+
                             <th wire:click="sortBy('nombre')" style="cursor: pointer;">
                                 Nombre @if($sortField === 'nombre') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
                             </th>
@@ -50,7 +48,7 @@
                     <tbody>
                         @forelse($departamentos as $departamento)
                             <tr>
-                                <td>{{ $departamento->id }}</td>
+
                                 <td>{{ $departamento->nombre }}</td>
                                 @can('ver-estado-departamentos')
                                     <td>
@@ -132,7 +130,7 @@
         </div>
     </div>
 
-    <div wire:ignore.self class="modal fade" id="modalDetalle" tabindex="-1" aria-hidden="true">
+    <div wire:ignore.self class="modal fade" id="modalDetalleDepartamento" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-light">
@@ -156,7 +154,14 @@
                         </ul>
                     @endif
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer d-flex justify-content-between">
+                    @if($departamento_detalle)
+                        <a href="{{ route('asociaciones', ['tipo' => 'departamento', 'id' => $departamento_detalle->id]) }}" class="btn btn-outline-primary shadow-sm">
+                            <i class="bi bi-diagram-3 me-1"></i> Ver Asociaciones Completas
+                        </a>
+                    @else
+                        <div></div>
+                    @endif
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>

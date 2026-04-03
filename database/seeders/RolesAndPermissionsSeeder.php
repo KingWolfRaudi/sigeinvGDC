@@ -69,6 +69,13 @@ class RolesAndPermissionsSeeder extends Seeder
             'movimientos-insumos-aprobar',
             'movimientos-insumos-rechazar',
             'movimientos-insumos-ejecutar-directo',
+
+            // ── Problemas (Catálogo de Incidencias) ──────────────────────────
+            'ver-problemas', 'crear-problemas', 'editar-problemas', 'cambiar-estatus-problemas', 'ver-estado-problemas', 'eliminar-problemas',
+
+            // ── Incidencias ──────────────────────────────────────────────────
+            'ver-incidencias', 'crear-incidencias', 'editar-incidencias', 'cerrar-incidencias', 'ver-estado-incidencias', 'eliminar-incidencias',
+            'admin-incidencias', 'admin-solicitudes-perfil'
         ];
 
         foreach ($permisos as $permiso) {

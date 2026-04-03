@@ -53,10 +53,19 @@
     <div class="d-flex vh-100 overflow-hidden">
         
         <div id="sidebarMenu" class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark shadow-sm" style="width: 280px; z-index: 1000;">
-            <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+            <a href="{{ route('perfil') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none px-2 py-1 rounded hover-bg-light">
+                <div class="me-2">
+                    @if(Auth::user()->avatar)
+                        <img src="{{ asset('storage/' . Auth::user()->avatar) }}" class="rounded-circle shadow-sm" style="width: 38px; height: 38px; object-fit: cover;">
+                    @else
+                        <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" style="width: 38px; height: 38px;">
+                            {{ substr(Auth::user()->name, 0, 1) }}
+                        </div>
+                    @endif
+                </div>
                 <div>
-                    <strong class="d-block fs-5">{{ env('ORG_NOMBRE', 'SIGEINV') }}</strong>
-                    <small class="text-white-50" style="font-size: 0.8rem;">{{ env('ORG_DEPENDENCIA', 'Sistema de Inventario') }}</small>
+                    <strong class="d-block fs-6 lh-1">{{ Auth::user()->name }}</strong>
+                    <small class="text-white-50" style="font-size: 0.7rem;">@ {{ Auth::user()->username }}</small>
                 </div>
             </a>
             <hr>
@@ -69,8 +78,9 @@
                     </a>
                 </li>
 
+                @canany(['ver-marcas', 'ver-tipos-dispositivo', 'ver-sistemas-operativos', 'ver-puertos', 'ver-procesadores', 'ver-gpus'])
                 <li class="nav-item mb-1">
-                    <a href="#submenuCatalogos" data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('catalogos.*') ? 'true' : 'false' }}" class="nav-link text-white d-flex justify-content-between align-items-center">
+                    <a href="#submenuCatalogos" data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('catalogos.*') ? 'true' : 'false' }}" class="nav-link {{ request()->routeIs('catalogos.*') ? 'active' : 'text-white' }} d-flex justify-content-between align-items-center">
                         <div><i class="bi bi-folder me-2"></i> Catálogos</div>
                         <i class="bi bi-chevron-down" style="font-size: 0.8rem;"></i>
                     </a>
@@ -121,8 +131,10 @@
                         </ul>
                     </div>
                 </li>
+                @endcanany
+                @canany(['ver-trabajadores', 'ver-departamentos'])
                 <li class="nav-item mb-1">
-                    <a href="#submenuAsignaciones" data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('asignaciones.*') ? 'true' : 'false' }}" class="nav-link text-white d-flex justify-content-between align-items-center">
+                    <a href="#submenuAsignaciones" data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('asignaciones.*') ? 'true' : 'false' }}" class="nav-link {{ request()->routeIs('asignaciones.*') ? 'active' : 'text-white' }} d-flex justify-content-between align-items-center">
                         <div><i class="bi bi-card-checklist me-2"></i> Asignaciones</div>
                         <i class="bi bi-chevron-down" style="font-size: 0.8rem;"></i>
                     </a>
@@ -144,10 +156,12 @@
                             @endcan
                         </ul>
                     </div>
-                <li>
+                </li>
+                @endcanany
 
+                @canany(['ver-computadores', 'ver-dispositivos', 'ver-insumos'])
                 <li class="nav-item mb-1">
-                    <a href="#submenuInventario" data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('inventario.*') ? 'true' : 'false' }}" class="nav-link text-white d-flex justify-content-between align-items-center">
+                    <a href="#submenuInventario" data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('inventario.*') ? 'true' : 'false' }}" class="nav-link {{ request()->routeIs('inventario.*') ? 'active' : 'text-white' }} d-flex justify-content-between align-items-center">
                         <div><i class="bi bi-box-seam me-2"></i> Inventario</div>
                         <i class="bi bi-chevron-down" style="font-size: 0.8rem;"></i>
                     </a>
@@ -177,6 +191,34 @@
                         </ul>
                     </div>
                 </li>
+                @endcanany
+
+                {{-- Sección: Incidencias --}}
+                @canany(['ver-incidencias', 'admin-incidencias'])
+                <li class="nav-item mb-1 mt-3">
+                    <h6 class="sidebar-heading px-3 mt-4 mb-1 text-white-50 text-uppercase" style="font-size: 0.75rem;">
+                        <span>Incidencias</span>
+                    </h6>
+                </li>
+                <li class="nav-item mb-1">
+                    <a class="nav-link text-white d-flex align-items-center justify-content-between {{ request()->routeIs('incidencias.*') ? 'active' : '' }}"
+                        data-bs-toggle="collapse" href="#collapseIncidencias" role="button" aria-expanded="{{ request()->routeIs('incidencias.*') ? 'true' : 'false' }}">
+                        <span><i class="bi bi-exclamation-triangle me-2"></i>Panel de Soporte</span>
+                        <i class="bi bi-chevron-down small"></i>
+                    </a>
+                    <div class="collapse {{ request()->routeIs('incidencias.*') ? 'show' : '' }}" id="collapseIncidencias">
+                        <ul class="nav flex-column ms-3 border-start border-secondary ps-2">
+                            @can('ver-incidencias')
+                            <li class="nav-item">
+                                <a href="{{ route('incidencias.gestion') }}" class="nav-link {{ request()->routeIs('incidencias.gestion') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-list-task me-2"></i> Gestión
+                                </a>
+                            </li>
+                            @endcan
+                        </ul>
+                    </div>
+                </li>
+                @endcanany
 
                 {{-- Sección: Movimientos --}}
                 @canany(['movimientos-computadores-ver', 'movimientos-dispositivos-ver', 'movimientos-insumos-ver'])
@@ -214,6 +256,13 @@
                                 </a>
                             </li>
                             @endcan
+                            @can('admin-solicitudes-perfil')
+                            <li class="nav-item">
+                                <a href="{{ route('movimientos.solicitudes-perfil') }}" class="nav-link {{ request()->routeIs('movimientos.solicitudes-perfil') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-person-badge me-2"></i> Solicitudes Perfil
+                                </a>
+                            </li>
+                            @endcan
                         </ul>
                     </div>
                 </li>
@@ -234,6 +283,13 @@
                     </a>
                 </li>
                 @endcan
+                @can('admin-incidencias')
+                <li class="nav-item mb-1">
+                    <a href="{{ route('admin.incidencias.config') }}" class="nav-link {{ request()->routeIs('admin.incidencias.config') ? 'active' : 'text-white' }} d-flex align-items-center">
+                        <i class="bi bi-gear-wide-connected me-2"></i> Config. Incidencias
+                    </a>
+                </li>
+                @endcan
                 @can('ver-usuarios')
                 <li class="nav-item mb-1">
                     <a href="{{ route('admin.usuarios') }}" class="nav-link {{ request()->routeIs('admin.usuarios') ? 'active' : 'text-white' }} d-flex align-items-center">
@@ -244,17 +300,26 @@
             </ul>
             <hr>
 
-            <div class="dropdown">
-                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
-                    <strong>{{ Auth::user()->name }}</strong>
+            <div class="dropdown px-2">
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle p-2 rounded hover-bg-light" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+                    @if(Auth::user()->avatar)
+                        <img src="{{ asset('storage/' . Auth::user()->avatar) }}" class="rounded-circle me-2 shadow-sm" style="width: 28px; height: 28px; object-fit: cover;">
+                    @else
+                        <div class="rounded-circle bg-primary me-2 d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" style="width: 28px; height: 28px; font-size: 0.8rem;">
+                            {{ substr(Auth::user()->name, 0, 1) }}
+                        </div>
+                    @endif
+                    <strong class="small">{{ Auth::user()->name }}</strong>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser">
-                    <li><a class="dropdown-item" href="#">Mi Perfil</a></li>
+                    <li><a class="dropdown-item" href="{{ route('perfil') }}"><i class="bi bi-person me-2"></i>Mi Perfil</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="dropdown-item text-danger">Cerrar Sesión</button>
+                            <button type="submit" class="dropdown-item text-danger d-flex align-items-center">
+                                <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
+                            </button>
                         </form>
                     </li>
                 </ul>

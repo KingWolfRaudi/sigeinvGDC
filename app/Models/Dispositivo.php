@@ -62,9 +62,13 @@ class Dispositivo extends Model
         return $this->belongsToMany(Puerto::class, 'dispositivo_puerto');
     }
 
-    // Trazabilidad de Movimientos
     public function movimientos()
     {
         return $this->hasMany(MovimientoDispositivo::class, 'dispositivo_id');
+    }
+
+    public function incidencias()
+    {
+        return $this->morphMany(Incidencia::class, 'modelo');
     }
 }

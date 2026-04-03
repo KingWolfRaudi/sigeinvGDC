@@ -17,8 +17,8 @@ class SistemasOperativos extends Component
     public $tituloModal = 'Nuevo Sistema Operativo';
 
     public $search = '';
-    public $sortField = 'id';
-    public $sortAsc = false;
+    public $sortField = 'nombre';
+    public $sortAsc = true;
     public $filtro_estado = 'todos';
 
     public function updatingSearch()

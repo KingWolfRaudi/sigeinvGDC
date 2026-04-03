@@ -30,6 +30,7 @@ class Dispositivos extends Component
     // Workflow de Movimientos
     public $justificacion = '';
     public bool $es_edicion = false;
+    public $movimiento_preview = null;
 
     // Relaciones Multiples (Arrays Dinámicos)
     public $puertos_seleccionados = [];
@@ -45,7 +46,11 @@ class Dispositivos extends Component
     public $search = '';
     public $sortField = 'id';
     public $sortAsc = false;
-    public $filtro_estado = 'todos'; // Por defecto muestra todos (para quien tenga permiso)
+    public $filtro_estado = 'todos';
+
+    // Variables para Reutilización y Anidación
+    public $presetFiltro = [];
+    public $ocultarTitulos = false; // Por defecto muestra todos (para quien tenga permiso)
 
     public function updatingSearch()
     {
@@ -62,8 +67,10 @@ class Dispositivos extends Component
         }
     }
 
-    public function mount()
+    public function mount($presetFiltro = [], $ocultarTitulos = false)
     {
+        $this->presetFiltro = $presetFiltro;
+        $this->ocultarTitulos = $ocultarTitulos;
     }
 
     // Este método se ejecuta AUTOMÁTICAMENTE cuando $departamento_id cambia en la vista
@@ -75,10 +82,12 @@ class Dispositivos extends Component
     public function render()
     {
         // 1. Iniciamos la consulta base
+        $userId = Auth::id();
         $query = Dispositivo::with(['marca', 'tipoDispositivo', 'trabajador', 'departamento'])
-            ->withCount(['movimientos as pendientes_count' => function ($q) {
-                $q->where('estado_workflow', 'pendiente');
-            }]);
+            ->withCount([
+                'movimientos as pendientes_count'    => fn($q) => $q->where('estado_workflow', 'pendiente'),
+                'movimientos as mis_borradores_count' => fn($q) => $q->where('estado_workflow', 'borrador')->where('solicitante_id', $userId),
+            ]);
 
         // 2. LÓGICA DE ESTADOS Y VISIBILIDAD
         if (\Illuminate\Support\Facades\Gate::allows('ver-estado-dispositivos')) {
@@ -93,24 +102,43 @@ class Dispositivos extends Component
             $query->where('activo', true);
         }
 
+        // Filtros Prediseñados (Cuando el componente se renderiza dentro de un Asociaciones Dashboard)
+        if (!empty($this->presetFiltro)) {
+            foreach($this->presetFiltro as $col => $val) {
+                if ($val !== null) {
+                    $query->where($col, $val);
+                }
+            }
+            if (isset($this->presetFiltro['departamento_id'])) {
+                $this->departamento_id = $this->presetFiltro['departamento_id'];
+            }
+        }
+
         // 3. Búsqueda profunda (Deep Search)
+        // 3. Búsqueda profunda (Deep Search) - Multiples tablas
         $query->where(function ($q) {
-            $q->where('codigo', 'like', '%' . $this->search . '%')
-              ->orWhere('serial', 'like', '%' . $this->search . '%')
-              ->orWhere('nombre', 'like', '%' . $this->search . '%')
-              ->orWhere('ip', 'like', '%' . $this->search . '%')
-              // Búsqueda en relación Marca
-              ->orWhereHas('marca', function($subQ) {
-                  $subQ->where('nombre', 'like', '%' . $this->search . '%');
-              })
-              // Búsqueda en relación Tipo
-              ->orWhereHas('tipoDispositivo', function($subQ) {
-                  $subQ->where('nombre', 'like', '%' . $this->search . '%');
-              })
-              // Búsqueda en relación Trabajador
-              ->orWhereHas('trabajador', function($subQ) {
-                  $subQ->where('nombres', 'like', '%' . $this->search . '%')
-                       ->orWhere('apellidos', 'like', '%' . $this->search . '%');
+            $search = '%' . $this->search . '%';
+            
+            $q->where('codigo', 'like', $search)
+              ->orWhere('serial', 'like', $search)
+              ->orWhere('nombre', 'like', $search)
+              ->orWhere('ip', 'like', $search)
+              ->orWhere('notas', 'like', $search)
+              
+              // Relaciones directas simples
+              ->orWhereHas('marca', fn($subQ) => $subQ->where('nombre', 'like', $search))
+              ->orWhereHas('tipoDispositivo', fn($subQ) => $subQ->where('nombre', 'like', $search))
+              ->orWhereHas('departamento', fn($subQ) => $subQ->where('nombre', 'like', $search))
+              
+              // Relación con Computador
+              ->orWhereHas('computador', fn($subQ) => $subQ->where('bien_nacional', 'like', $search)->orWhere('serial', 'like', $search))
+
+              // Trabajador asignado
+              ->orWhereHas('trabajador', function($subQ) use ($search) {
+                  $subQ->where('nombres', 'like', $search)
+                       ->orWhere('apellidos', 'like', $search)
+                       ->orWhere('cedula', 'like', $search)
+                       ->orWhere('cargo', 'like', $search);
               });
         });
 
@@ -203,6 +231,34 @@ class Dispositivos extends Component
             $payloadAnterior = $dispositivo->toArray();
             $payloadAnterior['puertos'] = $dispositivo->puertos->pluck('id')->toArray();
 
+            // ── Computar solo los campos que CAMBIARON ──
+            $candidato = [
+                'codigo'              => $this->codigo,              'serial'          => $this->serial,
+                'tipo_dispositivo_id' => $this->tipo_dispositivo_id, 'marca_id'        => $this->marca_id,
+                'nombre'              => $this->nombre,              'ip'              => $this->ip,
+                'estado'              => $this->estado,              'departamento_id' => $this->departamento_id,
+                'trabajador_id'       => $this->trabajador_id ?: null, 'computador_id' => $this->computador_id ?: null,
+                'notas'               => $this->notas,              'activo'          => $this->activo,
+                'puertos'             => $this->puertos_seleccionados,
+            ];
+            $boolCampos = ['activo'];
+            $payloadNuevo = [];
+            foreach ($candidato as $k => $v) {
+                $ant = $payloadAnterior[$k] ?? null;
+                $iguales = in_array($k, $boolCampos)
+                    ? ((bool)$ant === (bool)$v)
+                    : (is_array($v) ? ($ant == $v) : ((string)($ant ?? '') === (string)($v ?? '')));
+                if (!$iguales) {
+                    $payloadNuevo[$k] = $v;
+                }
+            }
+            if (empty($payloadNuevo)) {
+                $this->dispatch('mostrar-toast', mensaje: 'No se detectaron cambios.', tipo: 'info');
+                $this->dispatch('cerrar-modal', id: 'modalDispositivo');
+                $this->resetCampos();
+                return;
+            }
+
             if (Gate::allows('movimientos-dispositivos-ejecutar-directo')) {
                 $dispositivo->update($payloadNuevo);
                 $dispositivo->puertos()->sync($this->puertos_seleccionados);
@@ -275,7 +331,57 @@ class Dispositivos extends Component
     {
         abort_if(Gate::denies('ver-dispositivos'), 403);
         $this->dispositivo_detalle = Dispositivo::with(['marca', 'tipoDispositivo', 'departamento', 'trabajador', 'computador', 'puertos'])->findOrFail($id);
-        $this->dispatch('abrir-modal', id: 'modalDetalle');
+        $this->dispatch('abrir-modal', id: 'modalDetalleDispositivo');
+    }
+
+    public function verCambioPendiente(int $dispositivoId): void
+    {
+        abort_if(Gate::denies('ver-dispositivos'), 403);
+        $this->movimiento_preview = MovimientoDispositivo::with('solicitante')
+            ->where('dispositivo_id', $dispositivoId)
+            ->whereIn('estado_workflow', ['pendiente', 'borrador'])
+            ->orderByRaw("CASE estado_workflow WHEN 'pendiente' THEN 0 ELSE 1 END")
+            ->latest()
+            ->first();
+        if ($this->movimiento_preview) {
+            $this->dispatch('abrir-modal', id: 'modalCambioPendiente');
+        }
+    }
+
+    public function aprobarMovimientoPreview(): void
+    {
+        abort_if(Gate::denies('movimientos-dispositivos-aprobar'), 403);
+        if (!$this->movimiento_preview || $this->movimiento_preview->estado_workflow !== 'pendiente') {
+            $this->dispatch('mostrar-toast', mensaje: 'Solo se pueden aprobar movimientos en estado Pendiente.', tipo: 'warning');
+            return;
+        }
+        try {
+            $mov        = MovimientoDispositivo::where('estado_workflow', 'pendiente')->findOrFail($this->movimiento_preview->id);
+            $dispositivo = Dispositivo::withTrashed()->findOrFail($mov->dispositivo_id);
+            $payload    = $mov->payload_nuevo;
+
+            match ($mov->tipo_operacion) {
+                'baja'          => $dispositivo->delete(),
+                'toggle_activo' => $dispositivo->update(['activo' => $payload['activo'] ?? !$dispositivo->activo]),
+                default         => $this->_aplicarPayloadDispositivo($dispositivo, $payload),
+            };
+
+            $mov->update(['estado_workflow' => 'aprobado', 'aprobador_id' => Auth::id(), 'aprobado_at' => now()]);
+            $this->movimiento_preview = null;
+            $this->dispatch('cerrar-modal', id: 'modalCambioPendiente');
+            $this->dispatch('mostrar-toast', mensaje: 'Movimiento aprobado y aplicado.', tipo: 'success');
+        } catch (\Exception $e) {
+            Log::error('Error aprobando movimiento desde inventario: ' . $e->getMessage());
+            $this->dispatch('mostrar-toast', mensaje: 'Error al aprobar el movimiento.', tipo: 'error');
+        }
+    }
+
+    private function _aplicarPayloadDispositivo(Dispositivo $dispositivo, array $payload): void
+    {
+        $puertos = $payload['puertos'] ?? null;
+        $directos = array_diff_key($payload, array_flip(['puertos']));
+        $dispositivo->update($directos);
+        if ($puertos !== null) { $dispositivo->puertos()->sync($puertos); }
     }
 
     public function eliminar($id)

@@ -16,17 +16,118 @@ class Roles extends Component
     public $role_id, $name, $descripcion;
     public $tituloModal = 'Nuevo Rol';
     public $permisos_seleccionados = []; 
+    public $searchPermiso = '';
 
     public function render()
     {
-        $roles = Role::orderBy('id', 'asc')->paginate(10);
+        $roles = Role::where('name', '!=', 'super-admin')->orderBy('id', 'asc')->paginate(10);
         
-        // Magia de Colecciones: Agrupamos los permisos por la última palabra de su nombre.
-        // Ej: de 'crear-marcas' o 'cambiar-estatus-marcas', el grupo será 'Marcas'.
-        $permisosAgrupados = Permission::orderBy('name', 'asc')->get()->groupBy(function($permiso) {
-            $partes = explode('-', $permiso->name);
-            return ucfirst(end($partes)); 
-        });
+        $queryPermisos = Permission::orderBy('name', 'asc');
+        
+        if ($this->searchPermiso) {
+            $queryPermisos->where('name', 'like', '%' . strtolower($this->searchPermiso) . '%');
+        }
+        $permisosAgrupados = [];
+        
+        foreach ($queryPermisos->get() as $permiso) {
+            $name = $permiso->name;
+            
+            // Determinar macro categoría
+            $macro = 'Catálogos';
+            if (str_starts_with($name, 'movimientos-')) $macro = 'Movimientos';
+            elseif (str_ends_with($name, '-usuarios') || str_ends_with($name, '-roles')) $macro = 'Administración';
+            elseif (str_ends_with($name, '-trabajadores') || str_ends_with($name, '-departamentos')) $macro = 'Asignaciones';
+            elseif (str_ends_with($name, '-computadores') || str_ends_with($name, '-dispositivos') || str_ends_with($name, '-insumos')) $macro = 'Inventarios';
+            elseif (str_ends_with($name, '-incidencias')) $macro = 'Incidencias';
+            
+            // Determinar entidad base
+            $entidades = [
+                'categorias-insumos'  => 'Categorías de Insumos',
+                'sistemas-operativos' => 'Sistemas Operativos',
+                'tipos-dispositivo'   => 'Tipos de Dispositivo',
+                'computadores'        => 'Computadores',
+                'dispositivos'        => 'Dispositivos',
+                'departamentos'       => 'Departamentos',
+                'trabajadores'        => 'Trabajadores',
+                'procesadores'        => 'Procesadores',
+                'puertos'             => 'Puertos',
+                'insumos'             => 'Insumos',
+                'marcas'              => 'Marcas',
+                'gpus'                => 'GPUs',
+                'usuarios'            => 'Usuarios',
+                'roles'               => 'Roles',
+                'problemas'           => 'Tipos de Incidencias',
+                'incidencias'         => 'Gestión de Incidencias',
+            ];
+            
+            $entidadNombre = 'Otros';
+            $accion = $name;
+            
+            if ($macro === 'Movimientos') {
+                 if (str_contains($name, '-computadores-')) {
+                     $entidadNombre = 'Movimientos Computadores';
+                     $accion = str_replace('movimientos-computadores-', '', $name);
+                 } elseif (str_contains($name, '-dispositivos-')) {
+                     $entidadNombre = 'Movimientos Dispositivos';
+                     $accion = str_replace('movimientos-dispositivos-', '', $name);
+                 } elseif (str_contains($name, '-insumos-')) {
+                     $entidadNombre = 'Movimientos Insumos';
+                     $accion = str_replace('movimientos-insumos-', '', $name);
+                 }
+            } else {
+                 foreach ($entidades as $key => $label) {
+                     if (str_ends_with($name, $key)) {
+                         $entidadNombre = $label;
+                         $accion = str_replace('-' . $key, '', $name);
+                         break;
+                     }
+                 }
+            }
+            
+            if (!isset($permisosAgrupados[$macro])) {
+                $permisosAgrupados[$macro] = [];
+            }
+            if (!isset($permisosAgrupados[$macro][$entidadNombre])) {
+                $permisosAgrupados[$macro][$entidadNombre] = [];
+            }
+            
+            $permisosAgrupados[$macro][$entidadNombre][] = [
+                'id' => $permiso->id,
+                'name' => $permiso->name,
+                'accion' => $accion, // Guardamos la acción pura para el sorteo
+                'label' => ucfirst(str_replace('-', ' ', $accion))
+            ];
+        }
+
+        // --- ORDENAR PERMISOS POR PRIORIDAD --- (Solicitud del Usuario)
+        $prioridades = [
+            'cambiar-estatus'   => 1,
+            'crear'             => 2,
+            'editar'            => 3,
+            'eliminar'          => 4,
+            'ver-estado'        => 5,
+            'ver'               => 6,
+            // Movimientos
+            'enviar'            => 7,
+            'aprobar'           => 8,
+            'rechazar'          => 9,
+            'ejecutar-directo'  => 10,
+        ];
+
+        foreach ($permisosAgrupados as $macro => &$subgrupos) {
+            foreach ($subgrupos as $entidad => &$permisos) {
+                usort($permisos, function($a, $b) use ($prioridades) {
+                    $prioA = $prioridades[$a['accion']] ?? 99;
+                    $prioB = $prioridades[$b['accion']] ?? 99;
+                    
+                    if ($prioA === $prioB) {
+                        return strcmp($a['label'], $b['label']);
+                    }
+                    return $prioA <=> $prioB;
+                });
+            }
+        }
+        // ------------------------------------
         
         // Pasamos $permisosAgrupados a la vista en lugar del listado plano
         return view('livewire.admin.roles', compact('roles', 'permisosAgrupados'));
@@ -110,7 +211,7 @@ class Roles extends Component
 
     public function resetCampos()
     {
-        $this->reset(['role_id', 'name', 'descripcion', 'permisos_seleccionados']);
+        $this->reset(['role_id', 'name', 'descripcion', 'permisos_seleccionados', 'searchPermiso']);
         $this->resetValidation();
     }
 }

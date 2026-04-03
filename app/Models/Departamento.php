@@ -21,4 +21,19 @@ class Departamento extends Model
     {
         return $this->hasMany(Trabajador::class);
     }
+
+    public function computadores()
+    {
+        return $this->hasMany(Computador::class);
+    }
+
+    public function dispositivos()
+    {
+        return $this->hasMany(Dispositivo::class);
+    }
+
+    public function incidencias()
+    {
+        return $this->hasMany(Incidencia::class);
+    }
 }

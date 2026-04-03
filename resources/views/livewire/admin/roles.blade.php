@@ -12,7 +12,6 @@
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th>ID</th>
                             <th>Nombre del Rol (Sistema)</th>
                             <th>Descripción</th>
                             <th class="text-end">Acciones</th>
@@ -21,7 +20,6 @@
                     <tbody>
                         @forelse($roles as $rol)
                             <tr>
-                                <td>{{ $rol->id }}</td>
                                 <td>
                                     <span class="badge bg-dark fs-6">{{ $rol->name }}</span>
                                 </td>
@@ -44,7 +42,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center text-muted py-4">No hay roles registrados.</td>
+                                <td colspan="3" class="text-center text-muted py-4">No hay roles registrados.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -57,7 +55,7 @@
     </div>
 
     <div wire:ignore.self class="modal fade" id="modalRol" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">{{ $tituloModal }}</h5>
@@ -77,43 +75,55 @@
                         </div>
 
                         <div class="border-top pt-3">
-                            <h6 class="mb-3"><i class="bi bi-key me-2"></i>Asignación de Permisos por Módulo</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0"><i class="bi bi-key me-2"></i>Asignación de Permisos por Módulo</h6>
+                                <div>
+                                    <input type="text" class="form-control form-control-sm" placeholder="Buscar permiso..." wire:model.live.debounce.300ms="searchPermiso">
+                                </div>
+                            </div>
                             
                             @if($name === 'super-admin')
                                 <div class="alert alert-info py-2 text-sm">
                                     <i class="bi bi-info-circle me-1"></i> El <strong>Super Admin</strong> tiene acceso total al sistema por defecto. No es necesario asignarle permisos individuales.
                                 </div>
                             @else
-                                @forelse($permisosAgrupados as $grupo => $permisos)
+                                @forelse($permisosAgrupados as $macro => $subgrupos)
                                     <div class="mb-4">
-                                        <h6 class="text-primary border-bottom pb-1 mb-3">
-                                            <i class="bi bi-box me-1"></i> Módulo: {{ $grupo }}
-                                        </h6>
-                                        
-                                        <div class="row g-2">
-                                            @foreach($permisos as $permiso)
-                                                @php
-                                                    $accion = str_replace('-' . strtolower($grupo), '', $permiso->name);
-                                                    $accionLimpia = ucfirst(str_replace('-', ' ', $accion));
-                                                @endphp
-                                                
-                                                <div class="col-md-4">
-                                                    <div class="form-check form-switch shadow-sm border rounded p-2 bg-light h-100 d-flex align-items-center">
-                                                        <input class="form-check-input ms-1 flex-shrink-0" type="checkbox" 
-                                                               value="{{ $permiso->name }}" 
-                                                               id="permiso_{{ $permiso->id }}" 
-                                                               wire:model="permisos_seleccionados">
-                                                        <label class="form-check-label ms-2 text-wrap" style="font-size: 0.85rem; cursor:pointer;" for="permiso_{{ $permiso->id }}">
-                                                            {{ $accionLimpia }}
-                                                        </label>
+                                        <h5 class="text-primary border-bottom pb-2 mb-3">
+                                            <i class="bi bi-collection me-1"></i> {{ $macro }}
+                                        </h5>
+                                        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                                            @foreach($subgrupos as $entidad => $permisos)
+                                                <div class="col">
+                                                    <div class="card h-100 border-0 shadow-sm bg-light">
+                                                        <div class="card-header bg-white border-bottom-0 py-2">
+                                                            <h6 class="text-secondary mb-0 fw-bold">
+                                                                <i class="bi bi-box me-1"></i> {{ $entidad }}
+                                                            </h6>
+                                                        </div>
+                                                        <div class="card-body py-2">
+                                                            <div class="d-flex flex-column gap-2">
+                                                            @foreach($permisos as $perm)
+                                                                <div class="form-check form-switch p-2 bg-white rounded border d-flex align-items-center">
+                                                                    <input class="form-check-input ms-1 flex-shrink-0" type="checkbox" 
+                                                                           value="{{ $perm['name'] }}" 
+                                                                           id="permiso_{{ $perm['id'] }}" 
+                                                                           wire:model="permisos_seleccionados">
+                                                                    <label class="form-check-label ms-2 text-wrap" style="font-size: 0.85rem; cursor:pointer;" for="permiso_{{ $perm['id'] }}">
+                                                                        {{ $perm['label'] }}
+                                                                    </label>
+                                                                </div>
+                                                            @endforeach
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             @endforeach
                                         </div>
                                     </div>
                                 @empty
-                                    <div class="col-12 text-muted text-center py-2">
-                                        No hay permisos registrados en el sistema aún.
+                                    <div class="w-100 text-muted text-center py-4">
+                                        No se encontraron permisos.
                                     </div>
                                 @endforelse
                             @endif
