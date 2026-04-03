@@ -17,6 +17,9 @@ class DatabaseSeeder extends Seeder
             
             // Agregamos semillas para el inventario real (Equipos y Dispositivos)
             InventarioSeeder::class,
+            
+            // Agregamos el seeder de Incidencias y Perfil
+            IncidenciasSeeder::class,
         ]);
     }
 }

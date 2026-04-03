@@ -33,7 +33,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/', Dashboard::class)->name('dashboard');
     Route::get('/admin/roles', Roles::class)->name('admin.roles')->can('ver-roles');
     Route::get('/admin/usuarios', Usuarios::class)->name('admin.usuarios')->can('ver-usuarios');
-    Route::get('/admin/incidencias/config', IncidenciasConfig::class)->name('admin.incidencias.config')->can('admin-incidencias');
+    // Configuración General
+    Route::get('/admin/configuracion', \App\Livewire\Admin\ConfiguracionGeneral::class)->name('admin.configuracion');
+    
+    // Perfil de Usuario
 
     // Catalogos
     Route::get('/catalogos/marcas', Marcas::class)->name('catalogos.marcas')->can('ver-marcas');

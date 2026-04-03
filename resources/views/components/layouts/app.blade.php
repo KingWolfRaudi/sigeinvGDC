@@ -283,13 +283,13 @@
                     </a>
                 </li>
                 @endcan
-                @can('admin-incidencias')
+                @canany(['admin-incidencias', 'admin-solicitudes-perfil'])
                 <li class="nav-item mb-1">
-                    <a href="{{ route('admin.incidencias.config') }}" class="nav-link {{ request()->routeIs('admin.incidencias.config') ? 'active' : 'text-white' }} d-flex align-items-center">
-                        <i class="bi bi-gear-wide-connected me-2"></i> Config. Incidencias
+                    <a href="{{ route('admin.configuracion') }}" class="nav-link {{ request()->routeIs('admin.configuracion') ? 'active' : 'text-white' }} d-flex align-items-center">
+                        <i class="bi bi-gear-wide-connected me-2"></i> Configuración General
                     </a>
                 </li>
-                @endcan
+                @endcanany
                 @can('ver-usuarios')
                 <li class="nav-item mb-1">
                     <a href="{{ route('admin.usuarios') }}" class="nav-link {{ request()->routeIs('admin.usuarios') ? 'active' : 'text-white' }} d-flex align-items-center">

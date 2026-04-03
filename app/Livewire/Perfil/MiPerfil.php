@@ -10,7 +10,11 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Models\SolicitudPerfil;
 use App\Models\Configuracion;
+use Livewire\Attributes\Layout;
 
+/**
+ * MiPerfil Component
+ */
 class MiPerfil extends Component
 {
     use WithFileUploads;
@@ -42,10 +46,19 @@ class MiPerfil extends Component
 
     public function updatedNuevaFoto()
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if ($user->hasRole('super-admin')) {
+            $this->dispatch('mostrar-toast', mensaje: 'El Super Administrador es inmutable.', tipo: 'danger');
+            $this->reset('nueva_foto');
+            return;
+        }
+
         $this->validate([
             'nueva_foto' => 'image|max:1024', // 1MB Max
         ]);
 
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         
         // Generar nombre: nombre-completo-slug.ext
@@ -67,6 +80,14 @@ class MiPerfil extends Component
 
     public function enviarSolicitud($tipo)
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        
+        if ($user->hasRole('super-admin')) {
+            $this->dispatch('mostrar-toast', mensaje: 'El perfil del Super Administrador no puede ser modificado.', tipo: 'danger');
+            return;
+        }
+
         // 1. Verificar si la opción está habilitada en config
         if (!($this->config['perfil_solicitar_' . $tipo] ?? false)) {
             $this->dispatch('mostrar-toast', mensaje: 'Esta solicitud está deshabilitada por el administrador.', tipo: 'danger');
@@ -74,8 +95,8 @@ class MiPerfil extends Component
         }
 
         // 2. Verificar la regla de los 180 días
-        if (!SolicitudPerfil::canRequest(Auth::id(), $tipo)) {
-            $días = SolicitudPerfil::daysRemaining(Auth::id(), $tipo);
+        if (!SolicitudPerfil::canRequest($user->id, $tipo)) {
+            $días = SolicitudPerfil::daysRemaining($user->id, $tipo);
             $this->dispatch('mostrar-toast', mensaje: "No puedes solicitar este cambio aún. Faltan $días días.", tipo: 'warning');
             return;
         }
@@ -86,8 +107,8 @@ class MiPerfil extends Component
 
         $rules = [];
         if ($tipo === 'nombre') $rules['nuevo_nombre'] = 'required|min:3';
-        if ($tipo === 'username') $rules['nuevo_username'] = 'required|min:4|unique:users,username,' . Auth::id();
-        if ($tipo === 'email') $rules['nuevo_email'] = 'required|email|unique:users,email,' . Auth::id();
+        if ($tipo === 'username') $rules['nuevo_username'] = 'required|min:4|unique:users,username,' . $user->id;
+        if ($tipo === 'email') $rules['nuevo_email'] = 'required|email|unique:users,email,' . $user->id;
         if ($tipo === 'password') {
             $this->validate([
                 'nuevo_password' => 'required|min:8',
@@ -98,9 +119,9 @@ class MiPerfil extends Component
             $this->validate($rules);
         }
 
-        // 4. Crear solicitud
+        // 4. Crear solicitud (Flujo Normal)
         SolicitudPerfil::create([
-            'user_id' => Auth::id(),
+            'user_id' => $user->id,
             'tipo' => $tipo,
             'valor_nuevo' => $valor,
             'estado' => 'pendiente',
@@ -124,10 +145,11 @@ class MiPerfil extends Component
         $this->dispatch('mostrar-toast', mensaje: 'Solicitud cancelada por el usuario.', tipo: 'info');
     }
 
+    #[Layout('components.layouts.app')]
     public function render()
     {
         return view('livewire.perfil.mi-perfil', [
             'misSolicitudes' => SolicitudPerfil::where('user_id', Auth::id())->latest()->take(5)->get(),
-        ])->layout('components.layouts.app');
+        ]);
     }
 }
