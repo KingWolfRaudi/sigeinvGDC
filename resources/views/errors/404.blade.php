@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Página No Encontrada | SigeinvGDC</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .error-container {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.05);
+            max-width: 500px;
+            width: 90%;
+        }
+        .error-code {
+            font-size: 6rem;
+            font-weight: 800;
+            color: #dc3545;
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+        .error-icon {
+            font-size: 4rem;
+            color: #dc3545;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-icon"><i class="bi bi-search"></i></div>
+        <div class="error-code">404</div>
+        <h2 class="mb-3">Página no encontrada</h2>
+        <p class="text-muted mb-4">Lo sentimos, la ruta a la que intentas acceder no existe o ha sido movida temporalmente.</p>
+        <a href="{{ url('/') }}" class="btn btn-primary px-4 py-2">
+            <i class="bi bi-house-door me-2"></i> Volver al Inicio
+        </a>
+    </div>
+</body>
+</html>

@@ -27,5 +27,10 @@ class Marca extends Model
         return $this->hasMany(Gpu::class);
     }
 
+    public function insumos()
+    {
+        return $this->hasMany(Insumo::class);
+    }
+
     // A futuro agregaremos: computadores(), dispositivos(), etc.
 }

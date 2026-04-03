@@ -23,6 +23,7 @@ return new class extends Migration
             $table->boolean('activo')->default(false); // Por defecto deshabilitado según specs
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -22,6 +22,7 @@ return new class extends Migration
             //$table->json('puertos')->nullable(); // Guardará un arreglo
             $table->boolean('activo')->default(true);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

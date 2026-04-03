@@ -1,0 +1,41 @@
+SISTEMA DE INVENTARIO TECNOLÓGICO
+Documento de Arquitectura y Estándares (Actualización V2.7)
+1. Stack Tecnológico Base
+    • Core: PHP 8.3+ / Laravel 10+ / Livewire 3.
+    • UI: Bootstrap 5 + Bootstrap Icons.
+    • DB: MariaDB (Motor relacional estricto).
+    • Seguridad: Spatie Laravel-Permission (Roles y Permisos).
+2. Patrones de Base de Datos y Modelos
+    • Integridad Referencial Estricta: Las llaves foráneas a catálogos maestros deben usar onDelete('restrict'). Las llaves foráneas en tablas pivote pueden usar cascadeOnDelete().
+    • SoftDeletes (Obligatorio): Todos los catálogos y módulos de inventario utilizan SoftDeletes ($table->softDeletes() y use SoftDeletes;). NUNCA se borran registros permanentemente.
+    • SoftDeletes en Modelos Nativos: La regla de auditoría también aplica para las tablas nativas de Laravel. El modelo User debe tener la migración que agrega deleted_at y el trait use SoftDeletes; para evitar errores de llaves foráneas (Error 1451) al dar de baja personal.
+    • Campos Únicos y Opcionales: Cuando un campo debe ser único pero no obligatorio (ej. cedula, bien_nacional, mac), se debe configurar estrictamente en la migración como $table->string('campo')->nullable()->unique(); para evitar errores de integridad (1048) al guardar valores nulos.
+    • Estandarización al Español (Mass Assignment): Al extender modelos nativos de Laravel (como User) con columnas en español (ej. activo), es obligatorio agregar esta nueva columna al arreglo $fillable y al $casts para evitar que Laravel ignore el dato por seguridad.
+    • Casteo de Booleanos ("Regla de Oro"): Todos los campos de estado (ej. activo) deben ser casteados en el modelo: protected $casts = ['activo' => 'boolean'];.
+3. Patrones Avanzados de Interfaz con Livewire (UX)
+    • Formularios Dinámicos (One-to-Many): Los atributos múltiples (como Discos Duros o módulos RAM) no se guardan en JSON. Se gestionan en Livewire mediante arreglos dinámicos ($discos = []) que permiten agregar o quitar filas en tiempo real en la vista antes de guardar en las tablas relacionales vinculadas.
+    • Selects Dependientes (Filtro en Cascada): Para filtrar listas en tiempo real (ej. Trabajadores según el Departamento seleccionado), se debe usar wire:model.live en el select padre y utilizar el ciclo de vida de Livewire (public function updatedCampoId($value)) para resetear la variable hija y forzar la re-renderización limpia.
+    • Intercambio de Modales (Modal Switch): Para creaciones "al vuelo" de entidades complejas (ej. registrar un Trabajador entero desde el registro de un Computador), no se usan inputs inline simples. Se debe ocultar el modal principal llamando a un evento (cerrar-modal), abrir un modal secundario, realizar el registro y hacer el proceso inverso. Livewire conservará todo el estado del formulario principal intacto.
+    • Creación Rápida "On The Fly" (Entidades Simples): Para catálogos simples, la UI debe permitir intercambiar un <select> por un <input> con un botón "+" para registrar directamente sin salir de la vista actual (ej. crear una Marca).
+4. Procesamiento, Limpieza de Datos y Automatización
+    • Accessors de Laravel (Cálculos Seguros): Para evitar errores de suma de strings en PHP 8+ ("A non-numeric value encountered"), no se debe hacer matemáticas puras en Blade con datos formateados (ej. 8GB). Se deben crear Accessors en el modelo (ej. getTotalRamAttribute()) que limpien los caracteres usando str_replace, hagan el cálculo casteando a enteros ((int)) y devuelvan el string formateado a la vista.
+    • Manejo de Sufijos: Se implementa el formateo en el servidor. El usuario ingresa números simples, y al guardar se concatena el sufijo (ej. GB, MHz). Al editar, el controlador debe limpiar el sufijo antes de poblar los inputs de tipo number.
+    • Automatización en Observers: * El uso de variables globales del sistema se maneja desde el archivo .env (ej. DOMINIO_ORGANIZACION) y se llama mediante env().
+        ◦ Si la automatización requiere el ID del registro autoincremental (ej. para armar un correo único institucional), la lógica debe ejecutarse en el método created del Observer (después de la inserción en base de datos), seguido de un $modelo->saveQuietly() para actualizar el registro original sin disparar un bucle infinito de eventos.
+5. Lógica de Búsqueda Profunda (Deep Search)
+    • Estructura Obligatoria: Las consultas en el render() de Livewire deben envolverse en un grupo where(function($query) { ... }) para no romper la paginación al buscar.
+    • Búsqueda Relacional: Se debe usar orWhereHas('relacion', function($q) { ... }) para filtrar a través de tablas vinculadas (ej. buscar un equipo por el nombre de su departamento o marca).
+6. Interfaz y Navegación Base (Sidebar)
+    • Comportamiento: El Sidebar debe usar flex-nowrap y overflow-y-auto para permitir scroll interno sin deformar la estructura.
+    • Acordeones Inteligentes: Los dropdowns deben usar request()->routeIs('prefijo.*') ? 'show' : '' para mantenerse abiertos de acuerdo a la ruta actual.
+    • Seguridad Visual: Todos los enlaces y botones de acción (Editar, Eliminar, Crear) deben estar envueltos en directivas @can('permiso') de Spatie para ocultarse a usuarios sin privilegios.
+7. Automatización de Despliegue
+    • RolesAndPermissionsSeeder: Antes de crear un módulo nuevo, se deben declarar sus 4 permisos básicos (ver-, crear-, editar-, eliminar-) en este seeder.
+    • CatalogosSeeder: Corazón del sistema para datos maestros.
+    • Despliegue Estructural: Cualquier cambio estructural en migraciones requiere correr php artisan migrate:fresh --seed durante la etapa de desarrollo local para asegurar consistencia total.
+Seguridad y Permisos Avanzados:
+    1. Segregación de Permisos de Estado (Data Scoping): La visibilidad y la acción sobre el estado (activo) de un registro deben estar separadas. El permiso ver-estado-xxxx permite visualizar registros inactivos y usar filtros de estado. El permiso cambiar-estatus-xxxx habilita el botón toggle para activar/desactivar.
+    2. Filtrado Forzoso en Backend (Render): Si un usuario no posee el permiso ver-estado-xxxx, la consulta en el método render() de Livewire debe forzar estrictamente un $query->where('activo', true). Los inactivos deben ser invisibles para él.
+    3. Blindaje del Rol Super-Admin: El rol super-admin es un "fantasma" en el sistema. Las consultas de usuarios deben excluirlo (whereDoesntHave('roles', 'super-admin')). No se debe poder asignar por UI, ni se debe permitir editar, desactivar o eliminar un usuario con este rol mediante inyección en el Backend.
+Interfaz y Experiencia de Usuario (UI/UX): 4. Sistema Unificado de Toasts (A prueba de balas): Todo dispatch('mostrar-toast') debe enviar los parámetros mensaje y opcionalmente tipo ('success', 'error', 'warning', 'info'). El JavaScript receptor debe tener un fallback asignando un tipo por defecto, manejar la limpieza de clases y normalizar a minúsculas (toLowerCase()) para evitar fallos. 5. Restricción de Ordenamiento (SortBy): Las columnas de las tablas que representen relaciones de Muchos a Muchos (Many-to-Many), como arreglos de Roles o etiquetas, NUNCA deben tener la funcionalidad sortBy habilitada. Esto previene sobrecarga de subconsultas SQL y resultados inconsistentes. 6. Organización de Módulos (Namespaces): Los módulos deben agruparse lógicamente en carpetas (ej. App\Livewire\Asignaciones\ para Trabajadores y Departamentos, o App\Livewire\Catalogos\). Si se mueve un archivo, es obligatorio actualizar el Namespace, las rutas en web.php, las vistas en el render() y ejecutar php artisan optimize:clear.
+

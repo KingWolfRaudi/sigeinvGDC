@@ -39,6 +39,36 @@ class RolesAndPermissionsSeeder extends Seeder
             'ver-trabajadores', 'crear-trabajadores', 'editar-trabajadores', 'cambiar-estatus-trabajadores', 'ver-estado-trabajadores', 'eliminar-trabajadores',
             // Computadores (Faltaban ambos)
             'ver-computadores', 'crear-computadores', 'editar-computadores', 'cambiar-estatus-computadores', 'ver-estado-computadores', 'eliminar-computadores',
+            // Dispositivos
+            'ver-dispositivos', 'crear-dispositivos', 'editar-dispositivos', 'cambiar-estatus-dispositivos', 'ver-estado-dispositivos', 'eliminar-dispositivos',
+            // Categoria Insumos
+            'ver-categorias-insumos', 'crear-categorias-insumos', 'editar-categorias-insumos', 'cambiar-estatus-categorias-insumos', 'ver-estado-categorias-insumos', 'eliminar-categorias-insumos',
+            // Insumos
+            'ver-insumos', 'crear-insumos', 'editar-insumos', 'cambiar-estatus-insumos', 'ver-estado-insumos', 'eliminar-insumos',
+
+            // ── Movimientos Computadores ──────────────────────────────────────
+            'movimientos-computadores-crear',
+            'movimientos-computadores-ver',
+            'movimientos-computadores-enviar',
+            'movimientos-computadores-aprobar',
+            'movimientos-computadores-rechazar',
+            'movimientos-computadores-ejecutar-directo',
+
+            // ── Movimientos Dispositivos ──────────────────────────────────────
+            'movimientos-dispositivos-crear',
+            'movimientos-dispositivos-ver',
+            'movimientos-dispositivos-enviar',
+            'movimientos-dispositivos-aprobar',
+            'movimientos-dispositivos-rechazar',
+            'movimientos-dispositivos-ejecutar-directo',
+
+            // ── Movimientos Insumos ───────────────────────────────────────────
+            'movimientos-insumos-crear',
+            'movimientos-insumos-ver',
+            'movimientos-insumos-enviar',
+            'movimientos-insumos-aprobar',
+            'movimientos-insumos-rechazar',
+            'movimientos-insumos-ejecutar-directo',
         ];
 
         foreach ($permisos as $permiso) {

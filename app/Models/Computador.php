@@ -39,6 +39,9 @@ class Computador extends Model
     public function rams() { return $this->hasMany(ComputadorRam::class); }
     public function puertos() { return $this->belongsToMany(Puerto::class, 'computador_puerto'); }
 
+    // Trazabilidad de Movimientos
+    public function movimientos() { return $this->hasMany(MovimientoComputador::class, 'computador_id'); }
+
     /**
      * ACCESOR: Calcula el total de RAM limpiando el 'GB' para poder sumar
      */

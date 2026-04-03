@@ -25,6 +25,7 @@ return new class extends Migration
             
             $table->boolean('activo')->default(true);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -8,6 +8,9 @@ use App\Models\TipoDispositivo;
 use App\Models\SistemaOperativo;
 use App\Models\Puerto;
 use App\Models\Departamento;
+use App\Models\Procesador;
+use App\Models\Gpu;
+use App\Models\CategoriaInsumo;
 
 class CatalogosSeeder extends Seeder
 {
@@ -66,6 +69,58 @@ class CatalogosSeeder extends Seeder
         ];
         foreach ($departamentos as $departamento) {
             Departamento::firstOrCreate(['nombre' => $departamento], ['activo' => true]);
+        }
+
+        // 5. Procesadores
+        $marcaIntel = Marca::where('nombre', 'Intel')->first()->id;
+        $marcaAMD = Marca::where('nombre', 'AMD')->first()->id;
+
+        $procesadores = [
+            ['marca_id' => $marcaIntel, 'modelo' => 'Core i3', 'generacion' => '10 Gen', 'hilos' => 4],
+            ['marca_id' => $marcaIntel, 'modelo' => 'Core i5', 'generacion' => '10 Gen', 'hilos' => 8],
+            ['marca_id' => $marcaIntel, 'modelo' => 'Core i7', 'generacion' => '12 Gen', 'hilos' => 16],
+            ['marca_id' => $marcaAMD, 'modelo' => 'Ryzen 3', 'generacion' => '3000 Series', 'hilos' => 8],
+            ['marca_id' => $marcaAMD, 'modelo' => 'Ryzen 5', 'generacion' => '5000 Series', 'hilos' => 12],
+            ['marca_id' => $marcaAMD, 'modelo' => 'Ryzen 7', 'generacion' => '7000 Series', 'hilos' => 16],
+        ];
+        
+        foreach ($procesadores as $proc) {
+            Procesador::firstOrCreate(
+                ['modelo' => $proc['modelo']], 
+                ['marca_id' => $proc['marca_id'], 'generacion' => $proc['generacion'], 'hilos' => $proc['hilos'], 'activo' => true]
+            );
+        }
+
+        // 6. GPUs
+        $marcaNvidia = Marca::where('nombre', 'NVIDIA')->first()->id;
+        $marcaGenerica = Marca::where('nombre', 'Genérica')->first()->id;
+
+        $gpus = [
+            ['marca_id' => $marcaNvidia, 'modelo' => 'GeForce GTX 1650', 'memoria' => '4GB'],
+            ['marca_id' => $marcaNvidia, 'modelo' => 'GeForce RTX 3060', 'memoria' => '12GB'],
+            ['marca_id' => $marcaAMD, 'modelo' => 'Radeon RX 6600', 'memoria' => '8GB'],
+            ['marca_id' => $marcaIntel, 'modelo' => 'Gráficos UHD Integrados', 'memoria' => 'N/A'],
+            ['marca_id' => $marcaGenerica, 'modelo' => 'Tarjeta Genérica Básica', 'memoria' => '1GB'],
+        ];
+        
+        foreach ($gpus as $gpu) {
+            Gpu::firstOrCreate(
+                ['modelo' => $gpu['modelo']], 
+                ['marca_id' => $gpu['marca_id'], 'memoria' => $gpu['memoria'], 'activo' => true]
+            );
+        }
+
+        // 7. Categorías de Insumos
+        $categoriasInsumo = [
+            'Suministro/Impresión (Tóner, Tinta)',
+            'Repuesto Computacional (RAM, SSD, Placa)',
+            'Cableado y Conectividad (Bobinas, Plugs RJ45)',
+            'Herramienta Fija (Crimpadora, Tester, Pinzas)',
+            'Periférico Genérico (Baterías, Cargadores)',
+            'Accesorio Vario'
+        ];
+        foreach ($categoriasInsumo as $cat) {
+            CategoriaInsumo::firstOrCreate(['nombre' => $cat], ['activo' => true]);
         }
     }
 }

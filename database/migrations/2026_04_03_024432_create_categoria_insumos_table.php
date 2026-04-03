@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('puertos', function (Blueprint $table) {
+        Schema::create('categoria_insumos', function (Blueprint $table) {
             $table->id();
             $table->string('nombre')->unique();
             $table->boolean('activo')->default(true);
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('puertos');
+        Schema::dropIfExists('categoria_insumos');
     }
 };

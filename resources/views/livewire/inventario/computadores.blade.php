@@ -64,7 +64,13 @@
                         @forelse($computadores as $comp)
                             <tr>
                                 <td>
-                                    <strong>BN:</strong> {{ $comp->bien_nacional ?? 'N/A' }}<br>
+                                    <strong>BN:</strong> {{ $comp->bien_nacional ?? 'N/A' }}
+                                    @if($comp->pendientes_count > 0)
+                                        <a href="{{ route('movimientos.computadores') }}" class="badge bg-warning text-dark px-1 py-0 shadow-sm deco-none" title="Tiene {{ $comp->pendientes_count }} cambio(s) pendiente(s) por aprobar">
+                                            <i class="bi bi-clock-history"></i> Pendiente
+                                        </a>
+                                    @endif
+                                    <br>
                                     <small class="text-muted">Serial: {{ $comp->serial ?? 'N/A' }}</small>
                                 </td>
                                 <td>
@@ -397,6 +403,23 @@
                         </div>
                         
                     </div>
+
+                    {{-- ── Campo Justificación (solo en modo edición) ─── --}}
+                    @if($es_edicion)
+                    <div class="alert alert-warning border-warning mx-4 mb-0 mt-2 py-2">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-shield-lock-fill text-warning mt-1"></i>
+                            <div class="w-100">
+                                <strong class="small">Justificación del Cambio (requerida)</strong>
+                                <textarea class="form-control form-control-sm mt-1 @error('justificacion') is-invalid @enderror"
+                                    wire:model="justificacion" rows="2"
+                                    placeholder="Describa el motivo técnico u operativo de esta modificación (mín. 10 caracteres)..."></textarea>
+                                @error('justificacion') <span class="text-danger small">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
                     <div class="modal-footer bg-light">
                         @can('cambiar-estatus-computadores')
                             <div class="form-check form-switch mb-3">

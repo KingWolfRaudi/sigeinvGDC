@@ -1,0 +1,1462 @@
+SISTEMA DE INVENTARIO TECNOLOGICO
+Instrucciones y Arquitectura del Proyecto
+Version 1.8  |  Marzo 2026
+
+1. Stack Tecnologico
+Componente
+Detalle
+Sistema Operativo
+Windows con Laragon
+Lenguaje
+PHP 8.3.30
+Framework Backend
+Laravel 12
+Frontend Reactivo
+Livewire 3
+Componentes UI
+Livewire Flux v2 (livewire/flux ^2.12.1)
+Base de Datos
+MariaDB
+Nombre de la Base de Datos
+sigeinv_db
+Auditoria y Logs
+spatie/laravel-activitylog
+Roles y Permisos
+spatie/laravel-permission
+Generacion de PDF
+barryvdh/laravel-dompdf
+Generacion de Excel
+maatwebsite/excel
+Servidor Local
+Laragon
+Framework CSS
+Tailwind CSS (incluido en Laravel 12)
+
+
+2. Descripcion del Proyecto
+Sistema web para la gestion y control del inventario de equipos tecnologicos de una organizacion. Permite registrar equipos, dispositivos y consumibles, asi como llevar el control de asignacion a trabajadores y departamentos.
+
+El sistema es una migracion desde AppSheet (con datos en Excel) hacia una aplicacion web robusta construida en Laravel 12 con Livewire 3.
+
+El sistema esta disenado para ser reutilizable en diferentes organismos. La identidad de la organizacion se configura mediante variables de entorno. Los modulos opcionales se activan y desactivan desde el panel de SuperAdmin sin modificar codigo.
+
+
+3. Configuracion de la Organizacion
+Variable
+Descripcion
+ORG_NOMBRE
+Nombre completo de la organizacion
+ORG_DEPENDENCIA
+Nombre del departamento de tecnologia
+ORG_LOGO
+Nombre del archivo de logo (almacenado en storage/app/public)
+
+ORG_NOMBRE="Nombre de la Organizacion"
+ORG_DEPENDENCIA="Departamento de Tecnologia"
+ORG_LOGO="logo.png"
+
+
+4. Sistema de Modulos
+El sistema tiene un nucleo fijo (inventario) y modulos opcionales que se activan o desactivan desde el panel de SuperAdmin. Cuando un modulo esta inactivo, su portal desaparece de la pantalla de inicio, sus rutas retornan 403 y sus enlaces no aparecen en el sidebar.
+
+4.1 Modulos disponibles
+Modulo
+Categoria
+Descripcion
+inventario
+Core
+Nucleo del sistema. Siempre activo, no se puede desactivar.
+tickets
+Soporte
+Sistema de tickets interno para el equipo de TI.
+helpdesk
+Soporte
+Portal de solicitudes para trabajadores. Requiere tickets activo.
+
+4.2 Tabla configuracion
+Almacena pares clave-valor que controlan modulos y comportamiento del sistema. Solo el SuperAdmin puede modificarla.
+
+Clave
+Valor ejemplo
+Categoria
+Descripcion
+modulo_tickets
+true
+Modulos
+Activa o desactiva el modulo de tickets
+modulo_helpdesk
+true
+Modulos
+Activa o desactiva el helpdesk
+departamento_ti_id
+1
+Sistema
+ID del departamento de TI. Solo afecta trabajadores nuevos al cambiar.
+tickets_modelo_asignacion
+hibrido
+Tickets
+Modelo: autoasignacion, por_superior o hibrido
+tickets_tiempo_hibrido
+24
+Tickets
+Horas antes de que un ticket hibrido pase a cola libre
+
+4.3 Pantalla principal (portales)
+Portal
+Modulo requerido activo
+SiGeInv — Inventario
+inventario (siempre visible)
+HelpDesk — Soporte
+modulo_helpdesk = true
+
+
+5. Roles y Permisos
+Los roles se administran desde el panel de SuperAdmin. Los permisos se asignan a roles, nunca directamente a usuarios. Los usuarios pueden tener multiples roles simultaneamente.
+
+5.1 Roles predefinidos del sistema
+Rol
+Slug
+Descripcion
+Super Admin
+super-admin
+Control total del sistema. Configura modulos, roles, permisos y parametros globales.
+Administrador
+administrador
+Aprueba o rechaza movimientos. Gestiona catalogos, reportes y usuarios.
+Coordinador
+coordinador
+Igual que administrador mas asignacion de tickets en el helpdesk.
+Personal TI
+personal-ti
+Registra movimientos en inventario y atiende tickets.
+Trabajador
+trabajador
+Acceso exclusivo al helpdesk. Puede abrir tickets y consultar los suyos.
+
+5.2 Permisos del sistema
+Nomenclatura: modulo.recurso.accion
+
+Permiso
+Descripcion
+inventario.computadores.ver
+Ver listado y detalle de computadores
+inventario.computadores.crear
+Registrar nuevos computadores
+inventario.computadores.editar
+Editar computadores existentes
+inventario.dispositivos.ver
+Ver dispositivos
+inventario.dispositivos.crear
+Registrar dispositivos
+inventario.dispositivos.editar
+Editar dispositivos
+inventario.consumibles.ver
+Ver consumibles
+inventario.consumibles.crear
+Registrar consumibles
+inventario.consumibles.editar
+Editar consumibles
+inventario.movimientos.ver
+Ver movimientos
+inventario.movimientos.crear
+Crear movimientos (borrador)
+inventario.movimientos.aprobar
+Aprobar o rechazar movimientos
+tickets.ver
+Ver tickets
+tickets.crear
+Crear tickets
+tickets.asignar
+Asignar tickets a personal TI
+tickets.cerrar
+Cerrar o resolver tickets
+helpdesk.ver
+Acceder al portal helpdesk
+helpdesk.crear
+Abrir tickets desde el helpdesk
+reportes.ver
+Ver historial de reportes
+reportes.generar
+Generar reportes bajo demanda
+catalogos.administrar
+Gestionar tablas de catalogos
+usuarios.administrar
+Crear, editar y habilitar usuarios
+configuracion.sistema
+Modificar configuracion global (exclusivo SuperAdmin)
+
+5.3 Flujo de Aprobacion de Movimientos
+Estado
+Quien Actua
+Descripcion
+borrador
+Personal TI
+El movimiento se esta completando. Se puede editar libremente.
+pendiente
+Personal TI
+Enviado para aprobacion. Ya no se puede editar.
+aprobado
+Administrador / Coordinador
+Validado, se refleja en el inventario.
+rechazado
+Administrador / Coordinador
+No procede. Se registra el motivo.
+
+
+6. Gestion de Usuarios y Trabajadores
+6.1 Creacion automatica de usuarios (Observer)
+Al registrar un trabajador se dispara un Observer que crea automaticamente su usuario vinculado:
+
+Campo del usuario
+Valor generado
+username
+nombre+apellido sin espacios, minusculas, sin tildes + # + id. Ejemplo: juanperez#23
+password
+El mismo username (juanperez#23)
+activo
+false — el acceso esta deshabilitado hasta habilitarlo manualmente
+rol asignado
+trabajador por defecto, o personal-ti si el departamento coincide con departamento_ti_id
+
+NOTA: trabajador.activo y user.activo son independientes. El primero indica si el trabajador existe en la organizacion; el segundo si tiene acceso al sistema.
+
+6.2 Login unificado
+Un solo formulario detecta automaticamente email o username por la presencia de @:
+    • Campo con @ — autentica por email (personal TI, administradores)
+    • Campo sin @ — autentica por username (trabajadores)
+    • Redireccion post-login: trabajadores -> helpdesk, resto -> dashboard
+
+
+7. Arquitectura de la Base de Datos
+7.1 Tablas Independientes
+marcas, tipos_dispositivo, sistemas_operativos, gpus (con marca_id), puertos, departamentos, consumibles, tipos_problema, estados_ticket, configuracion
+
+7.2 Tablas con Relaciones
+procesadores, trabajadores, computadores, dispositivos, movimientos_equipo, movimientos_consumible, reportes, tickets
+
+7.3 Tablas Pivote
+dispositivo_puerto, consumible_dispositivo, computador_puerto, gpu_puerto
+
+
+8. Detalle de Campos por Tabla
+8.1 marcas
+Campo
+Descripcion
+id
+Clave primaria
+nombre
+Nombre (unico)
+activo
+Boolean
+timestamps + softDeletes
+Gestion automatica
+
+8.2 tipos_dispositivo
+Campo
+Descripcion
+id
+Clave primaria
+nombre
+Nombre del tipo
+activo
+Boolean
+timestamps + softDeletes
+Gestion automatica
+
+8.3 sistemas_operativos
+Campo
+Descripcion
+id
+Clave primaria
+nombre
+Nombre del SO
+activo
+Boolean
+timestamps + softDeletes
+Gestion automatica
+
+8.4 gpus — CAMBIO v1.8: Agregados campos de especificaciones
+Campo
+Descripcion
+id
+Clave primaria
+marca_id
+FK -> marcas (nullable)
+nombre
+Modelo de la GPU (ej: Quadro K600, RTX 4090)
+memoria
+Capacidad de memoria. Se almacena con sufijo GB (ej: 8 GB)
+tipo_memoria
+Tipo de memoria (ej: GDDR5, GDDR6). Se fuerza a mayusculas. Nullable
+ancho_bus
+Ancho de bus. Select predefinido (32-bit a 512-bit). Nullable
+frecuencia
+Frecuencia en MHz. Se almacena con sufijo MHz (ej: 1680 MHz). Nullable
+activo
+Boolean
+timestamps + softDeletes
+Gestion automatica
+
+8.5 puertos
+Campo
+Descripcion
+id
+Clave primaria
+nombre
+Nombre del puerto
+activo
+Boolean
+timestamps + softDeletes
+Gestion automatica
+
+8.6 departamentos
+Campo
+Descripcion
+id
+Clave primaria
+nombre
+Nombre del departamento
+activo
+Boolean
+timestamps + softDeletes
+Gestion automatica
+
+8.7 procesadores
+Campo
+Descripcion
+id
+Clave primaria
+marca_id
+FK -> marcas
+nombre
+Modelo del procesador
+activo
+Boolean
+timestamps + softDeletes
+Gestion automatica
+
+8.8 trabajadores — CAMBIO v1.5: nombre separado en nombre/apellido, agregado user_id
+Campo
+Descripcion
+id
+Clave primaria
+departamento_id
+FK -> departamentos
+user_id
+FK -> users (nullable). Usuario vinculado.
+nombre
+Nombre(s)
+apellido
+Apellido(s)
+cargo
+Cargo (nullable)
+activo
+Boolean. Default: true
+timestamps + softDeletes
+Gestion automatica
+
+8.9 computadores — CAMBIO v1.5: agregado campo ip
+Campo
+Descripcion
+id
+Clave primaria
+codigo
+Codigo interno (unico)
+serial
+Serie fabricante (unico)
+tipo
+Enum: desktop, servidor, laptop, mini_laptop
+marca_id
+FK -> marcas
+nombre
+Modelo
+procesador_id
+FK -> procesadores
+ram
+Capacidad RAM
+tipo_ram
+Enum: DDR2, DDR3, DDR4, DDR5
+almacenamiento
+Descripcion
+sistema_operativo_id
+FK -> sistemas_operativos
+gpu_id
+FK -> gpus (nullable)
+ip
+Direccion IP en la red (nullable)
+unidad_dvd
+Boolean
+fuente_poder
+Boolean
+tarjeta_red
+Boolean
+estado
+Enum: operativo, danado, indeterminado, en_reparacion, baja
+departamento_id
+FK -> departamentos
+trabajador_id
+FK -> trabajadores (nullable)
+notas
+Observaciones
+activo
+Boolean
+timestamps + softDeletes
+Gestion automatica
+
+8.10 dispositivos — CAMBIO v1.5: agregado campo ip
+Campo
+Descripcion
+id
+Clave primaria
+codigo
+Codigo interno (unico)
+serial
+Serie fabricante (unico)
+tipo_dispositivo_id
+FK -> tipos_dispositivo
+marca_id
+FK -> marcas
+nombre
+Modelo
+ip
+Direccion IP en la red (nullable)
+estado
+Enum: operativo, danado, indeterminado, en_reparacion, baja
+departamento_id
+FK -> departamentos
+trabajador_id
+FK -> trabajadores (nullable)
+computador_id
+FK -> computadores (nullable)
+notas
+Observaciones
+activo
+Boolean
+timestamps + softDeletes
+Gestion automatica
+
+8.11 consumibles
+Campo
+Descripcion
+id
+Clave primaria
+nombre
+Nombre del consumible
+descripcion
+Descripcion (nullable)
+cantidad
+Stock actual
+activo
+Boolean
+timestamps + softDeletes
+Gestion automatica
+
+8.12 movimientos_equipo
+Campo
+Descripcion
+id
+Clave primaria
+tipo_equipo
+Enum: computador, dispositivo
+equipo_id
+ID del equipo. Sin FK formal (apunta a dos tablas).
+tipo_movimiento
+Enum: reasignacion, cambio_departamento, cambio_estado, actualizacion_componente
+valor_anterior
+JSON antes
+valor_nuevo
+JSON despues
+estado
+Enum: borrador, pendiente, aprobado, rechazado
+motivo_rechazo
+Nullable
+user_id
+FK -> users
+aprobado_por
+FK -> users (nullable)
+aprobado_at
+Timestamp nullable
+notas
+Nullable
+timestamps
+Gestion automatica
+
+8.13 movimientos_consumible
+Campo
+Descripcion
+id
+Clave primaria
+consumible_id
+FK -> consumibles
+tipo
+Enum: entrada, salida, ajuste
+cantidad
+Cantidad del movimiento
+cantidad_anterior
+Stock antes
+cantidad_nueva
+Stock despues
+estado
+Enum: borrador, pendiente, aprobado, rechazado
+motivo_rechazo
+Nullable
+user_id
+FK -> users
+aprobado_por
+FK -> users (nullable)
+aprobado_at
+Timestamp nullable
+notas
+Nullable
+timestamps
+Gestion automatica
+
+8.14 reportes
+Campo
+Descripcion
+id
+Clave primaria
+nombre
+Nombre descriptivo
+tipo
+Enum: diario, semanal, mensual, demanda
+formato
+Enum: pdf, excel
+archivo
+Ruta en storage
+user_id
+FK -> users (nullable si es automatico)
+timestamps
+Gestion automatica
+
+8.15 tipos_problema
+Campo
+Descripcion
+id
+Clave primaria
+nombre
+Nombre del tipo de problema
+activo
+Boolean
+timestamps + softDeletes
+Gestion automatica
+
+8.16 estados_ticket
+Campo
+Descripcion
+id
+Clave primaria
+nombre
+Nombre del estado
+activo
+Boolean
+timestamps + softDeletes
+Gestion automatica
+
+8.17 configuracion
+Campo
+Descripcion
+id
+Clave primaria
+clave
+Identificador unico del parametro
+valor
+Valor del parametro
+categoria
+Agrupacion: Modulos, Sistema, Tickets, etc.
+descripcion
+Descripcion para el panel de administracion
+timestamps
+Gestion automatica
+
+8.18 tickets
+Campo
+Descripcion
+id
+Clave primaria
+tipo_problema_id
+FK -> tipos_problema
+descripcion
+Descripcion del problema
+departamento_id
+FK -> departamentos
+trabajador_id
+FK -> trabajadores (solicitante)
+tecnico_id
+FK -> users (nullable). Personal TI asignado.
+estado_ticket_id
+FK -> estados_ticket
+prioridad
+Enum: baja, media, alta, critica
+ip_origen
+IP capturada al crear el ticket
+ip_coincide
+Boolean. Comparacion IP ticket vs IP computador del trabajador.
+notas
+Observaciones (nullable)
+resolucion
+Como se resolvio (nullable)
+activo
+Boolean
+timestamps + softDeletes
+Gestion automatica
+
+8.19 dispositivo_puerto (pivote)
+Campo
+Descripcion
+dispositivo_id
+FK -> dispositivos
+puerto_id
+FK -> puertos
+
+8.20 consumible_dispositivo (pivote)
+Campo
+Descripcion
+consumible_id
+FK -> consumibles
+dispositivo_id
+FK -> dispositivos
+
+8.21 computador_puerto (pivote)
+Campo
+Descripcion
+computador_id
+FK -> computadores (cascadeOnDelete)
+puerto_id
+FK -> puertos (cascadeOnDelete)
+
+8.22 gpu_puerto (pivote)
+Campo
+Descripcion
+gpu_id
+FK -> gpus (cascadeOnDelete)
+puerto_id
+FK -> puertos (cascadeOnDelete)
+
+
+9. Orden de Migraciones
+
+Orden
+Migracion
+0 (Laravel)
+0001_01_01_000000_create_users_table (incluye username y activo)
+0 (Laravel)
+0001_01_01_000001_create_cache_table
+0 (Laravel)
+0001_01_01_000002_create_jobs_table
+0 (Spatie)
+create_activity_log_table
+0 (Spatie)
+add_event_column_to_activity_log_table
+0 (Spatie)
+add_batch_uuid_column_to_activity_log_table
+1
+create_marcas_table
+2
+create_tipos_dispositivo_table
+3
+create_sistemas_operativos_table
+4
+create_gpus_table (incluye marca_id)
+5
+create_departamentos_table
+6
+create_puertos_table
+7
+create_procesadores_table
+8
+create_trabajadores_table (incluye nombre/apellido separados y user_id)
+9
+create_computadores_table (incluye ip)
+10
+create_dispositivos_table (incluye ip)
+11
+create_dispositivo_puerto_table
+12
+create_consumibles_table
+13
+create_consumible_dispositivo_table
+14
+create_movimientos_equipo_table
+15
+create_movimientos_consumible_table
+16
+create_reportes_table
+17
+create_configuracion_table
+18
+create_tipos_problema_table
+19
+create_estados_ticket_table
+20
+create_tickets_table
+21
+create_computador_puerto_table
+22
+create_gpu_puerto_table
+25 (Spatie)
+add_descripcion_to_roles_table
+NOTA: Los campos adicionales (username, activo, ip, marca_id, nombre/apellido) estan consolidados en las migraciones originales. No existen migraciones alter separadas para estos campos.
+
+
+10. Estructura de Archivos del Proyecto
+IMPORTANTE: Este proyecto utiliza Livewire en modo SFC (Single File Component) con el prefijo emoji en el nombre del archivo. PHP y Blade se encuentran en el mismo archivo.
+
+10.1 Componentes Livewire (SFC)
+Los componentes se almacenan como archivos unificados (PHP + Blade) en:
+
+Ubicacion real del archivo
+Descripcion
+resources/views/components/catalogos/marcas.blade.php
+Componente de marcas (prefijo emoji en el nombre real)
+resources/views/components/catalogos/gpus.blade.php
+Componente de GPUs
+resources/views/components/catalogos/tipos-dispositivo.blade.php
+Tipos de dispositivo
+resources/views/components/catalogos/sistemas-operativos.blade.php
+Sistemas operativos
+resources/views/components/catalogos/puertos.blade.php
+Puertos
+resources/views/components/catalogos/departamentos.blade.php
+Departamentos
+resources/views/pages/auth/
+Vistas de autenticacion (SFC)
+resources/views/pages/settings/
+Configuracion de usuario (SFC)
+
+10.2 Namespaces de componentes Livewire
+Registrados en config/livewire.php bajo component_namespaces:
+
+Namespace
+Ruta real
+pages
+resources/views/pages
+catalogos
+resources/views/components/catalogos
+layouts
+resources/views/layouts
+
+Uso en rutas:
+Route::livewire('/marcas', 'catalogos::marcas')->name('marcas.index');
+Route::livewire('/gpus', 'catalogos::gpus')->name('gpus.index');
+Route::livewire('/tipos-dispositivo', 'catalogos::tipos-dispositivo')->name('tipos-dispositivo.index');
+Route::livewire('/sistemas-operativos', 'catalogos::sistemas-operativos')->name('sistemas-operativos.index');
+Route::livewire('/puertos', 'catalogos::puertos')->name('puertos.index');
+Route::livewire('/departamentos', 'catalogos::departamentos')->name('departamentos.index');
+
+10.3 Layouts
+Archivo
+Descripcion
+resources/views/layouts/app.blade.php
+Layout principal. Envuelve el slot en flux:main automaticamente.
+resources/views/layouts/app/sidebar.blade.php
+Sidebar completo para usuarios autenticados.
+resources/views/layouts/auth.blade.php
+Layout para paginas de autenticacion.
+
+CRITICO: El layout app.blade.php ya incluye flux:main. Los componentes usan un div raiz unico, nunca flux:main.
+
+10.4 Vistas especiales
+Archivo
+Descripcion
+resources/views/welcome.blade.php
+Pantalla principal con portales de acceso por modulo activo.
+resources/views/partials/head.blade.php
+Head HTML. Incluye Vite y @fluxAppearance. NO incluir @fluxStyles (no existe en Flux v2, se muestra como texto plano).
+
+10.5 Rutas
+Archivo
+Descripcion
+routes/web.php
+Rutas principales. Usa Route::livewire() para componentes SFC.
+routes/settings.php
+Rutas de perfil. Registrado manualmente en bootstrap/app.php.
+routes/console.php
+Tareas programadas para reportes automaticos.
+
+10.6 Providers y configuracion clave
+Archivo
+Descripcion
+app/Providers/AppServiceProvider.php
+Registra Gate (super-admin), Observer Trabajador, Fortify login unificado, Listener redireccion por rol.
+app/Observers/TrabajadorObserver.php
+Crea automaticamente el usuario al registrar un trabajador.
+app/Listeners/RedirectBasedOnRole.php
+Redirige al usuario segun su rol despues del login.
+bootstrap/app.php
+Registra routes/settings.php y middlewares Spatie.
+config/livewire.php
+Configura namespaces de componentes y tipo SFC. Agregar nuevos namespaces aqui al crear carpetas nuevas.
+resources/css/app.css
+Contiene dialog::backdrop para el overlay oscuro de los modales Flux.
+
+10.7 Modelos
+Modelo
+Tabla
+User
+users
+Marca
+marcas
+TipoDispositivo
+tipos_dispositivo
+SistemaOperativo
+sistemas_operativos
+Gpu
+gpus
+Puerto
+puertos
+Departamento
+departamentos
+Procesador
+procesadores
+Trabajador
+trabajadores
+Computador
+computadores
+Dispositivo
+dispositivos
+Consumible
+consumibles
+MovimientoEquipo
+movimientos_equipo
+MovimientoConsumible
+movimientos_consumible
+Reporte
+reportes
+Configuracion
+configuracion
+TipoProblema
+tipos_problema
+EstadoTicket
+estados_ticket
+Ticket
+tickets
+
+
+11. Convenciones del Proyecto
+11.1 Base de datos
+    • Tablas en plural y snake_case
+    • Claves foraneas: nombre_tabla_singular_id
+    • Todas las tablas incluyen: id, activo, timestamps, softDeletes
+
+11.2 Rutas
+    • Rutas en kebab-case: tipos-dispositivo, sistemas-operativos, movimientos-equipo
+    • Todas las rutas requieren autenticacion
+    • Usar Route::livewire() para componentes SFC, no Route::get()
+
+11.3 Componentes Livewire SFC
+    • Un solo div raiz por componente (requerimiento de Livewire)
+    • No usar flux:main dentro del componente (ya esta en el layout app.blade.php)
+    • Abrir modales: dispatch('modal-show', name: 'nombre-modal')
+    • Cerrar modales: dispatch('modal-close', name: 'nombre-modal')
+    • El modal se declara con flux:modal name="nombre" sin wire:model
+    • Usar metodo with() en lugar de render() para pasar datos a la vista
+
+11.4 Estados de equipos
+    • operativo — Funcionando correctamente
+    • danado — Falla confirmada
+    • indeterminado — Estado desconocido
+    • en_reparacion — En proceso de reparacion
+    • baja — Dado de baja definitivamente
+
+11.5 Politica de Eliminacion
+    • Ningun registro se elimina fisicamente
+    • Registros se desactivan con activo = false
+    • SoftDeletes como capa adicional de proteccion
+
+11.6 CSS y estilos
+    • Flux v2 inyecta sus estilos automaticamente via inject_assets = true en config/livewire.php
+    • NO usar @fluxStyles — no existe en Flux v2 y se renderiza como texto plano en pantalla
+    • El backdrop del dialog nativo se controla con dialog::backdrop en app.css
+
+
+12. Diseño Visual e Interfaz
+Componente
+Detalle
+Framework CSS
+Tailwind CSS
+Componentes UI
+Livewire Flux v2
+Tema
+Dark mode por defecto
+Compilacion
+npm run dev / npm run build
+
+Categoria
+Secciones
+Inventario
+Computadores, Dispositivos, Consumibles
+Movimientos
+Equipos, Consumibles
+Asignaciones
+Trabajadores, Departamentos
+Reportes
+Reportes
+Catalogos
+Marcas, GPUs, Tipos de Dispositivo, Sistemas Operativos, Puertos
+Administracion
+Usuarios, Roles y Permisos (solo super-admin)
+
+
+13. Reportes
+Tipo
+Descripcion
+Diario
+Generado automaticamente al finalizar el dia
+Semanal
+Consolidado semanal automatico
+Mensual
+Consolidado mensual automatico
+Bajo demanda
+Generado manualmente por Administrador o SuperAdmin
+
+    • PDF — barryvdh/laravel-dompdf
+    • Excel — maatwebsite/excel
+
+Todos los reportes PDF incluyen membrete con ORG_NOMBRE, ORG_DEPENDENCIA, ORG_LOGO, fecha/hora y usuario generador.
+
+
+14. Modulo Tickets y HelpDesk
+14.1 Modelos de asignacion de tickets
+Modelo
+Clave configuracion
+Descripcion
+Autoasignacion
+autoasignacion
+El personal TI toma tickets libremente de la cola
+Por superior
+por_superior
+El Administrador o Coordinador asigna cada ticket a un tecnico
+Hibrido
+hibrido
+El superior asigna. Si no hay asignacion en X horas, el ticket pasa a cola libre
+
+14.2 Flujo del ticket
+    • Trabajador o Personal TI crea ticket -> estado inicial segun catalogo estados_ticket
+    • Segun modelo de asignacion, se asigna tecnico_id
+    • Personal TI atiende el ticket y actualiza estado
+    • Al resolver, personal TI completa el campo resolucion
+    • Administrador o Coordinador puede cerrar el ticket
+
+14.3 Validacion de IP
+    • Al crear el ticket se captura automaticamente la IP del cliente (ip_origen)
+    • Se busca el computador asignado al trabajador solicitante
+    • Si ese computador tiene ip registrada, se compara con ip_origen
+    • Si coinciden: ip_coincide = true. Si no: ip_coincide = false y se muestra aviso.
+
+14.4 Portal HelpDesk (vista reducida para trabajadores)
+    • Mis tickets — lista de tickets propios con estado actual
+    • Nuevo ticket — formulario para abrir solicitud
+
+
+15. Usuarios Iniciales del Sistema
+15.1 Roles creados por RolesAndPermissionsSeeder
+Rol (slug)
+super-admin
+administrador
+coordinador
+personal-ti
+trabajador
+
+15.2 Usuario Super Admin
+Campo
+Valor
+Email
+superadmin@sigeinv.test
+Password
+password
+Rol
+super-admin
+Nota
+Cambiar la contrasena al desplegar en produccion
+
+
+16. Datos Iniciales de los Catalogos (Seeders)
+
+16.1 Marcas
+Nombre
+Dell
+HP
+Intel
+AMD
+Epson
+Canon
+Cisco
+TP-Link
+
+16.2 Tipos de Dispositivo
+Nombre
+Monitor
+Impresora
+Switch
+Router
+Protector de voltaje
+Teclado
+Mouse
+Teclado + Mouse
+
+16.3 Sistemas Operativos
+Nombre
+Windows 10
+Windows 11
+Ubuntu
+Debian
+
+16.4 GPUs
+Las GPUs ahora requieren marca. El seed inicial debe registrar la marca correspondiente.
+Marca
+Modelo
+Nvidia
+Quadro K600
+
+16.5 Puertos
+Nombre
+HDMI
+VGA
+DisplayPort
+DVI 24+1
+DVI 24+5
+D-Sub
+Ethernet
+USB
+
+16.6 Tipos de Problema
+Nombre
+Falla de hardware
+Sin conexion a red
+Problema con software
+Solicitud de equipo
+Mantenimiento preventivo
+Otro
+
+16.7 Estados de Ticket
+Nombre
+Abierto
+En Progreso
+En Espera de Usuario
+Resuelto
+Cerrado
+
+16.8 Configuracion inicial
+Clave
+Valor inicial
+modulo_tickets
+false
+modulo_helpdesk
+false
+departamento_ti_id
+null
+tickets_modelo_asignacion
+por_superior
+tickets_tiempo_hibrido
+24
+
+
+17. Patrones de Interfaz de Usuario
+17.1 Componente de Notificacion (Toast)
+Las notificaciones se manejan a traves de resources/views/components/notificacion.blade.php. Se muestra como toast fijo en la esquina inferior derecha (fixed bottom-6 right-6 z-50) para no desplazar el contenido de la pagina.
+
+Caracteristicas:
+    • Posicion fija en pantalla — no desplaza el contenido al aparecer o desaparecer
+    • Desaparece automaticamente despues de 4 segundos (configurable via prop :segundos)
+    • Boton X para cerrar manualmente
+    • Animacion de entrada y salida con Alpine.js transitions
+    • Tres tipos: success (verde), error (rojo), info (azul)
+
+Bloque estandar en todos los componentes:
+@if($mensajeExito)
+    <div wire:key="{{ $mensajeKey }}">
+        <x-notificacion :mensaje="$mensajeExito" />
+    </div>
+@endif
+@if(session("error"))
+    <x-notificacion :mensaje="session('error')" tipo="error" />
+@endif
+
+CRITICO: El div con wire:key es obligatorio. Sin el, Alpine no remonta el componente al repetir la misma accion y la notificacion no vuelve a aparecer.
+
+Prop
+Tipo
+Descripcion
+:mensaje
+string (requerido)
+Texto del mensaje a mostrar
+tipo
+string (default: success)
+Valores: success, error, info
+:segundos
+int (default: 4)
+Tiempo antes de desaparecer
+
+17.2 Patron de Notificaciones en Componentes Livewire
+session()->flash() no es confiable en Livewire para acciones sin redirect. El patron correcto usa propiedades reactivas:
+
+Propiedades requeridas en cada componente:
+public string $mensajeExito = '';
+public string $mensajeKey   = '';
+
+Asignacion — siempre al final, despues de modal-close y resetFormulario():
+$this->mensajeExito = $mensaje;
+$this->mensajeKey   = now()->toDateTimeString() . rand(0, 999);
+
+El rand() garantiza que mensajeKey sea diferente en cada accion, incluso cuando el mensaje es identico, forzando a Livewire a remontar el componente Alpine via wire:key.
+
+17.3 Patron guardar() estandar
+    • validate() fuera del try-catch para mostrar errores de validacion normalmente
+    • $mensaje = '' declarado antes del if para evitar advertencias del editor
+    • modal-close y resetFormulario() antes de asignar mensajeExito/mensajeKey
+    • mensajeExito y mensajeKey siempre al final del bloque try
+    • catch usa session()->flash('error') ya que ocurre con re-render completo
+
+public function guardar(): void
+{
+    $this->validate();
+    try {
+        $mensaje = '';
+        if ($this->editandoId) {
+            Modelo::findOrFail($this->editandoId)->update([...]);
+            $mensaje = 'X actualizado correctamente.';
+        } else {
+            Modelo::create([...]);
+            $mensaje = 'X registrado correctamente.';
+        }
+        $this->dispatch('modal-close', name: 'modal-x');
+        $this->resetFormulario();
+        $this->mensajeExito = $mensaje;
+        $this->mensajeKey   = now()->toDateTimeString() . rand(0, 999);
+    } catch (\Exception $e) {
+        session()->flash('error', 'Ocurrio un error al guardar.');
+    }
+}
+
+17.4 Patron toggleActivo() estandar
+public function toggleActivo(int $id): void
+{
+    $item = Modelo::findOrFail($id);
+    $nuevoEstado = !$item->activo;
+    $item->update(['activo' => $nuevoEstado]);
+    $this->mensajeExito = $nuevoEstado ? 'X activado.' : 'X desactivado.';
+    $this->mensajeKey   = now()->toDateTimeString() . rand(0, 999);
+}
+
+17.5 Patron de Modales Rapidas
+Las modales rapidas permiten registrar entidades relacionadas sin salir del formulario actual.
+
+    • Cada modal rapida tiene su propio nombre unico de flux:modal
+    • El nombre del dispatch debe coincidir exactamente con el name del flux:modal
+    • Cada modal rapida tiene su propia propiedad de error: $errorXxxRapido
+    • El error se muestra dentro de la modal rapida con <x-notificacion> sin cerrarla
+    • Al cerrar se limpia el error y se resetea la validacion
+    • Las modales rapidas NO asignan mensajeExito — el modal principal sigue abierto
+    • Al guardar exitosamente: asignar ID creado al campo correspondiente y cerrar modal
+
+Patron marca rapida compartida en Computadores — $marcaRapidaDestino determina el campo destino:
+Valor $marcaRapidaDestino
+Campo destino
+Modal que lo abre
+computador
+$marca_id
+Modal principal
+gpu
+$marcaIdGpuRapida
+modal-gpu-rapida-comp
+procesador
+$marcaIdProcRapido
+modal-proc-rapido-comp
+
+17.6 Nombres de Modales por Componente
+CRITICO: El nombre en dispatch(modal-show/close) debe coincidir exactamente con el name del flux:modal.
+
+Componente
+Modal principal
+Modales rapidas
+⚡marcas
+modal-marca
+—
+⚡gpus
+modal-gpu
+modal-marca-rapida
+⚡tipos-dispositivo
+modal-tipo-dispositivo
+—
+⚡sistemas-operativos
+modal-so
+—
+⚡puertos
+modal-puerto
+—
+⚡departamentos
+modal-departamento
+—
+⚡procesadores
+modal-procesador
+modal-marca-rapida-proc
+⚡trabajadores
+modal-trabajador
+modal-departamento-rapido
+⚡computadores
+modal-computador
+modal-marca-rapida-comp, modal-gpu-rapida-comp, modal-proc-rapido-comp, modal-so-rapido-comp, modal-dep-rapido-comp
+⚡dispositivos
+modal-dispositivo
+modal-marca-rapida-disp, modal-tipo-rapido-disp, modal-dep-rapido-disp
+
+17.7 Convencion de Nombre de Trabajador
+En todos los modulos usar orden natural sin coma:
+{{ $trabajador->nombre }} {{ $trabajador->apellido }}
+
+17.8 Modelos con $table explicita
+Modelo
+Declaracion requerida
+Computador
+protected $table = "computadores";
+Procesador
+protected $table = "procesadores";
+Verificar siempre al crear modelos nuevos en espanol cuyo plural en ingles no coincida con la tabla real.
+
+17.9 Scopes estandar en modelos
+Todos los modelos con campo activo deben implementar scopeActivos():
+public function scopeActivos($query)
+{
+    return $query->where("activo", true);
+}
+
+Modelos con scopeActivos() confirmado: Marca, Gpu, Procesador, Computador, Dispositivo, Departamento, Puerto, SistemaOperativo, TipoDispositivo, Trabajador, EstadoTicket, TipoProblema.
+
+17.10 Campo activo en tablas de listado
+Los modulos de inventario principal (Computadores, Dispositivos) muestran el campo activo como columna en la tabla con badge verde (Si) o gris (No). Los catalogos no requieren esta columna ya que el filtro activo/inactivo/todos es suficiente.
+
+17.11 Patron de Modal Detalle (solo lectura)
+Computadores, Dispositivos implementan un modal de detalle accesible via boton ojo (eye) en la tabla. Este modal es de solo lectura y esta disponible para usuarios sin permiso de edicion.
+
+Propiedades requeridas:
+public ?int $viendoId = null;
+
+Metodos:
+public function verDetalle(int $id): void
+{
+    $this->viendoId = $id;
+    $this->dispatch('modal-show', name: 'modal-detalle-xxx');
+}
+public function cerrarDetalle(): void
+{
+    $this->viendoId = null;
+    $this->dispatch('modal-close', name: 'modal-detalle-xxx');
+}
+
+En with() cargar el detalle con eager loading completo:
+$xxxDetalle = $this->viendoId
+    ? Modelo::with([...relaciones...])->find($this->viendoId)
+    : null;
+
+17.12 Patron de Puertos (BelongsToMany)
+Computadores, Dispositivos y GPUs tienen puertos asignables mediante tablas pivote. Los puertos se seleccionan con checkboxes en el formulario de registro/edicion y se persisten con sync().
+
+Tablas pivote: computador_puerto, dispositivo_puerto, gpu_puerto. Todas con cascadeOnDelete y clave primaria compuesta.
+
+Propiedad requerida:
+public array $puertosSeleccionados = [];
+
+En editar() cargar puertos actuales:
+$this->puertosSeleccionados = $equipo->puertos->pluck('id')->toArray();
+
+En guardar() sincronizar despues del create/update:
+$equipo->puertos()->sync($this->puertosSeleccionados);
+
+Relacion en los modelos (BelongsToMany con tabla explicita):
+public function puertos()
+{
+    return $this->belongsToMany(Puerto::class, 'computador_puerto');
+}
+
+17.13 Patron resolverValor() y etiquetaCampo() en Movimientos
+El modal de detalle de movimientos muestra los campos con nombres legibles y valores resueltos (IDs convertidos a nombres). Se implementan dos metodos publicos en el componente:
+
+etiquetaCampo(string $campo): string — convierte claves como 'departamento_id' en 'Departamento'.
+resolverValor(string $campo, mixed $valor): string — convierte IDs a nombres usando los modelos correspondientes.
+
+17.14 Convencion de campos numericos con sufijo automatico
+Algunos campos se ingresan como numero puro y el sistema agrega el sufijo al guardar. El campo de edicion carga solo el numero sin sufijo.
+
+Campo
+Sufijo
+Modelo
+ram (Computador)
+GB
+guardar(): 'ram' => $this->ram . ' GB' / editar(): str_replace(' GB', '', $c->ram)
+memoria (Gpu)
+GB
+guardar(): 'memoria' => $this->memoria . ' GB' / editar(): str_replace(' GB', '', $gpu->memoria)
+frecuencia (Gpu)
+MHz
+guardar(): 'frecuencia' => $this->frecuencia . ' MHz' / editar(): str_replace(' MHz', '', $gpu->frecuencia)
+
+tipo_memoria (Gpu) se fuerza a mayusculas con strtoupper() al guardar.
+ancho_bus (Gpu) es un flux:select con valores estandar predefinidos: 32-bit, 64-bit, 96-bit, 128-bit, 192-bit, 256-bit, 320-bit, 384-bit, 512-bit.
+
+
+18. Requisitos de Despliegue en Produccion
+
+18.1 Perfil objetivo
+Organismo mediano con 10 a 50 usuarios concurrentes sobre servidor fisico dedicado en red local.
+
+18.2 Hardware recomendado
+Componente
+Minimo / Recomendado
+CPU
+4 cores minimo / 6-8 cores recomendado (Intel Xeon o equivalente)
+RAM
+8 GB minimo / 16 GB recomendado
+Almacenamiento
+100 GB SSD minimo / 256 GB NVMe recomendado
+Red
+100 Mbps minimo / 1 Gbps recomendado
+
+Nota: El SSD tiene mayor impacto que el CPU en este sistema. MariaDB y el log de actividad de Spatie escriben constantemente en disco. La RAM evita que PHP-FPM, MariaDB y el SO compitan por recursos con 50 usuarios activos simultaneos.
+
+18.3 Sistema operativo del servidor
+Ubuntu Server 22.04 LTS o Debian 12. Se recomienda evitar Windows Server para produccion con Laravel — el rendimiento de PHP-FPM en Linux es significativamente superior.
+
+18.4 Stack de produccion
+Componente
+Detalle
+Web server
+Nginx
+PHP
+PHP-FPM 8.3
+Base de datos
+MariaDB 10.11
+Cache y colas
+Redis (reemplaza el driver database usado en desarrollo)
+Workers
+Supervisor (gestiona los workers de colas para reportes automaticos)
+Certificado SSL
+Let's Encrypt (si se expone fuera de la red local)
+
+18.5 Variables de entorno clave para produccion
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=http://sigeinv.tudominio.local
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=sigeinv_db
+DB_USERNAME=sigeinv_user
+DB_PASSWORD=password_seguro
+
+CACHE_DRIVER=redis
+QUEUE_CONNECTION=redis
+SESSION_DRIVER=redis
+
+ORG_NOMBRE="Nombre de la Organizacion"
+ORG_DEPENDENCIA="Departamento de Tecnologia"
+ORG_LOGO="logo.png"
+
+18.6 Pasos de despliegue
+    • 1. Instalar Nginx, PHP-FPM 8.3, MariaDB 10.11, Redis, Supervisor, Composer, Node.js
+    • 2. Clonar el repositorio en /var/www/sigeinv
+    • 3. composer install --optimize-autoloader --no-dev
+    • 4. npm install && npm run build
+    • 5. Copiar .env.example a .env y configurar todas las variables
+    • 6. php artisan key:generate
+    • 7. Crear base de datos y usuario en MariaDB con permisos restringidos
+    • 8. php artisan migrate --seed
+    • 9. php artisan storage:link
+    • 10. php artisan config:cache && php artisan route:cache && php artisan view:cache
+    • 11. Configurar Nginx apuntando a /var/www/sigeinv/public
+    • 12. Configurar Supervisor para php artisan queue:work
+    • 13. Configurar cron para php artisan schedule:run (reportes automaticos)
+    • 14. Cambiar password del superadmin desde el panel
+
+18.7 Cron para reportes automaticos
+* * * * * cd /var/www/sigeinv && php artisan schedule:run >> /dev/null 2>&1
+
+18.8 Configuracion Supervisor (queue worker)
+[program:sigeinv-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /var/www/sigeinv/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=2
+redirect_stderr=true
+stdout_logfile=/var/www/sigeinv/storage/logs/worker.log
+
+
+19. Estado de Implementacion
+
+19.1 Modulos completados
+Modulo
+Componente
+Notas
+Marcas
+catalogos::marcas
+CRUD + try-catch + toast
+GPUs
+catalogos::gpus
+CRUD + marca rapida + toast + puertos + specs (memoria, tipo, bus, frecuencia) + modal detalle
+Tipos de Dispositivo
+catalogos::tipos-dispositivo
+CRUD + toast
+Sistemas Operativos
+catalogos::sistemas-operativos
+CRUD + toast
+Puertos
+catalogos::puertos
+CRUD + toast
+Departamentos
+catalogos::departamentos
+CRUD + toast
+Procesadores
+catalogos::procesadores
+CRUD + marca rapida + toast
+Trabajadores
+inventario::trabajadores
+CRUD + departamento rapido + Observer usuario + toast
+Computadores
+inventario::computadores
+CRUD + 5 modales rapidas + puertos + modal detalle + toast
+Dispositivos
+inventario::dispositivos
+CRUD + 3 modales rapidas + puertos + modal detalle + toast
+Consumibles
+inventario::consumibles
+CRUD + toast + badge stock
+Movimientos Equipo
+inventario::movimientos-equipo
+Flujo borrador->pendiente->aprobado/rechazado + modal detalle
+
+19.2 Modulos pendientes
+Modulo
+Componente
+Dependencias
+Movimientos Consumible
+inventario::movimientos-consumible
+Consumible
+Reportes
+inventario::reportes
+Todos los modulos
+Dashboard
+inventario::dashboard
+Todos los modulos
+Usuarios
+admin::usuarios
+Trabajador, Roles
+Roles y Permisos
+admin::roles
+Spatie Permission
+Configuracion
+admin::configuracion
+SuperAdmin only
+Tickets
+tickets::tickets
+Modulo opcional
+HelpDesk
+helpdesk::helpdesk
+Modulo opcional
+
+
+Sistema de Inventario Tecnologico  |  v1.8  |  Generado con Claude

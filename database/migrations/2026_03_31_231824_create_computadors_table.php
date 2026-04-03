@@ -21,6 +21,7 @@ return new class extends Migration
             $table->foreignId('sistema_operativo_id')->constrained('sistemas_operativos')->onDelete('restrict');
             $table->foreignId('procesador_id')->constrained('procesadores')->onDelete('restrict');
             $table->foreignId('gpu_id')->nullable()->constrained('gpus')->onDelete('restrict');
+            $table->foreignId('departamento_id')->nullable()->constrained('departamentos')->onDelete('restrict');
             $table->foreignId('trabajador_id')->nullable()->constrained('trabajadores')->onDelete('restrict');
             
             // Especificaciones
@@ -28,6 +29,8 @@ return new class extends Migration
             $table->string('mac')->nullable()->unique();
             $table->string('ip')->nullable();
             $table->enum('tipo_conexion', ['Ethernet', 'Wi-Fi', 'Ambas'])->nullable();
+            $table->boolean('unidad_dvd')->default(true);
+            $table->boolean('fuente_poder')->default(true);
             $table->enum('estado_fisico', ['operativo', 'danado', 'indeterminado', 'en_reparacion', 'baja'])->default('operativo');
             $table->text('observaciones')->nullable();
             

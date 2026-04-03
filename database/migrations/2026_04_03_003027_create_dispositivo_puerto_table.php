@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('puertos', function (Blueprint $table) {
-            $table->id();
-            $table->string('nombre')->unique();
-            $table->boolean('activo')->default(true);
+        Schema::create('dispositivo_puerto', function (Blueprint $table) {
+            $table->foreignId('dispositivo_id')->constrained('dispositivos')->cascadeOnDelete();
+            $table->foreignId('puerto_id')->constrained('puertos')->cascadeOnDelete();
+            
+            $table->primary(['dispositivo_id', 'puerto_id']);
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('puertos');
+        Schema::dropIfExists('dispositivo_puerto');
     }
 };

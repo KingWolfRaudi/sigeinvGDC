@@ -14,6 +14,9 @@ class DatabaseSeeder extends Seeder
             
             // Agregamos nuestro nuevo seeder de catálogos
             CatalogosSeeder::class,
+            
+            // Agregamos semillas para el inventario real (Equipos y Dispositivos)
+            InventarioSeeder::class,
         ]);
     }
 }

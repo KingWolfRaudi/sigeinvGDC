@@ -160,19 +160,64 @@
                                 </a>
                             </li>
                             @endcan
+                            @can('ver-dispositivos')
                             <li class="nav-item">
-                                <a href="#" class="nav-link text-white-50 px-3 py-1 text-sm d-flex align-items-center">
+                                <a href="{{ route('inventario.dispositivos') }}" class="nav-link {{ request()->routeIs('inventario.dispositivos') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
                                     <i class="bi bi-router me-2"></i> Dispositivos
                                 </a>
                             </li>
+                            @endcan
+                            @can('ver-insumos')
                             <li class="nav-item">
-                                <a href="#" class="nav-link text-white-50 px-3 py-1 text-sm d-flex align-items-center">
-                                    <i class="bi bi-printer me-2"></i> Consumibles
+                                <a href="{{ route('inventario.insumos') }}" class="nav-link {{ request()->routeIs('inventario.insumos') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-box-seam me-2"></i> Insumos/Herrm.
                                 </a>
                             </li>
+                            @endcan
                         </ul>
                     </div>
                 </li>
+
+                {{-- Sección: Movimientos --}}
+                @canany(['movimientos-computadores-ver', 'movimientos-dispositivos-ver', 'movimientos-insumos-ver'])
+                <li class="nav-item mb-1 mt-3">
+                    <h6 class="sidebar-heading px-3 mt-4 mb-1 text-white-50 text-uppercase" style="font-size: 0.75rem;">
+                        <span>Movimientos</span>
+                    </h6>
+                </li>
+                <li class="nav-item mb-1">
+                    <a class="nav-link text-white d-flex align-items-center justify-content-between {{ request()->routeIs('movimientos.*') ? 'active' : '' }}"
+                        data-bs-toggle="collapse" href="#collapseMovimientos" role="button">
+                        <span><i class="bi bi-arrow-left-right me-2"></i>Panel de Flujo</span>
+                        <i class="bi bi-chevron-down small"></i>
+                    </a>
+                    <div class="collapse {{ request()->routeIs('movimientos.*') ? 'show' : '' }}" id="collapseMovimientos">
+                        <ul class="nav flex-column ms-3 border-start border-secondary ps-2">
+                            @can('movimientos-computadores-ver')
+                            <li class="nav-item">
+                                <a href="{{ route('movimientos.computadores') }}" class="nav-link {{ request()->routeIs('movimientos.computadores') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-pc-display me-2"></i> Computadores
+                                </a>
+                            </li>
+                            @endcan
+                            @can('movimientos-dispositivos-ver')
+                            <li class="nav-item">
+                                <a href="{{ route('movimientos.dispositivos') }}" class="nav-link {{ request()->routeIs('movimientos.dispositivos') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-router me-2"></i> Dispositivos
+                                </a>
+                            </li>
+                            @endcan
+                            @can('movimientos-insumos-ver')
+                            <li class="nav-item">
+                                <a href="{{ route('movimientos.insumos') }}" class="nav-link {{ request()->routeIs('movimientos.insumos') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-box-seam me-2"></i> Insumos
+                                </a>
+                            </li>
+                            @endcan
+                        </ul>
+                    </div>
+                </li>
+                @endcanany
 
                 @canany(['ver-roles', 'crear-roles', 'editar-roles', 'eliminar-roles', 'ver-usuarios', 'crear-usuarios', 'editar-usuarios', 'cambiar-estatus-usuarios', 'eliminar-usuarios'])
                 <li class="nav-item mb-1 mt-3">
