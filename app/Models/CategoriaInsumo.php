@@ -7,9 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+use App\Traits\RecordSignature;
+
 class CategoriaInsumo extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, RecordSignature;
     
     protected $fillable = ['nombre', 'activo'];
     

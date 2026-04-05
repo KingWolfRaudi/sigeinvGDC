@@ -23,6 +23,8 @@ return new class extends Migration
             $table->string('avatar')->nullable();
             $table->boolean('activo')->default(false); // Por defecto deshabilitado según specs
             $table->rememberToken();
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
             $table->softDeletes();
         });

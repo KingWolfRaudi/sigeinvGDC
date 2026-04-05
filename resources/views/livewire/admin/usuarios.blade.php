@@ -1,11 +1,30 @@
 <div>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="mb-0"><i class="bi bi-people-fill me-2"></i>Gestión de Usuarios</h3>
-        @can('crear-usuarios')
-            <button wire:click="crear" class="btn btn-primary">
-                <i class="bi bi-person-plus-fill me-1"></i> Nuevo Usuario
-            </button>
-        @endcan
+        <div class="d-flex gap-2">
+            <div class="dropdown">
+                <button class="btn btn-outline-success border-2 fw-bold dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                </button>
+                <ul class="dropdown-menu shadow border-0">
+                    <li>
+                        <a class="dropdown-item py-2" href="{{ route('reportes.usuarios.excel', ['search' => $search, 'estado' => $filtro_estado]) }}">
+                            <i class="bi bi-filter me-2 text-success"></i> Vista Actual (Filtrado)
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item py-2" href="{{ route('reportes.usuarios.excel') }}">
+                            <i class="bi bi-list-check me-2 text-primary"></i> Todo el Directorio
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            @can('crear-usuarios')
+                <button wire:click="crear" class="btn btn-primary shadow-sm fw-bold border-2">
+                    <i class="bi bi-person-plus-fill me-1"></i> Nuevo
+                </button>
+            @endcan
+        </div>
     </div>
 
     <div class="row mb-3">

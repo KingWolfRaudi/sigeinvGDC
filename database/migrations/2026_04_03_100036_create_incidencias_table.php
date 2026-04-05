@@ -27,7 +27,8 @@ return new class extends Migration
             
             $table->boolean('solventado')->default(false);
             $table->boolean('cerrado')->default(false);
-            
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
             $table->softDeletes();
         });

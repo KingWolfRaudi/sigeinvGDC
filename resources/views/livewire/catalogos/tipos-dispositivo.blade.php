@@ -9,10 +9,27 @@
                 <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar tipo...">
             </div>
         </div>
-        <div class="col-md-3 text-end">
+        <div class="col-md-3 text-end d-flex gap-2">
+            <div class="dropdown w-100">
+                <button class="btn btn-outline-success border-2 fw-bold w-100 dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                </button>
+                <ul class="dropdown-menu shadow border-0">
+                    <li>
+                        <a class="dropdown-item py-2" href="{{ route('reportes.catalogo.excel', ['tipo' => 'tipos', 'search' => $search, 'estado' => $filtro_estado]) }}">
+                            <i class="bi bi-filter me-2 text-success"></i> Vista Actual
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item py-2" href="{{ route('reportes.catalogo.excel', ['tipo' => 'tipos']) }}">
+                            <i class="bi bi-list-check me-2 text-primary"></i> Todo el Catálogo
+                        </a>
+                    </li>
+                </ul>
+            </div>
             @can('crear-tipos-dispositivo')
-                <button wire:click="crear" class="btn btn-primary w-100">
-                    <i class="bi bi-plus-circle me-1"></i> Nuevo Tipo
+                <button wire:click="crear" class="btn btn-primary w-100 shadow-sm fw-bold">
+                    <i class="bi bi-plus-circle me-1"></i> Nuevo
                 </button>
             @endcan
         </div>

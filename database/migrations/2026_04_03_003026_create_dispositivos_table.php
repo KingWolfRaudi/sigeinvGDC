@@ -25,6 +25,8 @@ return new class extends Migration
             $table->foreignId('computador_id')->nullable()->constrained('computadores')->onDelete('restrict');
             $table->text('notas')->nullable();
             $table->boolean('activo')->default(true);
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
             $table->softDeletes();
         });

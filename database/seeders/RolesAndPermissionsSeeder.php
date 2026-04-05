@@ -15,7 +15,21 @@ class RolesAndPermissionsSeeder extends Seeder
         // Resetear la caché de roles y permisos
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // 1. CREAR LOS PERMISOS (NUEVO)
+        // 1. CREAR EL USUARIO SISTEMA (DEBE SER ID 1 PARA EL TRAIT)
+        if (!\Illuminate\Support\Facades\DB::table('users')->where('id', 1)->exists()) {
+            \Illuminate\Support\Facades\DB::table('users')->insert([
+                'id' => 1,
+                'name' => 'Sistema',
+                'username' => 'sistema',
+                'email' => 'sistema@sigeinv.test',
+                'password' => Hash::make(\Illuminate\Support\Str::random(32)),
+                'activo' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        // 2. CREAR LOS PERMISOS (NUEVO)
         $permisos = [
             // Marcas
             'ver-marcas', 'crear-marcas', 'editar-marcas', 'cambiar-estatus-marcas', 'ver-estado-marcas', 'eliminar-marcas',
@@ -75,7 +89,10 @@ class RolesAndPermissionsSeeder extends Seeder
 
             // ── Incidencias ──────────────────────────────────────────────────
             'ver-incidencias', 'crear-incidencias', 'editar-incidencias', 'cerrar-incidencias', 'ver-estado-incidencias', 'eliminar-incidencias',
-            'admin-incidencias', 'admin-solicitudes-perfil'
+            'admin-incidencias', 'admin-solicitudes-perfil',
+
+            // ── Reportes y Auditoría ──────────────────────────────────────────
+            'admin-auditoria', 'reportes-excel', 'reportes-pdf', 'reportes-masivos-filtros'
         ];
 
         foreach ($permisos as $permiso) {

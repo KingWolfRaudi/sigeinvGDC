@@ -1,35 +1,111 @@
-Contexto del Sistema:
-Eres un Desarrollador FullStack experto en PHP 8.3+, Laravel 10/12, y Livewire 3. Vamos a continuar desarrollando el "Sistema de Gestión de Inventario Tecnológico" (SigeinvGDC). El frontend utiliza Bootstrap 5 y Bootstrap Icons. La base de datos es MariaDB (relacional estricta).
+# Instructivo Técnico y Operacional: SigeinvGDC (V4.0)
 
-Estado Actual del Desarrollo:
-Hemos completado los catálogos base (Marcas, Tipos de Dispositivos, Sistemas Operativos, Puertos, Departamentos, Procesadores, GPUs) y los módulos de inventario complejos (Trabajadores y Computadores). Además, ya implementamos la gestión de Usuarios.
-El sistema cuenta con reestructuración lógica de directorios (Catalogos, Asignaciones, Inventario, Admin), un sistema de Toasts a prueba de balas vía JavaScript, protección absoluta del rol SuperAdmin, y separación estricta de permisos de visualización vs. alteración de estados (Data Scoping).
+Este documento constituye la fuente de verdad absoluta para el desarrollo y mantenimiento del **Sistema de Gestión de Inventario Tecnológico (SigeinvGDC)**. Define las reglas arquitectónicas, los flujos de negocio y los estándares técnicos que deben seguirse rigurosamente.
 
-Reglas Arquitectónicas Estrictas (Instructivo V2.7 - NO ROMPER):
+---
 
-1. Base de Datos y Modelos:
-   - SoftDeletes Obligatorio: Todas las tablas, incluyendo las nativas como users, usan $table->softDeletes() y el trait `use SoftDeletes;`. NUNCA se hace un borrado físico (Hard Delete).
-   - Campos Únicos Opcionales: Si un campo es único pero no obligatorio (ej. cedula, bien_nacional), debe definirse como `$table->string('campo')->nullable()->unique();`.
-   - Integridad Referencial: Llaves foráneas a catálogos maestros usan `onDelete('restrict')`. Las tablas pivote (relaciones Many-to-Many) usan `cascadeOnDelete()`.
-   - Casteos Booleanos: Todo modelo con estado debe tener 'activo' en su $fillable y `protected $casts = ['activo' => 'boolean'];`.
+## 1. Stack Tecnológico y Arquitectura Core
+El sistema está construido sobre una arquitectura moderna y escalable:
+- **Lenguaje:** PHP 8.3+
+- **Framework:** Laravel 10/12 (Estructura de directorios organizada por módulos).
+- **Frontend:** Livewire 3 (Interacción en tiempo real sin recarga) + Bootstrap 5.
+- **Iconografía:** Bootstrap Icons.
+- **Base de Datos:** MariaDB (Relacional estricta con integridad referencial avanzada).
 
-2. Lógica de Controladores y Vistas (Livewire 3):
-   - Data Scoping (Permisos de Estado): Separar `ver-estado-modulo` (para ver el filtro e inactivos en el render) de `cambiar-estatus-modulo` (para el toggle). Si el usuario no tiene permiso de ver, forzar `$query->where('activo', true)`.
-   - Deep Search: Búsquedas complejas en render() envueltas en `where(function($q) { ... })` usando `orWhereHas()` para relaciones.
-   - Formularios Dinámicos: Módulos como RAM o Discos usan arrays en Livewire ($discos = []) para añadir/quitar filas antes de impactar la BD.
-   - Accessors: Cero matemáticas con strings en Blade. Crear accessors en el modelo que limpien los caracteres (str_replace) antes de calcular.
-   - Selects en Cascada: Usar `wire:model.live` en el padre y resetear la variable hija usando el ciclo de vida `updatedCampoId($value)`.
-   - Modal Switch: Para crear entidades desde un modal padre, despachar evento 'cerrar-modal', abrir secundario, registrar y devolver al padre.
-   - Toasts y Eventos: Usar `$this->dispatch('mostrar-toast', mensaje: '...', tipo: 'success')`.
-   - SortBy Restringido: NUNCA hacer ordenables las columnas de relaciones Muchos a Muchos (ej. Roles).
+---
 
-3. Seguridad y Automatización:
-   - Blindaje SuperAdmin: El rol `super-admin` nunca se lista, ni se edita, ni se elimina.
-   - Observers: La lógica en segundo plano (ej. automatización de correos de usuarios) va en `created()` del Observer usando `$modelo->saveQuietly()`.
+## 2. Reglas de Oro del Desarrollo (Inviolables)
 
-Directrices de Interacción:
-- Siempre incluye la etiqueta de apertura `<?php` en los bloques de PHP.
-- Si vamos a crear un módulo complejo, hazme preguntas primero sobre los campos y relaciones antes de generar el código.
-- Asegúrate de incluir los permisos de Spatie correspondientes a cada módulo nuevo en el render (ver-, crear-, editar-, eliminar-, ver-estado-, cambiar-estatus-).
+### 2.1. Gestión de Datos y Modelos
+- **SoftDeletes Obligatorio:** NUNCA se realiza un borrado físico (`Hard Delete`). Todas las tablas deben usar `$table->softDeletes()` y los modelos el trait `use SoftDeletes;`. Esto incluye a la tabla nativa `users`.
+- **Casteos Booleanos:** Cada modelo con columna `activo` debe incluir `protected $casts = ['activo' => 'boolean'];`.
+- **Integridad Referencial:**
+    - Relaciones maestras (Marcas, Tipos, etc.): `onDelete('restrict')` para evitar orfandad de datos.
+    - Tablas pivote (Muchos a Muchos): `cascadeOnDelete()`.
+- **Campos Únicos Opcionales:** Deben definirse como `$table->string('campo')->nullable()->unique();` para permitir valores nulos sin colisiones de unicidad.
 
-¿Entendido? Por favor, confirma que has asimilado este contexto y pregúntame con qué módulo vamos a continuar el desarrollo.
+### 2.2. Estándares Livewire 3
+- **Data Scoping:** Separar el permiso `ver-estado-modulo` (ver registros inactivos y el filtro) del permiso `cambiar-estatus-modulo` (ejecutar el switch). Por defecto, los usuarios sin permiso de estado solo ven `activo = true`.
+- **Deep Search:** Las búsquedas en el `render()` deben usar grupos de condiciones `where(function($q) { ... })` para no romper los alcances globales (scoping).
+- **Toasts unificados:** Toda respuesta de éxito o error debe enviarse vía `$this->dispatch('mostrar-toast', mensaje: '...', tipo: 'success|danger|warning|info')`.
+
+---
+
+## 3. Módulos y Lógica de Negocio Detallada
+
+### 3.1. Inventario Tecnológico
+El inventario se divide en tres grandes categorías con lógica diferenciada:
+- **Computadores:** Módulo complejo que gestiona hardware dinámico (RAMs y Discos) a través de modelos relacionados (`ComputadorRam`, `ComputadorDisco`).
+    - *Accesors Inteligentes:* El modelo calcula automáticamente el total de RAM y Almacenamiento limpiando sufijos como "GB" para operaciones matemáticas.
+- **Dispositivos:** Equipos periféricos o de red (Routers, Switches, Impresoras).
+- **Insumos/Herramientas:** Gestión de consumibles con control de stock y categorías.
+
+### 3.2. Gestión de Movimientos (Ciclo de Vida)
+El sistema rastrea cada cambio de custodia de un activo mediante:
+- **Tipos de Movimiento:** Asignación, Préstamo, Devolución, Reparación, Baja.
+- **Workflow de Aprobación:** Algunos movimientos requieren ser "Enviados" para aprobación administrativa antes de "Ejecutarse".
+- **Trazabilidad:** Cada activo mantiene un historial (HasMany) de todos sus movimientos pasados.
+
+### 3.3. Panel de Soporte (Incidencias)
+Sistema de ticketera interno para reporte de fallas.
+- **Catálogo de Problemas:** Definido por el administrador para estandarizar reportes.
+- **Roles Técnicos:** El sistema permite configurar qué roles (ej. `personal-ti`) actúan como "Agentes de Soporte".
+- **Cierre Irreversible:** Opción de configuración para evitar la reapertura de casos finalizados.
+
+---
+
+## 4. Perfil de Usuario y Seguridad
+
+### 4.1. Inmutabilidad del SuperAdmin
+- El usuario con rol `super-admin` (o ID 1) es **INMUTABLE**.
+- No puede ser modificado por otros usuarios ni por sí mismo desde el panel de perfil.
+- El sistema bloquea en backend y oculta en frontend cualquier control de edición para esta cuenta.
+
+### 4.2. Workflow de Solicitudes de Cambio
+Los usuarios estándar no pueden cambiar su información sensible directamente. Deben enviar una solicitud:
+- **Campos Sujetos a Aprobación:** Nombre, Username, Email, Password.
+- **Regla de los 180 Días:** No se puede solicitar un cambio del mismo tipo si existe una solicitud aprobada hace menos de 180 días. Esta lógica reside en `SolicitudPerfil::canRequest()`.
+- **Gestión de Avatares:** Las fotos se almacenan en `storage/app/public/avatars` y se renombran usando el slug del nombre del usuario para consistencia.
+
+---
+
+## 5. Auditoría del Sistema y Reportes
+
+### 5.1. Centro de Auditoría (Activity Logs)
+- **Activación Masiva:** Implementado vía `spatie/laravel-activitylog` en todos los modelos críticos (`User`, `Computador`, `Dispositivo`, `Insumo`, `Incidencia`, `SolicitudPerfil`).
+- **Trazabilidad Forense:** El sistema captura automáticamente el estado **Anterior** y el **Nuevo** de cada atributo modificado.
+- **Panel Administrativo:** Ubicado en `/admin/auditoria`, permite visualizar quién realizó cada acción, en qué fecha y ver el detalle comparativo de los campos.
+
+### 5.2. Módulo de Reportes e Indicadores
+- **Hojas de Vida (PDF):** Generación de fichas técnicas individuales para equipos, resumiendo especificaciones y últimos movimientos.
+- **Actas de Entrega:** Documentos legales generables en PDF para la firma de custodia por parte de los trabajadores.
+- **Exportación de Datos:** Soporte integrado para `PDF` (`dompdf`) y `Excel` (`excel`).
+- **Dashboard Visual:** El panel de inicio incluye KPIs en tiempo real y gráficos de barras (`Chart.js`) sobre la salud física del inventario.
+
+---
+
+## 6. Configuración Centralizada
+Se implementó un **Panel de Configuración General** unificado que reemplaza ajustes dispersos:
+- **Grupo Incidencias:** Control de roles técnicos y reglas de activos obligatorios.
+- **Grupo Perfil:** Toggles para habilitar/deshabilitar qué campos son editables/solicitables globalmente.
+- **Tabla `configuracions`:** Almacenamiento tipo Clave-Valor para máxima flexibilidad.
+
+---
+
+## 7. Guía de Interfaz (Aesthetics)
+- **Glassmorphism:** Uso de opacidades y desenfoques (backdrop-filter) en modales y tarjetas.
+- **Bootstrap Custom:** Se priorizan paletas de colores armónicas (Azure, Indigo, Teal) sobre los colores primarios base.
+- **Limpieza de Modales:** Livewire requiere un script de limpieza manual para eliminar el `.modal-backdrop` de Bootstrap tras cierres de modales asíncronos para evitar bloqueos de UI.
+
+---
+
+## 8. Mantenimiento del Sistema
+- **Storage Link:** Es obligatorio ejecutar `php artisan storage:link` para visualizar avatares.
+- **Seeders de Inicialización:** 
+    1. `RolesAndPermissionsSeeder` (Define el espectro de seguridad).
+    2. `IncidenciasSeeder` (Carga configuraciones iniciales).
+    3. `DatabaseSeeder` (Orquesta la construcción total).
+
+
+---
+*Este instructivo debe ser actualizado ante cualquier cambio en las reglas de negocio o arquitectura del sistema.*

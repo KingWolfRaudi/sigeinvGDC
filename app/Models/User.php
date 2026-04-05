@@ -8,10 +8,22 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles; // <-- Importar trait de Roles
 use Illuminate\Database\Eloquent\SoftDeletes; // 1. Importar SoftDeletes
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
+
+use App\Traits\RecordSignature;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, SoftDeletes, Notifiable, HasRoles; // <-- Agregar HasRoles
+    use HasApiTokens, HasFactory, SoftDeletes, Notifiable, HasRoles, LogsActivity, RecordSignature;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    } // <-- Agregar HasRoles
 
     protected $fillable = [
         'name',

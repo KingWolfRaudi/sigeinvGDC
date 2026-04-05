@@ -55,8 +55,12 @@
 
     // Función de comparación por tipo — robusta ante distintos formatos
     $sonIguales = function($a, $b, string $field) use ($boolFields, $numericFields): bool {
-        // Nulls: ambos nulos → iguales
-        if (is_null($a) && is_null($b)) return true;
+        // Nulls/Empty logic
+        $isEmpty = function($val) {
+            return is_null($val) || $val === '' || (is_array($val) && count($val) === 0);
+        };
+
+        if ($isEmpty($a) && $isEmpty($b)) return true;
 
         // Booleanos (true/false vs 1/0 vs "1"/"0")
         if (in_array($field, $boolFields)) {
@@ -70,10 +74,35 @@
         }
 
         // Arrays (discos, rams, puertos)
-        if (is_array($a) && is_array($b)) {
+        if (is_array($a) || is_array($b)) {
+            // Si uno no es array, ya comparamos arriba si eran "ambos vacíos".
+            // Si llegamos aquí y uno no es array, son diferentes.
+            if (!is_array($a) || !is_array($b)) return false;
+
+            if ($field === 'discos' || $field === 'rams') {
+                 $normalize = function($list, $f) {
+                     return array_map(function($item) use ($f) {
+                         $c = str_replace(['GB', ' '], '', (string)($item['capacidad'] ?? ''));
+                         return $f === 'discos' 
+                            ? ['capacidad' => $c, 'tipo' => $item['tipo'] ?? '']
+                            : ['capacidad' => $c, 'slot' => (int)($item['slot'] ?? 0)];
+                     }, $list);
+                 };
+                 $normA = $normalize($a, $field);
+                 $normB = $normalize($b, $field);
+                 usort($normA, fn($x, $y) => json_encode($x) <=> json_encode($y));
+                 usort($normB, fn($x, $y) => json_encode($x) <=> json_encode($y));
+                 return json_encode($normA) === json_encode($normB);
+            }
+
+            if ($field === 'puertos') {
+                $vA = array_values($a); sort($vA);
+                $vB = array_values($b); sort($vB);
+                return $vA == $vB;
+            }
+
             return json_encode($a) === json_encode($b);
         }
-        if (is_array($a) || is_array($b)) return false;
 
         // Todo lo demás: comparación de strings (null → cadena vacía)
         return trim((string)($a ?? '')) === trim((string)($b ?? ''));
@@ -146,7 +175,7 @@
     </div>
 </div>
 
-{{-- ════ TOGGLE ACTIVO ════════════════════════════════════════════════════ --}}
+{{-- ════ CAMBIO DE ESTADO ════════════════════════════════════════════════════ --}}
 @elseif($tipo === 'toggle_activo')
 @php
     $estadoAntes   = $ant['activo']   ?? null;
@@ -156,7 +185,7 @@
 <div class="alert {{ $activando ? 'alert-success' : 'alert-secondary' }} d-flex align-items-start gap-3 mb-0">
     <i class="bi bi-toggles fs-4 mt-1 flex-shrink-0"></i>
     <div>
-        <strong class="d-block mb-2">Cambio de Estatus Propuesto</strong>
+        <strong class="d-block mb-2">Cambio de Estado Propuesto</strong>
         <div class="d-flex align-items-center gap-3">
             <div class="text-center">
                 <div class="small text-muted mb-1">Estado Actual</div>

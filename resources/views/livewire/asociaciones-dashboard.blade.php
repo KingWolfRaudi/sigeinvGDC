@@ -17,11 +17,11 @@
     <div class="card shadow-sm border-0">
         <div class="card-header bg-white border-bottom-0 pb-0 pt-3">
             <ul class="nav nav-tabs card-header-tabs" id="asociacionesTabs" role="tablist">
-                <!-- Pestaña de Trabajadores (Solo para Departamentos o Marcas) -->
-                @if(in_array($tipo, ['departamento', 'marca']))
+                <!-- Pestaña de Trabajadores (Solo para Departamentos, Marcas, Computadores o Dispositivos) -->
+                @if(in_array($tipo, ['departamento', 'marca', 'computador', 'dispositivo']))
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link @if($tipo == 'departamento') active @endif" id="trabajadores-tab" data-bs-toggle="tab" data-bs-target="#trabajadores" type="button" role="tab" aria-controls="trabajadores" aria-selected="true">
-                        <i class="bi bi-person-badge"></i> Trabajadores
+                    <button class="nav-link @if(in_array($tipo, ['departamento', 'computador', 'dispositivo'])) active @endif" id="trabajadores-tab" data-bs-toggle="tab" data-bs-target="#trabajadores" type="button" role="tab" aria-controls="trabajadores" aria-selected="true">
+                        <i class="bi bi-person-badge"></i> Trabajador / Responsable
                     </button>
                 </li>
                 @endif
@@ -64,9 +64,17 @@
         <div class="card-body bg-light p-4">
             <div class="tab-content" id="asociacionesTabsContent">
                 
-                @if(in_array($tipo, ['departamento', 'marca']))
-                <div class="tab-pane fade @if($tipo == 'departamento') show active @endif" id="trabajadores" role="tabpanel" aria-labelledby="trabajadores-tab">
-                    <livewire:asignaciones.trabajadores :presetFiltro="[$tipo.'_id' => $modelo_id]" :ocultarTitulos="true" :key="'trabajadores-'.$tipo.'-'.$modelo_id" />
+                @if(in_array($tipo, ['departamento', 'marca', 'computador', 'dispositivo']))
+                <div class="tab-pane fade @if(in_array($tipo, ['departamento', 'computador', 'dispositivo'])) show active @endif" id="trabajadores" role="tabpanel" aria-labelledby="trabajadores-tab">
+                    @php
+                        $filtroTrabajador = [];
+                        if($tipo == 'computador' || $tipo == 'dispositivo') {
+                            $filtroTrabajador = ['id' => $modelo->trabajador_id ?? 0];
+                        } else {
+                            $filtroTrabajador = [$tipo.'_id' => $modelo_id];
+                        }
+                    @endphp
+                    <livewire:asignaciones.trabajadores :presetFiltro="$filtroTrabajador" :ocultarTitulos="true" :key="'trabajadores-'.$tipo.'-'.$modelo_id" />
                 </div>
                 @endif
 

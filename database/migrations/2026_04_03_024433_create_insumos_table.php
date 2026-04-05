@@ -36,6 +36,8 @@ return new class extends Migration
             $table->enum('estado_fisico', ['operativo', 'danado', 'indeterminado', 'en_reparacion', 'baja'])->default('operativo');
             
             $table->boolean('activo')->default(true);
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
             $table->softDeletes();
         });

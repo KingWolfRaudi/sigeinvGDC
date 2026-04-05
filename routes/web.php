@@ -35,8 +35,28 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/usuarios', Usuarios::class)->name('admin.usuarios')->can('ver-usuarios');
     // Configuración General
     Route::get('/admin/configuracion', \App\Livewire\Admin\ConfiguracionGeneral::class)->name('admin.configuracion');
-    
-    // Perfil de Usuario
+    Route::get('/admin/auditoria', \App\Livewire\Admin\Auditoria::class)->name('admin.auditoria');
+    // Reportes y Auditoría
+    Route::prefix('reportes')->name('reportes.')->group(function() {
+        // PDFs
+        Route::get('/computador/{id}/ficha', [\App\Http\Controllers\ReporteController::class, 'computadorFicha'])->name('computador.ficha');
+        Route::get('/dispositivo/{id}/ficha', [\App\Http\Controllers\ReporteController::class, 'dispositivoFicha'])->name('dispositivo.ficha');
+        Route::get('/insumo/{id}/ficha', [\App\Http\Controllers\ReporteController::class, 'insumoFicha'])->name('insumo.ficha');
+
+        // Excels Inventario
+        Route::get('/inventario/computadores/excel', [\App\Http\Controllers\ReporteController::class, 'computadoresExcel'])->name('inventario.computadores.excel');
+        Route::get('/inventario/dispositivos/excel', [\App\Http\Controllers\ReporteController::class, 'dispositivosExcel'])->name('inventario.dispositivos.excel');
+        Route::get('/inventario/insumos/excel', [\App\Http\Controllers\ReporteController::class, 'insumosExcel'])->name('inventario.insumos.excel');
+        
+        // Excels Operativos y Catálogos
+        Route::get('/catalogo/{tipo}/excel', [\App\Http\Controllers\ReporteController::class, 'catalogoExcel'])->name('catalogo.excel');
+        Route::get('/incidencias/excel', [\App\Http\Controllers\ReporteController::class, 'incidenciasExcel'])->name('incidencias.excel');
+        Route::get('/movimientos/{segmento}/excel', [\App\Http\Controllers\ReporteController::class, 'movimientosExcel'])->name('movimientos.excel');
+        Route::get('/usuarios/excel', [\App\Http\Controllers\ReporteController::class, 'usuariosExcel'])->name('usuarios.excel');
+
+        // Masivo
+        Route::post('/masivo/excel', [\App\Http\Controllers\ReporteController::class, 'reporteMasivo'])->name('masivo.excel');
+    });
 
     // Catalogos
     Route::get('/catalogos/marcas', Marcas::class)->name('catalogos.marcas')->can('ver-marcas');

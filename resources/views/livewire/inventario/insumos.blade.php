@@ -11,10 +11,27 @@
                 <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar por Nombre, Serial, BN o Marca...">
             </div>
         </div>
-        <div class="col-md-3 text-end">
+        <div class="col-md-3 text-end d-flex gap-2">
+            <div class="dropdown w-100">
+                <button class="btn btn-outline-success border-2 fw-bold w-100 dropdown-toggle shadow-sm py-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                </button>
+                <ul class="dropdown-menu shadow border-0">
+                    <li>
+                        <a class="dropdown-item py-2" href="{{ route('reportes.inventario.insumos.excel', ['search' => $search, 'estado' => $filtro_estado]) }}">
+                            <i class="bi bi-filter me-2 text-success"></i> Vista Actual (Filtrado)
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item py-2" href="{{ route('reportes.inventario.insumos.excel') }}">
+                            <i class="bi bi-list-check me-2 text-primary"></i> Todo el Inventario
+                        </a>
+                    </li>
+                </ul>
+            </div>
             @can('crear-insumos')
-            <button wire:click="crear" class="btn btn-primary w-100">
-                <i class="bi bi-box-seam me-1"></i> Añadir al Inventario
+            <button wire:click="crear" class="btn btn-primary w-100 shadow-sm py-2 fw-bold">
+                <i class="bi bi-box-seam me-1"></i> Nuevo
             </button>
             @endcan
         </div>
@@ -119,6 +136,9 @@
                             @endcan
                             <td class="text-end">
                                 @can('ver-insumos')
+                                <a href="{{ route('reportes.insumo.ficha', $insumo->id) }}" target="_blank" class="btn btn-sm btn-danger text-white shadow-sm fw-bold border-2" title="Ficha Técnica PDF">
+                                    <i class="bi bi-file-pdf"></i>
+                                </a>
                                 <button wire:click="ver({{ $insumo->id }})" class="btn btn-sm btn-info text-white" title="Ver Detalles"><i class="bi bi-eye"></i></button>
                                 @endcan
                                 @can('cambiar-estatus-insumos')
@@ -361,11 +381,25 @@
                     </div>
                     @endif
                 </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <div class="modal-footer bg-light d-flex justify-content-between">
                     @if($insumo_detalle)
-                    <button type="button" wire:click="editar({{ $insumo_detalle->id }})" class="btn btn-primary" data-bs-dismiss="modal">Editar</button>
+                        <div>
+                            <a href="{{ route('asociaciones', ['tipo' => 'insumo', 'id' => $insumo_detalle->id]) }}" class="btn btn-outline-primary shadow-sm me-2">
+                                <i class="bi bi-diagram-3 me-1"></i> Asociaciones
+                            </a>
+                            <a href="{{ route('reportes.insumo.ficha', $insumo_detalle->id) }}" target="_blank" class="btn btn-dark shadow-sm">
+                                <i class="bi bi-file-pdf me-1"></i> Ficha Técnica (PDF)
+                            </a>
+                        </div>
+                    @else
+                        <div></div>
                     @endif
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        @if($insumo_detalle)
+                        <button type="button" wire:click="editar({{ $insumo_detalle->id }})" class="btn btn-primary" data-bs-dismiss="modal">Editar</button>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

@@ -11,10 +11,27 @@
                 <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar por Código, Serial, Modelo o IP...">
             </div>
         </div>
-        <div class="col-md-3 text-end">
+        <div class="col-md-3 text-end d-flex gap-2">
+            <div class="dropdown w-100">
+                <button class="btn btn-outline-success border-2 fw-bold w-100 dropdown-toggle shadow-sm py-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                </button>
+                <ul class="dropdown-menu shadow border-0">
+                    <li>
+                        <a class="dropdown-item py-2" href="{{ route('reportes.inventario.dispositivos.excel', ['search' => $search, 'estado' => $filtro_estado, 'departamento_id' => $departamento_id]) }}">
+                            <i class="bi bi-filter me-2 text-success"></i> Vista Actual (Filtrado)
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item py-2" href="{{ route('reportes.inventario.dispositivos.excel') }}">
+                            <i class="bi bi-list-check me-2 text-primary"></i> Todo el Inventario
+                        </a>
+                    </li>
+                </ul>
+            </div>
             @can('crear-dispositivos')
-            <button wire:click="crear" class="btn btn-primary w-100">
-                <i class="bi bi-printer me-1"></i> Nuevo Dispositivo
+            <button wire:click="crear" class="btn btn-primary w-100 shadow-sm py-2 fw-bold">
+                <i class="bi bi-printer me-1"></i> Nuevo
             </button>
             @endcan
         </div>
@@ -115,6 +132,9 @@
                             <td class="text-end">
                                 @can('ver-dispositivos')
                                 <button wire:click="ver({{ $disp->id }})" class="btn btn-sm btn-info text-white" title="Ver Detalles"><i class="bi bi-eye"></i></button>
+                                <a href="{{ route('reportes.dispositivo.ficha', $disp->id) }}" target="_blank" class="btn btn-sm btn-dark" title="Ficha Técnica PDF">
+                                    <i class="bi bi-file-pdf"></i>
+                                </a>
                                 @endcan
                                 @can('cambiar-estatus-dispositivos')
                                 <button wire:click="toggleActivo({{ $disp->id }})" class="btn btn-sm {{ $disp->activo ? 'btn-success' : 'btn-secondary' }} text-white" title="Alternar Estado">
@@ -378,7 +398,19 @@
                     </div>
                     @endif
                 </div>
-                <div class="modal-footer bg-light">
+                <div class="modal-footer bg-light d-flex justify-content-between">
+                    @if($dispositivo_detalle)
+                        <div>
+                            <a href="{{ route('asociaciones', ['tipo' => 'dispositivo', 'id' => $dispositivo_detalle->id]) }}" class="btn btn-outline-primary shadow-sm me-2">
+                                <i class="bi bi-diagram-3 me-1"></i> Asociaciones
+                            </a>
+                            <a href="{{ route('reportes.dispositivo.ficha', $dispositivo_detalle->id) }}" target="_blank" class="btn btn-dark shadow-sm">
+                                <i class="bi bi-file-pdf me-1"></i> Ficha Técnica (PDF)
+                            </a>
+                        </div>
+                    @else
+                        <div></div>
+                    @endif
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>

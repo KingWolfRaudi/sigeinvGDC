@@ -289,6 +289,11 @@
                         <i class="bi bi-gear-wide-connected me-2"></i> Configuración General
                     </a>
                 </li>
+                <li class="nav-item mb-1">
+                    <a href="{{ route('admin.auditoria') }}" class="nav-link {{ request()->routeIs('admin.auditoria') ? 'active' : 'text-white' }} d-flex align-items-center">
+                        <i class="bi bi-clock-history me-2"></i> Auditoría de Logs
+                    </a>
+                </li>
                 @endcanany
                 @can('ver-usuarios')
                 <li class="nav-item mb-1">

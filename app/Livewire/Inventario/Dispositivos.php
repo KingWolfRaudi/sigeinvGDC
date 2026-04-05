@@ -247,7 +247,9 @@ class Dispositivos extends Component
                 $ant = $payloadAnterior[$k] ?? null;
                 $iguales = in_array($k, $boolCampos)
                     ? ((bool)$ant === (bool)$v)
-                    : (is_array($v) ? ($ant == $v) : ((string)($ant ?? '') === (string)($v ?? '')));
+                    : (is_array($v) 
+                        ? $this->_sonIgualesArrays($ant, $v) 
+                        : ((string)($ant ?? '') === (string)($v ?? '')));
                 if (!$iguales) {
                     $payloadNuevo[$k] = $v;
                 }
@@ -374,6 +376,17 @@ class Dispositivos extends Component
             Log::error('Error aprobando movimiento desde inventario: ' . $e->getMessage());
             $this->dispatch('mostrar-toast', mensaje: 'Error al aprobar el movimiento.', tipo: 'error');
         }
+    }
+
+    /** Helper para comparar arrays de ID de puertos de forma lógica */
+    private function _sonIgualesArrays($ant, $nuevo): bool
+    {
+        if (empty($ant) && empty($nuevo)) return true;
+        if (empty($ant) || empty($nuevo)) return false;
+
+        $a = (array)$ant; sort($a);
+        $b = (array)$nuevo; sort($b);
+        return $a == $b;
     }
 
     private function _aplicarPayloadDispositivo(Dispositivo $dispositivo, array $payload): void

@@ -4,21 +4,44 @@
             <h3 class="mb-1"><i class="bi bi-arrow-left-right me-2"></i>Movimientos de Insumos</h3>
             <p class="text-muted small mb-0">Entradas, salidas, préstamos y actualizaciones del almacén.</p>
         </div>
-        <div class="col-md-4">
-            <input type="text" wire:model.live.debounce.300ms="search" class="form-control"
-                placeholder="Buscar por nombre, BN, serial o justificación...">
+        <div class="col-md-3 text-end">
+            <div class="dropdown">
+                <button class="btn btn-outline-success border-2 fw-bold w-100 dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                </button>
+                <ul class="dropdown-menu shadow border-0">
+                    <li>
+                        <a class="dropdown-item py-2" href="{{ route('reportes.movimientos.excel', ['segmento' => 'insumos', 'search' => $search, 'tipo_operacion' => $filtro_tipo]) }}">
+                            <i class="bi bi-filter me-2 text-success"></i> Vista Actual (Filtrado)
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item py-2" href="{{ route('reportes.movimientos.excel', ['segmento' => 'insumos']) }}">
+                            <i class="bi bi-list-check me-2 text-primary"></i> Todo el Historial
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
-        <div class="col-md-3">
-            <select wire:model.live="filtro_tipo" class="form-select">
-                <option value="">Todos los tipos</option>
-                <option value="entrada_stock">Entrada de Stock</option>
-                <option value="salida_consumo">Salida de Consumo</option>
-                <option value="prestamo">Préstamo</option>
-                <option value="devolucion">Devolución</option>
-                <option value="actualizacion_datos">Actualización de Datos</option>
-                <option value="toggle_activo">Cambio de Estatus</option>
-                <option value="baja">Baja</option>
-            </select>
+        <div class="col-md-12 mt-3">
+            <div class="row g-2">
+                <div class="col-md-9">
+                    <input type="text" wire:model.live.debounce.300ms="search" class="form-control"
+                        placeholder="Buscar por nombre, BN, serial o justificación...">
+                </div>
+                <div class="col-md-3">
+                    <select wire:model.live="filtro_tipo" class="form-select">
+                        <option value="">Todos los tipos</option>
+                        <option value="entrada_stock">Entrada de Stock</option>
+                        <option value="salida_consumo">Salida de Consumo</option>
+                        <option value="prestamo">Préstamo</option>
+                        <option value="devolucion">Devolución</option>
+                        <option value="actualizacion_datos">Actualización de Datos</option>
+                        <option value="toggle_activo">Cambio de Estado</option>
+                        <option value="baja">Baja</option>
+                    </select>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -84,7 +107,7 @@
                                     'prestamo'           => ['label' => 'Préstamo', 'color' => 'info'],
                                     'devolucion'         => ['label' => 'Devolución', 'color' => 'primary'],
                                     'actualizacion_datos' => ['label' => 'Actualización', 'color' => 'secondary'],
-                                    'toggle_activo'      => ['label' => 'Cambio de Estatus', 'color' => 'secondary'],
+                                    'toggle_activo'      => ['label' => 'Cambio de Estado', 'color' => 'secondary'],
                                     'baja'               => ['label' => 'Baja', 'color' => 'danger'],
                                 ];
                                 $t = $tipos[$mov->tipo_operacion] ?? ['label' => $mov->tipo_operacion, 'color' => 'secondary'];

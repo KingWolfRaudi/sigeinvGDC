@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\RecordSignature;
 use Spatie\Permission\Models\Role as SpatieRole;
 
 class Role extends SpatieRole
 {
+    use RecordSignature;
+
     // Agregamos 'descripcion' a los campos que se pueden llenar masivamente
     protected $fillable = [
         'name',

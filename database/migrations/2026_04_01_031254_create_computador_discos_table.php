@@ -17,6 +17,8 @@ return new class extends Migration
             $table->foreignId('computador_id')->constrained('computadores')->cascadeOnDelete();
             $table->string('capacidad'); // Ej: 500GB
             $table->enum('tipo', ['SSD', 'NVME', 'M.2', 'HDD', 'No Posee']);
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
             $table->softDeletes();
         });

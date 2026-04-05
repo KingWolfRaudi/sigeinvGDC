@@ -9,10 +9,27 @@
                 <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar por modelo o marca...">
             </div>
         </div>
-        <div class="col-md-3 text-end">
+        <div class="col-md-3 text-end d-flex gap-2">
+            <div class="dropdown w-100">
+                <button class="btn btn-outline-success border-2 fw-bold w-100 dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                </button>
+                <ul class="dropdown-menu shadow border-0">
+                    <li>
+                        <a class="dropdown-item py-2" href="{{ route('reportes.catalogo.excel', ['tipo' => 'gpus', 'search' => $search, 'estado' => $filtro_estado]) }}">
+                            <i class="bi bi-filter me-2 text-success"></i> Vista Actual
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item py-2" href="{{ route('reportes.catalogo.excel', ['tipo' => 'gpus']) }}">
+                            <i class="bi bi-list-check me-2 text-primary"></i> Todo el Catálogo
+                        </a>
+                    </li>
+                </ul>
+            </div>
             @can('crear-gpus')
-                <button wire:click="crear" class="btn btn-primary w-100">
-                    <i class="bi bi-gpu-card me-1"></i> Nueva GPU
+                <button wire:click="crear" class="btn btn-primary w-100 shadow-sm fw-bold border-2">
+                    <i class="bi bi-plus-circle me-1"></i> Nuevo
                 </button>
             @endcan
         </div>
@@ -221,6 +238,16 @@
                             </li>
                         </ul>
                     @endif
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    @if($gpu_detalle)
+                        <a href="{{ route('asociaciones', ['tipo' => 'gpu', 'id' => $gpu_detalle->id]) }}" class="btn btn-outline-primary shadow-sm">
+                            <i class="bi bi-diagram-3 me-1"></i> Ver Asociaciones Completas
+                        </a>
+                    @else
+                        <div></div>
+                    @endif
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>

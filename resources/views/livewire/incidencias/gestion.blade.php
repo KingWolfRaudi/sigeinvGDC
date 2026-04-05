@@ -2,9 +2,28 @@
     @if(!$ocultarTitulos)
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="mb-0 text-secondary"><i class="bi bi-list-task me-2"></i>Gestión de Incidencias</h3>
-        <button type="button" class="btn btn-primary px-4 shadow-sm" wire:click="resetForm" data-bs-toggle="modal" data-bs-target="#modalIncidencia">
-            <i class="bi bi-plus-circle me-1"></i> Nueva Incidencia
-        </button>
+        <div class="d-flex gap-2">
+            <div class="dropdown">
+                <button class="btn btn-outline-success border-2 fw-bold dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                </button>
+                <ul class="dropdown-menu shadow border-0">
+                    <li>
+                        <a class="dropdown-item py-2" href="{{ route('reportes.incidencias.excel', ['search' => $search, 'departamento_id' => $filtro_departamento, 'estado' => $filtro_estado]) }}">
+                            <i class="bi bi-filter me-2 text-success"></i> Vista Actual (Filtrado)
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item py-2" href="{{ route('reportes.incidencias.excel') }}">
+                            <i class="bi bi-list-check me-2 text-primary"></i> Todo el Historial
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <button type="button" class="btn btn-primary px-4 shadow-sm fw-bold border-2" wire:click="resetForm" data-bs-toggle="modal" data-bs-target="#modalIncidencia">
+                <i class="bi bi-plus-circle me-1"></i> Nueva
+            </button>
+        </div>
     </div>
     @endif
 

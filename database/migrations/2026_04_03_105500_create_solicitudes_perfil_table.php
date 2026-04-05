@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('estado', 20)->default('pendiente');
             $table->text('motivo_rechazo')->nullable();
             $table->foreignId('revisado_por')->nullable()->constrained('users');
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
         });
     }

@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('clave')->unique();
             $table->text('valor')->nullable();
             $table->string('grupo')->nullable(); // Ej: 'incidencias'
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
         });
     }

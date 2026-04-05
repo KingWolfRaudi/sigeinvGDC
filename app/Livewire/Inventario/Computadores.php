@@ -345,7 +345,9 @@ class Computadores extends Component
                 $ant = $payloadAnterior[$k] ?? null;
                 $iguales = in_array($k, $boolCampos)
                     ? ((bool)$ant === (bool)$v)
-                    : (is_array($v) ? ($ant == $v) : ((string)($ant ?? '') === (string)($v ?? '')));
+                    : (is_array($v) 
+                        ? $this->_sonIgualesArrays($ant, $v, $k) 
+                        : ((string)($ant ?? '') === (string)($v ?? '')));
                 if (!$iguales) {
                     $payloadNuevo[$k] = $v;
                 }
@@ -402,6 +404,63 @@ class Computadores extends Component
             Log::error('Error guardando computador: ' . $e->getMessage());
             $this->dispatch('mostrar-toast', mensaje: 'Ocurrió un error al guardar.', tipo: 'error');
         }
+    }
+
+    /** Helper para comparar arrays de forma lógica (evita falsos positivos por IDs o unidades) */
+    private function _sonIgualesArrays($ant, $nuevo, $tipo): bool
+    {
+        // Si ambos están vacíos o son nulos, son iguales
+        if (empty($ant) && empty($nuevo)) return true;
+        
+        // Si uno está vacío y el otro no, son diferentes
+        if (empty($ant) || empty($nuevo)) return false;
+
+        if ($tipo === 'puertos') {
+            // Comparar listas de IDs ignorando el orden
+            $a = (array)$ant; sort($a);
+            $b = (array)$nuevo; sort($b);
+            return $a == $b;
+        }
+
+        if ($tipo === 'discos' || $tipo === 'rams') {
+            // Normalizar el "Anterior" (que viene de DB con IDs y 'GB') al formato del "Nuevo" (del form)
+            $antNorm = array_map(function($item) use ($tipo) {
+                if ($tipo === 'discos') {
+                    return [
+                        'capacidad' => str_replace('GB', '', $item['capacidad'] ?? ''),
+                        'tipo'      => $item['tipo'] ?? ''
+                    ];
+                } else {
+                    return [
+                        'capacidad' => str_replace('GB', '', $item['capacidad'] ?? ''),
+                        'slot'      => (int)($item['slot'] ?? 0)
+                    ];
+                }
+            }, (array)$ant);
+
+            // Normalizar el "Nuevo" (asegurar tipos de datos)
+            $nuevoNorm = array_map(function($item) use ($tipo) {
+                if ($tipo === 'discos') {
+                    return [
+                        'capacidad' => (string)($item['capacidad'] ?? ''),
+                        'tipo'      => (string)($item['tipo'] ?? '')
+                    ];
+                } else {
+                    return [
+                        'capacidad' => (string)($item['capacidad'] ?? ''),
+                        'slot'      => (int)($item['slot'] ?? 0)
+                    ];
+                }
+            }, (array)$nuevo);
+
+            // Ordenar ambos para que la comparación sea independiente del orden
+            usort($antNorm, fn($a, $b) => json_encode($a) <=> json_encode($b));
+            usort($nuevoNorm, fn($a, $b) => json_encode($a) <=> json_encode($b));
+
+            return json_encode($antNorm) === json_encode($nuevoNorm);
+        }
+
+        return $ant == $nuevo;
     }
 
     /** Helper privado para procesar discos y RAMs */

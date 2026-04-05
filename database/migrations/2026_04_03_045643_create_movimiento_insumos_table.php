@@ -42,7 +42,8 @@ return new class extends Migration
 
             $table->text('justificacion');
             $table->text('motivo_rechazo')->nullable();
-
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('solicitante_id')->constrained('users')->onDelete('restrict');
             $table->foreignId('aprobador_id')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamp('aprobado_at')->nullable();

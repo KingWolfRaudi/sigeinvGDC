@@ -36,6 +36,8 @@ return new class extends Migration
             
             // Estándares V2.5
             $table->boolean('activo')->default(true);
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
             $table->softDeletes(); // ¡Obligatorio V2.5!
         });
