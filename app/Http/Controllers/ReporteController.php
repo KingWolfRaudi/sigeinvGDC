@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Computador;
 use App\Models\Dispositivo;
 use App\Models\Insumo;
+use App\Models\Gpu;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
@@ -68,6 +69,22 @@ class ReporteController extends Controller
             ->log("Generó ficha técnica PDF del insumo: {$insumo->nombre}");
 
         return $pdf->stream("Ficha_Insumo_{$insumo->nombre}.pdf");
+    }
+
+    /**
+     * Genera la ficha técnica de una GPU en PDF.
+     */
+    public function gpuFicha($id)
+    {
+        $gpu = Gpu::with(['marca', 'puertos'])->findOrFail($id);
+            
+        $pdf = Pdf::loadView('reports.ficha-gpu', compact('gpu'));
+
+        activity()
+            ->performedOn($gpu)
+            ->log("Generó ficha técnica PDF de la GPU: {$gpu->modelo} ({$gpu->marca->nombre})");
+
+        return $pdf->stream("Ficha_GPU_{$gpu->modelo}.pdf");
     }
 
     /**

@@ -10,6 +10,7 @@
             </div>
         </div>
         <div class="col-md-3 text-end d-flex gap-2">
+            @can('reportes-excel')
             <div class="dropdown w-100">
                 <button class="btn btn-outline-success border-2 fw-bold w-100 dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
                     <i class="bi bi-file-earmark-excel me-1"></i> Excel
@@ -27,6 +28,7 @@
                     </li>
                 </ul>
             </div>
+            @endcan
             @can('crear-sistemas-operativos')
                 <button wire:click="crear" class="btn btn-primary w-100 shadow-sm fw-bold">
                     <i class="bi bi-plus-circle me-1"></i> Nuevo
@@ -157,7 +159,6 @@
                 <div class="modal-body">
                     @if($sistema_detalle)
                         <ul class="list-group list-group-flush">
-                            <li class="list-group-item"><strong>ID:</strong> {{ $sistema_detalle->id }}</li>
                             <li class="list-group-item"><strong>Nombre:</strong> {{ $sistema_detalle->nombre }}</li>
                             <li class="list-group-item">
                                 <strong>Estado:</strong> 
@@ -167,18 +168,12 @@
                                     <span class="badge bg-danger">Inactivo</span>
                                 @endif
                             </li>
-                            <li class="list-group-item"><strong>Creado el:</strong> {{ $sistema_detalle->created_at->format('d/m/Y H:i') }}</li>
+                            <li class="list-group-item"><strong>Creado el:</strong> {{ $sistema_detalle->created_at->format('d/m/Y H:i A') }}</li>
+                            <li class="list-group-item"><strong>Última actualización:</strong> {{ $sistema_detalle->updated_at->format('d/m/Y H:i A') }}</li>
                         </ul>
                     @endif
                 </div>
-                <div class="modal-footer d-flex justify-content-between">
-                    @if($sistema_detalle)
-                        <a href="{{ route('asociaciones', ['tipo' => 'so', 'id' => $sistema_detalle->id]) }}" class="btn btn-outline-primary shadow-sm">
-                            <i class="bi bi-diagram-3 me-1"></i> Ver Asociaciones Completas
-                        </a>
-                    @else
-                        <div></div>
-                    @endif
+                <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>

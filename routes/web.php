@@ -42,6 +42,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/computador/{id}/ficha', [\App\Http\Controllers\ReporteController::class, 'computadorFicha'])->name('computador.ficha');
         Route::get('/dispositivo/{id}/ficha', [\App\Http\Controllers\ReporteController::class, 'dispositivoFicha'])->name('dispositivo.ficha');
         Route::get('/insumo/{id}/ficha', [\App\Http\Controllers\ReporteController::class, 'insumoFicha'])->name('insumo.ficha');
+        Route::get('/gpu/{id}/ficha', [\App\Http\Controllers\ReporteController::class, 'gpuFicha'])->name('gpu.ficha');
 
         // Excels Inventario
         Route::get('/inventario/computadores/excel', [\App\Http\Controllers\ReporteController::class, 'computadoresExcel'])->name('inventario.computadores.excel');

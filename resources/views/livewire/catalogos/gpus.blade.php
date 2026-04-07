@@ -84,6 +84,11 @@
                                     @endcan
                                     @can('ver-gpus')
                                         <button wire:click="ver({{ $gpu->id }})" class="btn btn-sm btn-info text-white" title="Ver Detalles"><i class="bi bi-eye"></i></button>
+                                        @can('reportes-pdf')
+                                            <a href="{{ route('reportes.gpu.ficha', $gpu->id) }}" target="_blank" class="btn btn-sm btn-danger text-white shadow-sm fw-bold border-2" title="Descargar PDF">
+                                                <i class="bi bi-file-pdf"></i>
+                                            </a>
+                                        @endcan
                                     @endcan
                                     @can('editar-gpus')
                                         <button wire:click="editar({{ $gpu->id }})" class="btn btn-sm btn-primary" title="Editar"><i class="bi bi-pencil-square"></i></button>
@@ -236,6 +241,8 @@
                                     <span class="text-muted">Ninguno registrado</span>
                                 @endforelse
                             </li>
+                            <li class="list-group-item"><strong>Creado el:</strong> {{ $gpu_detalle->created_at->format('d/m/Y H:i A') }}</li>
+                            <li class="list-group-item"><strong>Última actualización:</strong> {{ $gpu_detalle->updated_at->format('d/m/Y H:i A') }}</li>
                         </ul>
                     @endif
                 </div>

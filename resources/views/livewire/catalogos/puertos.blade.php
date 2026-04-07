@@ -10,6 +10,7 @@
             </div>
         </div>
         <div class="col-md-3 text-end d-flex gap-2">
+            @can('reportes-excel')
             <div class="dropdown w-100">
                 <button class="btn btn-outline-success border-2 fw-bold w-100 dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
                     <i class="bi bi-file-earmark-excel me-1"></i> Excel
@@ -27,6 +28,7 @@
                     </li>
                 </ul>
             </div>
+            @endcan
             @can('crear-puertos')
                 <button wire:click="crear" class="btn btn-primary w-100 shadow-sm fw-bold">
                     <i class="bi bi-plus-circle me-1"></i> Nuevo
@@ -157,7 +159,6 @@
                 <div class="modal-body">
                     @if($puerto_detalle)
                         <ul class="list-group list-group-flush">
-                            <li class="list-group-item"><strong>ID:</strong> {{ $puerto_detalle->id }}</li>
                             <li class="list-group-item"><strong>Nombre:</strong> {{ $puerto_detalle->nombre }}</li>
                             <li class="list-group-item">
                                 <strong>Estado:</strong> 
@@ -167,7 +168,8 @@
                                     <span class="badge bg-danger">Inactivo</span>
                                 @endif
                             </li>
-                            <li class="list-group-item"><strong>Creado el:</strong> {{ $puerto_detalle->created_at->format('d/m/Y H:i') }}</li>
+                            <li class="list-group-item"><strong>Creado el:</strong> {{ $puerto_detalle->created_at->format('d/m/Y H:i A') }}</li>
+                            <li class="list-group-item"><strong>Última actualización:</strong> {{ $puerto_detalle->updated_at->format('d/m/Y H:i A') }}</li>
                         </ul>
                     @endif
                 </div>

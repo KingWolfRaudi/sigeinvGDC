@@ -12,6 +12,7 @@
             </div>
         </div>
         <div class="col-md-3 text-end d-flex gap-2">
+            @can('reportes-excel')
             <div class="dropdown w-100">
                 <button class="btn btn-outline-success border-2 fw-bold w-100 dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
                     <i class="bi bi-file-earmark-excel me-1"></i> Excel
@@ -29,6 +30,7 @@
                     </li>
                 </ul>
             </div>
+            @endcan
             @can('crear-trabajadores')
                 <button wire:click="crear" class="btn btn-primary w-100 shadow-sm fw-bold border-2" data-bs-toggle="modal" data-bs-target="#modalTrabajador">
                     <i class="bi bi-plus-circle me-1"></i> Nuevo

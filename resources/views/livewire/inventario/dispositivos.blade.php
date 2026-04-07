@@ -130,21 +130,22 @@
                             </td>
                             @endcan
                             <td class="text-end">
-                                @can('ver-dispositivos')
-                                <button wire:click="ver({{ $disp->id }})" class="btn btn-sm btn-info text-white" title="Ver Detalles"><i class="bi bi-eye"></i></button>
-                                <a href="{{ route('reportes.dispositivo.ficha', $disp->id) }}" target="_blank" class="btn btn-sm btn-dark" title="Ficha Técnica PDF">
-                                    <i class="bi bi-file-pdf"></i>
-                                </a>
-                                @endcan
                                 @can('cambiar-estatus-dispositivos')
                                 <button wire:click="toggleActivo({{ $disp->id }})" class="btn btn-sm {{ $disp->activo ? 'btn-success' : 'btn-secondary' }} text-white" title="Alternar Estado">
                                     <i class="bi {{ $disp->activo ? 'bi-toggle-on' : 'bi-toggle-off' }}"></i>
                                 </button>
                                 @endcan
+                                @can('ver-dispositivos')
+                                    <button wire:click="ver({{ $disp->id }})" class="btn btn-sm btn-info text-white" title="Ver Detalles"><i class="bi bi-eye"></i></button>
+                                    @can('reportes-pdf')
+                                    <a href="{{ route('reportes.dispositivo.ficha', $disp->id) }}" target="_blank" class="btn btn-sm btn-danger text-white shadow-sm fw-bold border-2" title="Ficha Técnica PDF">
+                                        <i class="bi bi-file-pdf"></i>
+                                    </a>
+                                    @endcan
+                                @endcan
                                 @can('editar-dispositivos')
                                 <button wire:click="editar({{ $disp->id }})" class="btn btn-sm btn-primary" title="Editar"><i class="bi bi-pencil-square"></i></button>
                                 @endcan
-
                                 @role('super-admin')
                                 <button wire:click="eliminar({{ $disp->id }})" wire:confirm="¿Está seguro de dar de baja permanentemente este dispositivo?" class="btn btn-sm btn-danger" title="Dar de Baja Definitiva"><i class="bi bi-trash"></i></button>
                                 @endrole

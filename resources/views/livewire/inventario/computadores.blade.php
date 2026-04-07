@@ -12,6 +12,7 @@
             </div>
         </div>
         <div class="col-md-3 text-end d-flex gap-2">
+            @can('reportes-excel')
             <div class="dropdown w-100">
                 <button class="btn btn-outline-success border-2 fw-bold w-100 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bi bi-file-earmark-excel me-1"></i> Excel
@@ -29,6 +30,7 @@
                     </li>
                 </ul>
             </div>
+            @endcan
             @can('crear-computadores')
                 <button wire:click="crear" class="btn btn-primary w-100">
                     <i class="bi bi-pc-display me-1"></i> Nuevo
@@ -122,16 +124,18 @@
                                     </td>
                                 @endcan
                                 <td class="text-end">
-                                    @can('ver-computadores')
-                                        <button wire:click="ver({{ $comp->id }})" class="btn btn-sm btn-info text-white" title="Ver Detalles"><i class="bi bi-eye"></i></button>
-                                        <a href="{{ route('reportes.computador.ficha', $comp->id) }}" target="_blank" class="btn btn-sm btn-dark" title="Descargar Ficha PDF">
-                                            <i class="bi bi-file-pdf"></i>
-                                        </a>
-                                    @endcan
                                     @can('cambiar-estatus-computadores')
                                         <button wire:click="toggleActivo({{ $comp->id }})" class="btn btn-sm {{ $comp->activo ? 'btn-success' : 'btn-secondary' }} text-white" title="Alternar Estado">
                                             <i class="bi {{ $comp->activo ? 'bi-toggle-on' : 'bi-toggle-off' }}"></i>
                                         </button>
+                                    @endcan
+                                    @can('ver-computadores')
+                                        <button wire:click="ver({{ $comp->id }})" class="btn btn-sm btn-info text-white" title="Ver Detalles"><i class="bi bi-eye"></i></button>
+                                        @can('reportes-pdf')
+                                        <a href="{{ route('reportes.computador.ficha', $comp->id) }}" target="_blank" class="btn btn-sm btn-danger text-white shadow-sm fw-bold border-2" title="Descargar Ficha PDF">
+                                            <i class="bi bi-file-pdf"></i>
+                                        </a>
+                                        @endcan
                                     @endcan
                                     @can('editar-computadores')
                                         <button wire:click="editar({{ $comp->id }})" class="btn btn-sm btn-primary" title="Editar"><i class="bi bi-pencil-square"></i></button>

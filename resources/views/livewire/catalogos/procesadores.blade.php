@@ -10,6 +10,7 @@
             </div>
         </div>
         <div class="col-md-3 text-end d-flex gap-2">
+            @can('reportes-excel')
             <div class="dropdown w-100">
                 <button class="btn btn-outline-success border-2 fw-bold w-100 dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
                     <i class="bi bi-file-earmark-excel me-1"></i> Excel
@@ -27,6 +28,7 @@
                     </li>
                 </ul>
             </div>
+            @endcan
             @can('crear-procesadores')
                 <button wire:click="crear" class="btn btn-primary w-100 shadow-sm fw-bold border-2">
                     <i class="bi bi-plus-circle me-1"></i> Nuevo
@@ -201,17 +203,12 @@
                             <li class="list-group-item"><strong>Frec. Base:</strong> {{ $procesador_detalle->frecuencia_base ?? 'N/A' }}</li>
                             <li class="list-group-item"><strong>Frec. Máxima:</strong> {{ $procesador_detalle->frecuencia_maxima ?? 'N/A' }}</li>
                             <li class="list-group-item"><strong>Núcleos / Hilos:</strong> {{ $procesador_detalle->nucleos ?? '-' }} / {{ $procesador_detalle->hilos ?? '-' }}</li>
+                            <li class="list-group-item"><strong>Creado el:</strong> {{ $procesador_detalle->created_at->format('d/m/Y H:i A') }}</li>
+                            <li class="list-group-item"><strong>Última actualización:</strong> {{ $procesador_detalle->updated_at->format('d/m/Y H:i A') }}</li>
                         </ul>
                     @endif
                 </div>
-                <div class="modal-footer d-flex justify-content-between">
-                    @if($procesador_detalle)
-                        <a href="{{ route('asociaciones', ['tipo' => 'procesador', 'id' => $procesador_detalle->id]) }}" class="btn btn-outline-primary shadow-sm">
-                            <i class="bi bi-diagram-3 me-1"></i> Ver Asociaciones Completas
-                        </a>
-                    @else
-                        <div></div>
-                    @endif
+                <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>

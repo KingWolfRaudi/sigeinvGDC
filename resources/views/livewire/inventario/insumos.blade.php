@@ -12,6 +12,7 @@
             </div>
         </div>
         <div class="col-md-3 text-end d-flex gap-2">
+            @can('reportes-excel')
             <div class="dropdown w-100">
                 <button class="btn btn-outline-success border-2 fw-bold w-100 dropdown-toggle shadow-sm py-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bi bi-file-earmark-excel me-1"></i> Excel
@@ -29,6 +30,7 @@
                     </li>
                 </ul>
             </div>
+            @endcan
             @can('crear-insumos')
             <button wire:click="crear" class="btn btn-primary w-100 shadow-sm py-2 fw-bold">
                 <i class="bi bi-box-seam me-1"></i> Nuevo
@@ -135,16 +137,18 @@
                             </td>
                             @endcan
                             <td class="text-end">
-                                @can('ver-insumos')
-                                <a href="{{ route('reportes.insumo.ficha', $insumo->id) }}" target="_blank" class="btn btn-sm btn-danger text-white shadow-sm fw-bold border-2" title="Ficha Técnica PDF">
-                                    <i class="bi bi-file-pdf"></i>
-                                </a>
-                                <button wire:click="ver({{ $insumo->id }})" class="btn btn-sm btn-info text-white" title="Ver Detalles"><i class="bi bi-eye"></i></button>
-                                @endcan
                                 @can('cambiar-estatus-insumos')
                                 <button wire:click="toggleActivo({{ $insumo->id }})" class="btn btn-sm {{ $insumo->activo ? 'btn-success' : 'btn-secondary' }} text-white" title="Alternar Estado">
                                     <i class="bi {{ $insumo->activo ? 'bi-toggle-on' : 'bi-toggle-off' }}"></i>
                                 </button>
+                                @endcan
+                                @can('ver-insumos')
+                                <button wire:click="ver({{ $insumo->id }})" class="btn btn-sm btn-info text-white" title="Ver Detalles"><i class="bi bi-eye"></i></button>
+                                    @can('reportes-pdf')
+                                        <a href="{{ route('reportes.insumo.ficha', $insumo->id) }}" target="_blank" class="btn btn-sm btn-danger text-white shadow-sm fw-bold border-2" title="Ficha Técnica PDF">
+                                           <i class="bi bi-file-pdf"></i>
+                                        </a>
+                                    @endcan
                                 @endcan
                                 @can('editar-insumos')
                                 <button wire:click="editar({{ $insumo->id }})" class="btn btn-sm btn-primary" title="Editar"><i class="bi bi-pencil-square"></i></button>
