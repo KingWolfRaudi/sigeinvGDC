@@ -59,7 +59,12 @@
                                 @if($sortField === 'bien_nacional') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
                             </th>
                             
-                            <th>Equipo / Detalles</th>
+                            <th wire:click="sortBy('nombre_equipo')" style="cursor: pointer;">
+                                Tipo / Equipo
+                                @if($sortField === 'nombre_equipo') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            </th>
+                            
+                            <th>Marca / Modelo</th>
                             
                             <th wire:click="sortBy('ip')" style="cursor: pointer;">
                                 Red 
@@ -104,7 +109,11 @@
                                     <small class="text-muted">Serial: {{ $comp->serial ?? 'N/A' }}</small>
                                 </td>
                                 <td>
-                                    <strong>{{ $comp->marca->nombre ?? 'N/A' }} - {{ $comp->tipoDispositivo->nombre ?? 'N/A' }}</strong><br>
+                                    <strong>{{ $comp->tipo_computador }}</strong><br>
+                                    <small class="text-muted">{{ $comp->nombre_equipo }}</small>
+                                </td>
+                                <td>
+                                    <strong>{{ $comp->marca->nombre ?? 'N/A' }}</strong><br>
                                     <small class="text-muted">
                                         {{ $comp->total_ram }} RAM | {{ $comp->total_almacenamiento }} Almac.
                                     </small>
@@ -169,6 +178,11 @@
                         <h6 class="border-bottom pb-2 text-primary">1. Identificación y Hardware Base</h6>
                         <div class="row mb-4">
                             <div class="col-md-3 mb-3">
+                                <label class="form-label">Nombre del Equipo <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control @error('nombre_equipo') is-invalid @enderror" wire:model="nombre_equipo" maxlength="15" placeholder="Ej: PC-ADM-01">
+                                @error('nombre_equipo') <span class="text-danger small">{{ $message }}</span> @enderror
+                            </div>
+                            <div class="col-md-3 mb-3">
                                 <label class="form-label">Bien Nacional</label>
                                 <input type="text" class="form-control @error('bien_nacional') is-invalid @enderror" wire:model="bien_nacional">
                                 @error('bien_nacional') <span class="text-danger small">{{ $message }}</span> @enderror
@@ -196,19 +210,14 @@
                             </div>
 
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">Tipo <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    @if($creando_tipo)
-                                        <input type="text" class="form-control border-primary" wire:model="nuevo_tipo" placeholder="Nuevo tipo...">
-                                        <button class="btn btn-outline-danger" type="button" wire:click="$set('creando_tipo', false)"><i class="bi bi-x-lg"></i></button>
-                                    @else
-                                        <select class="form-select @error('tipo_dispositivo_id') is-invalid @enderror" wire:model="tipo_dispositivo_id">
-                                            <option value="">Seleccione...</option>
-                                            @foreach($tipos as $t) <option value="{{ $t->id }}">{{ $t->nombre }}</option> @endforeach
-                                        </select>
-                                        <button class="btn btn-outline-success" type="button" wire:click="$set('creando_tipo', true)"><i class="bi bi-plus-lg"></i></button>
-                                    @endif
-                                </div>
+                                <label class="form-label">Tipo de Computador <span class="text-danger">*</span></label>
+                                <select class="form-select @error('tipo_computador') is-invalid @enderror" wire:model="tipo_computador">
+                                    <option value="">Seleccione...</option>
+                                    <option value="Computador de escritorio">Computador de escritorio</option>
+                                    <option value="Laptop">Laptop</option>
+                                    <option value="Mini Laptop">Mini Laptop</option>
+                                </select>
+                                @error('tipo_computador') <span class="text-danger small">{{ $message }}</span> @enderror
                             </div>
 
                             <div class="col-md-3 mb-3">
@@ -486,9 +495,11 @@
                                     <li class="mb-1"><strong>Estado:</strong> 
                                         {!! $computador_detalle->activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>' !!}
                                     </li>
+                                    <li class="mb-1"><strong>Nombre Equipo:</strong> <span class="text-primary fw-bold">{{ $computador_detalle->nombre_equipo }}</span></li>
+                                    <li class="mb-1"><strong>Tipo de Computador:</strong> {{ $computador_detalle->tipo_computador }}</li>
                                     <li class="mb-1"><strong>Bien Nacional:</strong> {{ $computador_detalle->bien_nacional ?? 'No especificado' }}</li>
                                     <li class="mb-1"><strong>Serial:</strong> {{ $computador_detalle->serial ?? 'No especificado' }}</li>
-                                    <li class="mb-1"><strong>Marca / Tipo:</strong> {{ $computador_detalle->marca->nombre ?? 'No especificado' }} - {{ $computador_detalle->tipoDispositivo->nombre ?? 'No especificado' }}</li>
+                                    <li class="mb-1"><strong>Marca:</strong> {{ $computador_detalle->marca->nombre ?? 'No especificado' }}</li>
                                     <li class="mb-1"><strong>Departamento:</strong> {{ $computador_detalle->departamento->nombre ?? 'No especificado (En Stock)' }}</li>
                                     <li class="mb-1"><strong>Trabajador:</strong> {{ $computador_detalle->trabajador->nombres ?? 'No' }} {{ $computador_detalle->trabajador->apellidos ?? 'especificado' }}</li>
                                 </ul>
@@ -553,9 +564,6 @@
                         <div>
                             <a href="{{ route('asociaciones', ['tipo' => 'computador', 'id' => $computador_detalle->id]) }}" class="btn btn-outline-primary shadow-sm me-2">
                                 <i class="bi bi-diagram-3 me-1"></i> Asociaciones
-                            </a>
-                            <a href="{{ route('reportes.computador.ficha', $computador_detalle->id) }}" target="_blank" class="btn btn-dark shadow-sm">
-                                <i class="bi bi-file-pdf me-1"></i> Ficha Técnica (PDF)
                             </a>
                         </div>
                     @else

@@ -25,7 +25,7 @@ class ReporteController extends Controller
      */
     public function computadorFicha($id)
     {
-        $pc = Computador::with(['marca', 'tipoDispositivo', 'sistemaOperativo', 'procesador.marca', 'gpu.marca', 'trabajador', 'departamento', 'movimientos.aprobador', 'discos', 'rams', 'puertos'])
+        $pc = Computador::with(['marca', 'sistemaOperativo', 'procesador.marca', 'gpu.marca', 'trabajador', 'departamento', 'movimientos.aprobador', 'discos', 'rams', 'puertos'])
             ->findOrFail($id);
             
         $pdf = Pdf::loadView('reports.ficha-computador', compact('pc'));

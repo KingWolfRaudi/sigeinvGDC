@@ -369,16 +369,19 @@
     <script>
         document.addEventListener('livewire:initialized', () => {
             
-            // 1. Escuchar evento para ABRIR modal
+            // 1. Escuchar evento para ABRIR modal (Mejorado para evitar duplicidad de backdrops)
             Livewire.on('abrir-modal', (event) => {
                 let data = Array.isArray(event) ? event[0] : event;
                 if (data && data.id) {
-                    let modal = new bootstrap.Modal(document.getElementById(data.id));
-                    modal.show();
+                    let modalEl = document.getElementById(data.id);
+                    if (modalEl) {
+                        let modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                        modal.show();
+                    }
                 }
             });
 
-            // 2. Escuchar evento para CERRAR modal (Mejorado)
+            // 2. Escuchar evento para CERRAR modal (Limpieza reforzada)
             Livewire.on('cerrar-modal', (event) => {
                 let data = event ? (Array.isArray(event) ? event[0] : event) : null;
                 
@@ -390,13 +393,23 @@
                         if (modal) modal.hide();
                     }
                 } else {
-                    // Fallback Inteligente: Si no envías ID, cierra CUALQUIER modal que esté abierto
-                    let openModal = document.querySelector('.modal.show');
-                    if (openModal) {
-                        let modal = bootstrap.Modal.getInstance(openModal);
+                    // Cierra cualquier modal que esté visible
+                    document.querySelectorAll('.modal.show').forEach(modalEl => {
+                        let modal = bootstrap.Modal.getInstance(modalEl);
                         if (modal) modal.hide();
-                    }
+                    });
                 }
+
+                // LIMPIEZA FORZADA: A veces Bootstrap deja el fondo oscuro pegado
+                setTimeout(() => {
+                    const modalesAbiertos = document.querySelectorAll('.modal.show').length;
+                    if (modalesAbiertos === 0) {
+                        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                        document.body.classList.remove('modal-open');
+                        document.body.style.overflow = '';
+                        document.body.style.paddingRight = '';
+                    }
+                }, 400); // Esperamos a que la animación de cierre termine
             });
 
             // 3. Sistema Unificado de Toasts (A PRUEBA DE BALAS)

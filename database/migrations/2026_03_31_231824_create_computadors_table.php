@@ -14,10 +14,11 @@ return new class extends Migration
             // Identificadores (Únicos pero aceptan NULL si se dejan en blanco)
             $table->string('bien_nacional')->nullable()->unique();
             $table->string('serial')->nullable()->unique();
+            $table->string('nombre_equipo', 15); // Campo obligatorio, máx 15 chars
             
             // Relaciones Foráneas (con restrict según V2.5)
             $table->foreignId('marca_id')->constrained('marcas')->onDelete('restrict');
-            $table->foreignId('tipo_dispositivo_id')->constrained('tipo_dispositivos')->onDelete('restrict');
+            $table->string('tipo_computador'); // Computador de escritorio, Laptop, Mini Laptop
             $table->foreignId('sistema_operativo_id')->constrained('sistemas_operativos')->onDelete('restrict');
             $table->foreignId('procesador_id')->constrained('procesadores')->onDelete('restrict');
             $table->foreignId('gpu_id')->nullable()->constrained('gpus')->onDelete('restrict');

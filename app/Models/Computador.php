@@ -25,7 +25,7 @@ class Computador extends Model
     protected $table = 'computadores';
 
     protected $fillable = [
-        'bien_nacional', 'serial', 'marca_id', 'tipo_dispositivo_id', 
+        'bien_nacional', 'serial', 'nombre_equipo', 'marca_id', 'tipo_computador', 
         'sistema_operativo_id', 'procesador_id', 'gpu_id', 'unidad_dvd', 'fuente_poder', 'departamento_id', // <-- Agregados aquí
         'trabajador_id', 'tipo_ram', 'mac', 'ip', 'tipo_conexion', 'estado_fisico', 
         'observaciones', 'activo'
@@ -39,7 +39,6 @@ class Computador extends Model
 
     // Relaciones Simples (BelongsTo)
     public function marca() { return $this->belongsTo(Marca::class); }
-    public function tipoDispositivo() { return $this->belongsTo(TipoDispositivo::class); }
     public function sistemaOperativo() { return $this->belongsTo(SistemaOperativo::class); }
     public function procesador() { return $this->belongsTo(Procesador::class); }
     public function gpu() { return $this->belongsTo(Gpu::class); }

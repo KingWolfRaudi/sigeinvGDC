@@ -21,7 +21,11 @@
                 @if(in_array($tipo, ['departamento', 'marca', 'computador', 'dispositivo']))
                 <li class="nav-item" role="presentation">
                     <button class="nav-link @if(in_array($tipo, ['departamento', 'computador', 'dispositivo'])) active @endif" id="trabajadores-tab" data-bs-toggle="tab" data-bs-target="#trabajadores" type="button" role="tab" aria-controls="trabajadores" aria-selected="true">
-                        <i class="bi bi-person-badge"></i> Trabajador / Responsable
+                        @if($tipo == 'computador')
+                            <i class="bi bi-people-fill"></i> Responsable y Dispositivos
+                        @else
+                            <i class="bi bi-person-badge"></i> Trabajador / Responsable
+                        @endif
                     </button>
                 </li>
                 @endif
@@ -36,9 +40,9 @@
                 @endif
 
                 <!-- Pestaña de Dispositivos (Solo para Departamento, Trabajador, Computador, Marca) -->
-                @if(in_array($tipo, ['departamento', 'trabajador', 'computador', 'marca']))
+                @if(in_array($tipo, ['departamento', 'trabajador', 'marca']))
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link @if($tipo == 'computador') active @endif" id="dispositivos-tab" data-bs-toggle="tab" data-bs-target="#dispositivos" type="button" role="tab" aria-controls="dispositivos" aria-selected="false">
+                    <button class="nav-link" id="dispositivos-tab" data-bs-toggle="tab" data-bs-target="#dispositivos" type="button" role="tab" aria-controls="dispositivos" aria-selected="false">
                         <i class="bi bi-printer"></i> Dispositivos Adjuntos
                     </button>
                 </li>
@@ -74,7 +78,16 @@
                             $filtroTrabajador = [$tipo.'_id' => $modelo_id];
                         }
                     @endphp
-                    <livewire:asignaciones.trabajadores :presetFiltro="$filtroTrabajador" :ocultarTitulos="true" :key="'trabajadores-'.$tipo.'-'.$modelo_id" />
+                    <div class="mb-4">
+                        <livewire:asignaciones.trabajadores :presetFiltro="$filtroTrabajador" :ocultarTitulos="true" :key="'trabajadores-'.$tipo.'-'.$modelo_id" />
+                    </div>
+
+                    @if($tipo == 'computador')
+                        <div class="mt-5 border-top pt-4">
+                            <h5 class="mb-4 text-primary"><i class="bi bi-printer me-2"></i>Dispositivos Conectados</h5>
+                            <livewire:inventario.dispositivos :presetFiltro="['computador_id' => $modelo_id]" :ocultarTitulos="true" :key="'dispositivos-pc-'.$modelo_id" />
+                        </div>
+                    @endif
                 </div>
                 @endif
 
@@ -89,8 +102,8 @@
                 </div>
                 @endif
 
-                @if(in_array($tipo, ['departamento', 'trabajador', 'computador', 'marca']))
-                <div class="tab-pane fade @if($tipo == 'computador') show active @endif" id="dispositivos" role="tabpanel" aria-labelledby="dispositivos-tab">
+                @if(in_array($tipo, ['departamento', 'trabajador', 'marca']))
+                <div class="tab-pane fade" id="dispositivos" role="tabpanel" aria-labelledby="dispositivos-tab">
                     <livewire:inventario.dispositivos :presetFiltro="[$tipo.'_id' => $modelo_id]" :ocultarTitulos="true" :key="'dispositivos-'.$tipo.'-'.$modelo_id" />
                 </div>
                 @endif

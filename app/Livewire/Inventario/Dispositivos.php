@@ -131,7 +131,10 @@ class Dispositivos extends Component
               ->orWhereHas('departamento', fn($subQ) => $subQ->where('nombre', 'like', $search))
               
               // Relación con Computador
-              ->orWhereHas('computador', fn($subQ) => $subQ->where('bien_nacional', 'like', $search)->orWhere('serial', 'like', $search))
+              ->orWhereHas('computador', fn($subQ) => $subQ->where('bien_nacional', 'like', $search)
+                  ->orWhere('serial', 'like', $search)
+                  ->orWhere('nombre_equipo', 'like', $search)
+                  ->orWhere('tipo_computador', 'like', $search))
 
               // Trabajador asignado
               ->orWhereHas('trabajador', function($subQ) use ($search) {

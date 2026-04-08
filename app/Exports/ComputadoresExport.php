@@ -28,7 +28,6 @@ class ComputadoresExport implements FromCollection, WithHeadings, WithMapping, W
     {
         $query = Computador::with([
             'marca', 
-            'tipoDispositivo', 
             'departamento', 
             'trabajador', 
             'procesador.marca', 
@@ -44,6 +43,8 @@ class ComputadoresExport implements FromCollection, WithHeadings, WithMapping, W
             $query->where(function($q) use ($search) {
                 $q->where('bien_nacional', 'like', "%$search%")
                   ->orWhere('serial', 'like', "%$search%")
+                  ->orWhere('nombre_equipo', 'like', "%$search%")
+                  ->orWhere('tipo_computador', 'like', "%$search%")
                   ->orWhere('ip', 'like', "%$search%")
                   ->orWhereHas('marca', fn($sub) => $sub->where('nombre', 'like', "%$search%"))
                   ->orWhereHas('trabajador', fn($sub) => $sub->where('nombres', 'like', "%$search%")->orWhere('apellidos', 'like', "%$search%"));
@@ -66,6 +67,7 @@ class ComputadoresExport implements FromCollection, WithHeadings, WithMapping, W
     {
         return [
             'ID',
+            'Equipo',
             'Bien Nacional',
             'Serial',
             'Marca',
@@ -113,10 +115,11 @@ class ComputadoresExport implements FromCollection, WithHeadings, WithMapping, W
 
         return [
             $pc->id,
+            $pc->nombre_equipo,
             $pc->bien_nacional ?? 'S/P',
             $pc->serial ?? 'S/S',
             $pc->marca->nombre ?? 'Generico',
-            $pc->tipoDispositivo->nombre ?? 'N/A',
+            $pc->tipo_computador ?? 'N/A',
             compact_string($cpu),
             $totalRam > 0 ? $totalRam . ' GB (' . $pc->tipo_ram . ')' : 'N/A',
             $storageInfo ?: 'N/A',

@@ -49,10 +49,11 @@ class InventarioSeeder extends Seeder
 
         // 1. Crear Computadores Semilla
         $comp1 = Computador::create([
+            'nombre_equipo' => 'PC-ADMIN-01',
             'bien_nacional' => 'BN-2026-0001',
             'serial' => 'DELL-OPT-90204',
             'marca_id' => $marcaDell,
-            'tipo_dispositivo_id' => $tipoDesktop,
+            'tipo_computador' => 'Computador de escritorio',
             'sistema_operativo_id' => $osWindows10,
             'procesador_id' => $procI5,
             'gpu_id' => $gpuDedicada,
@@ -73,10 +74,11 @@ class InventarioSeeder extends Seeder
         }
 
         $comp2 = Computador::create([
+            'nombre_equipo' => 'LAP-TI-01',
             'bien_nacional' => 'BN-2026-0002',
             'serial' => 'HP-PAV-LT87',
             'marca_id' => $marcaHP,
-            'tipo_dispositivo_id' => $tipoLaptop,
+            'tipo_computador' => 'Laptop',
             'sistema_operativo_id' => $osWindows11,
             'procesador_id' => $procRyzen5,
             'gpu_id' => $gpuBasica,

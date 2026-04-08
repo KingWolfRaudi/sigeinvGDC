@@ -27,7 +27,7 @@ class Computadores extends Component
     protected $paginationTheme = 'bootstrap';
 
     // Campos principales
-    public $computador_id, $bien_nacional, $serial, $marca_id, $tipo_dispositivo_id, $sistema_operativo_id;
+    public $computador_id, $bien_nacional, $serial, $nombre_equipo, $marca_id, $tipo_computador, $sistema_operativo_id;
     public $procesador_id, $gpu_id, $departamento_id, $trabajador_id, $tipo_ram, $mac, $ip;
     public $tipo_conexion = 'Ethernet'; // Valor por defecto
     public $estado_fisico = 'operativo';
@@ -48,7 +48,6 @@ class Computadores extends Component
 
     // Creación Rápida On The Fly (Select vs Input)
     public $creando_marca = false, $nueva_marca;
-    public $creando_tipo = false, $nuevo_tipo;
     public $creando_so = false, $nuevo_so;
     public $creando_procesador = false, $nuevo_procesador_modelo, $nuevo_procesador_marca_id;
     public $creando_gpu = false, $nueva_gpu_modelo, $nueva_gpu_marca_id;
@@ -133,7 +132,7 @@ class Computadores extends Component
     {
         // 1. Iniciamos la consulta base
         $userId = Auth::id();
-        $query = Computador::with(['marca', 'tipoDispositivo', 'trabajador', 'discos', 'rams'])
+        $query = Computador::with(['marca', 'trabajador', 'discos', 'rams'])
             ->withCount([
                 'movimientos as pendientes_count' => fn($q) => $q->where('estado_workflow', 'pendiente'),
                 'movimientos as mis_borradores_count' => fn($q) => $q->where('estado_workflow', 'borrador')->where('solicitante_id', $userId),
@@ -173,13 +172,14 @@ class Computadores extends Component
             // Campos nativos
             $q->where('bien_nacional', 'like', $search)
               ->orWhere('serial', 'like', $search)
+              ->orWhere('nombre_equipo', 'like', $search)
               ->orWhere('ip', 'like', $search)
               ->orWhere('mac', 'like', $search)
               ->orWhere('observaciones', 'like', $search)
               
               // Relaciones directas simples
+              ->orWhere('tipo_computador', 'like', $search)
               ->orWhereHas('marca', fn($subQ) => $subQ->where('nombre', 'like', $search))
-              ->orWhereHas('tipoDispositivo', fn($subQ) => $subQ->where('nombre', 'like', $search))
               ->orWhereHas('sistemaOperativo', fn($subQ) => $subQ->where('nombre', 'like', $search))
               ->orWhereHas('departamento', fn($subQ) => $subQ->where('nombre', 'like', $search))
               
@@ -215,7 +215,6 @@ class Computadores extends Component
 
         // Catálogos para los selects
         $marcas = Marca::where('activo', true)->orderBy('nombre')->get();
-        $tipos = TipoDispositivo::where('activo', true)->orderBy('nombre')->get();
         $sistemas = SistemaOperativo::where('activo', true)->orderBy('nombre')->get();
         $procesadores = Procesador::with('marca')->where('activo', true)->orderBy('modelo')->get();
         $gpus = Gpu::with('marca')->where('activo', true)->orderBy('modelo')->get();
@@ -231,7 +230,7 @@ class Computadores extends Component
             ->get();
             
         return view('livewire.inventario.computadores', compact(
-            'computadores', 'marcas', 'tipos', 'sistemas', 'procesadores', 'gpus', 'trabajadores', 'puertos', 'departamentos'
+            'computadores', 'marcas', 'sistemas', 'procesadores', 'gpus', 'trabajadores', 'puertos', 'departamentos'
         ));
     }
 
@@ -252,6 +251,8 @@ class Computadores extends Component
         $rules = [
             'bien_nacional' => 'nullable|string|unique:computadores,bien_nacional,' . $this->computador_id,
             'serial'        => 'nullable|string|unique:computadores,serial,' . $this->computador_id,
+            'nombre_equipo' => 'required|string|max:15',
+            'tipo_computador' => 'required|string|in:Computador de escritorio,Laptop,Mini Laptop',
             'ip'            => 'nullable|ipv4',
             'mac'           => 'nullable|string|unique:computadores,mac,' . $this->computador_id,
             'estado_fisico' => 'required|string',
@@ -263,14 +264,9 @@ class Computadores extends Component
         }
         $this->validate($rules);
 
-        // Procesar Creación Rápida "On The Fly"
         if ($this->creando_marca && !empty($this->nueva_marca)) {
             $marca = Marca::firstOrCreate(['nombre' => $this->nueva_marca], ['activo' => true]);
             $this->marca_id = $marca->id;
-        }
-        if ($this->creando_tipo && !empty($this->nuevo_tipo)) {
-            $tipo = TipoDispositivo::firstOrCreate(['nombre' => $this->nuevo_tipo], ['activo' => true]);
-            $this->tipo_dispositivo_id = $tipo->id;
         }
         if ($this->creando_so && !empty($this->nuevo_so)) {
             $so = SistemaOperativo::firstOrCreate(['nombre' => $this->nuevo_so], ['activo' => true]);
@@ -294,7 +290,8 @@ class Computadores extends Component
         // Payload con los datos propuestos
         $payloadNuevo = [
             'bien_nacional' => $this->bien_nacional, 'serial' => $this->serial,
-            'marca_id' => $this->marca_id, 'tipo_dispositivo_id' => $this->tipo_dispositivo_id,
+            'nombre_equipo' => $this->nombre_equipo,
+            'marca_id' => $this->marca_id, 'tipo_computador' => $this->tipo_computador,
             'sistema_operativo_id' => $this->sistema_operativo_id, 'procesador_id' => $this->procesador_id,
             'gpu_id' => $this->gpu_id ?: null, 'unidad_dvd' => $this->unidad_dvd,
             'fuente_poder' => $this->fuente_poder, 'departamento_id' => $this->departamento_id ?: null,
@@ -328,7 +325,8 @@ class Computadores extends Component
             // ── Computar solo los campos que CAMBIARON ──
             $candidato = [
                 'bien_nacional'       => $this->bien_nacional,    'serial'              => $this->serial,
-                'marca_id'            => $this->marca_id,          'tipo_dispositivo_id' => $this->tipo_dispositivo_id,
+                'nombre_equipo'       => $this->nombre_equipo,
+                'marca_id'            => $this->marca_id,          'tipo_computador' => $this->tipo_computador,
                 'sistema_operativo_id'=> $this->sistema_operativo_id, 'procesador_id'    => $this->procesador_id,
                 'gpu_id'              => $this->gpu_id ?: null,   'unidad_dvd'          => $this->unidad_dvd,
                 'fuente_poder'        => $this->fuente_poder,     'departamento_id'     => $this->departamento_id ?: null,
@@ -499,8 +497,9 @@ class Computadores extends Component
         $this->computador_id = $computador->id;
         $this->bien_nacional = $computador->bien_nacional;
         $this->serial = $computador->serial;
+        $this->nombre_equipo = $computador->nombre_equipo;
         $this->marca_id = $computador->marca_id;
-        $this->tipo_dispositivo_id = $computador->tipo_dispositivo_id;
+        $this->tipo_computador = $computador->tipo_computador;
         $this->sistema_operativo_id = $computador->sistema_operativo_id;
         $this->procesador_id = $computador->procesador_id;
         $this->gpu_id = $computador->gpu_id;
@@ -546,7 +545,7 @@ class Computadores extends Component
     public function ver($id)
     {
         abort_if(Gate::denies('ver-computadores'), 403);
-        $this->computador_detalle = Computador::with(['marca', 'tipoDispositivo', 'sistemaOperativo', 'procesador', 'gpu', 'trabajador', 'discos', 'rams', 'puertos'])->findOrFail($id);
+        $this->computador_detalle = Computador::with(['marca', 'sistemaOperativo', 'procesador', 'gpu', 'trabajador', 'discos', 'rams', 'puertos'])->findOrFail($id);
         $this->dispatch('abrir-modal', id: 'modalDetalleComputador');
     }
 
@@ -713,14 +712,13 @@ class Computadores extends Component
     public function resetCampos()
     {
         $this->reset([
-            'computador_id', 'bien_nacional', 'serial', 'marca_id', 'tipo_dispositivo_id', 
+            'computador_id', 'bien_nacional', 'serial', 'nombre_equipo', 'marca_id', 'tipo_computador', 
             'sistema_operativo_id', 'procesador_id', 'gpu_id', 'departamento_id', 'trabajador_id', 'tipo_ram', 
             'mac', 'ip', 'tipo_conexion', 'estado_fisico', 'observaciones', 'computador_detalle',
-            'nueva_marca', 'nuevo_tipo', 'nuevo_so', 'justificacion'
+            'nueva_marca', 'nuevo_so', 'justificacion'
         ]);
         
         $this->creando_marca = false;
-        $this->creando_tipo = false;
         $this->creando_so = false;
         $this->creando_procesador = false;
         $this->creando_gpu = false;

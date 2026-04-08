@@ -280,7 +280,7 @@
                                 <select class="form-select" wire:model="computador_id">
                                     <option value="">Seleccione si aplica...</option>
                                     @foreach($computadores as $comp)
-                                    <option value="{{ $comp->id }}">BN: {{ $comp->bien_nacional }} - {{ $comp->marca->nombre }}</option>
+                                    <option value="{{ $comp->id }}">{{ $comp->nombre_equipo }} ({{ $comp->tipo_computador }}) - BN: {{ $comp->bien_nacional }}</option>
                                     @endforeach
                                 </select>
                             </div>
