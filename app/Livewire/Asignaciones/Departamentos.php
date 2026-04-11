@@ -16,6 +16,16 @@ class Departamentos extends Component
     public bool $activo = true;
     public $tituloModal = 'Nuevo Departamento';
 
+    // Variables para Reutilización y Anidación
+    public $presetFiltro = [];
+    public $ocultarTitulos = false;
+
+    public function mount($presetFiltro = [], $ocultarTitulos = false)
+    {
+        $this->presetFiltro = $presetFiltro;
+        $this->ocultarTitulos = $ocultarTitulos;
+    }
+
     public $search = '';
     public $sortField = 'nombre';
     public $sortAsc = true;
@@ -51,6 +61,15 @@ class Departamentos extends Component
         } else {
             // Usuario sin permisos solo ve activos
             $query->where('activo', true);
+        }
+
+        // 2.5 Filtros Prediseñados (Cuando el componente se renderiza dentro de un Asociaciones Dashboard)
+        if (!empty($this->presetFiltro)) {
+            foreach($this->presetFiltro as $col => $val) {
+                if ($val !== null) {
+                    $query->where($col, $val);
+                }
+            }
         }
 
         // 3. Búsqueda y Paginación (Deep Search)

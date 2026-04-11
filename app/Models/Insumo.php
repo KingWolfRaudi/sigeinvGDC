@@ -27,11 +27,16 @@ class Insumo extends Model
         'bien_nacional', 'serial', 'nombre', 'descripcion', 
         'marca_id', 'categoria_insumo_id', 'unidad_medida', 
         'medida_actual', 'medida_minima', 'reutilizable', 
-        'instalable_en_equipo', 'estado_fisico', 'activo'
+        'instalable_en_equipo', 'estado_fisico', 'activo',
+        'departamento_id', 'trabajador_id', 'dispositivo_id', 'computador_id'
     ];
     
     public function marca() { return $this->belongsTo(Marca::class); }
     public function categoriaInsumo() { return $this->belongsTo(CategoriaInsumo::class); }
+    public function departamento() { return $this->belongsTo(Departamento::class); }
+    public function trabajador() { return $this->belongsTo(Trabajador::class); }
+    public function dispositivo() { return $this->belongsTo(Dispositivo::class); }
+    public function computador() { return $this->belongsTo(Computador::class); }
 
     // Trazabilidad de Movimientos
     public function movimientos() { return $this->hasMany(MovimientoInsumo::class, 'insumo_id'); }

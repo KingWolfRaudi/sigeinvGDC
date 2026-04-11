@@ -12,6 +12,7 @@
             </div>
         </div>
         <div class="col-md-3 text-end d-flex gap-2">
+            @can('reportes-excel')
             <div class="dropdown w-100">
                 <button class="btn btn-outline-success border-2 fw-bold w-100 dropdown-toggle shadow-sm py-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bi bi-file-earmark-excel me-1"></i> Excel
@@ -29,6 +30,7 @@
                     </li>
                 </ul>
             </div>
+            @endcan
             @can('crear-dispositivos')
             <button wire:click="crear" class="btn btn-primary w-100 shadow-sm py-2 fw-bold">
                 <i class="bi bi-printer me-1"></i> Nuevo
@@ -357,24 +359,24 @@
                         <div class="col-md-4 mb-4">
                             <h6 class="border-bottom pb-2 text-primary">Identificación y Asignación</h6>
                             <ul class="list-unstyled mb-0">
-                                <li class="mb-1"><strong>Estado Dispositivo:</strong>
+                                <li class="mb-1"><strong>Estado Operativo:</strong>
                                     {!! $dispositivo_detalle->activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>' !!}
                                 </li>
-                                <li class="mb-1"><strong>Código Físico:</strong> {{ $dispositivo_detalle->codigo ?? 'No especificado' }}</li>
+                                <li class="mb-1"><strong>Código Interno:</strong> {{ $dispositivo_detalle->codigo ?? 'No especificado' }}</li>
                                 <li class="mb-1"><strong>Serial:</strong> {{ $dispositivo_detalle->serial ?? 'No especificado' }}</li>
-                                <li class="mb-1"><strong>Marca / Tipo:</strong> {{ $dispositivo_detalle->marca->nombre ?? 'No especificado' }} - {{ $dispositivo_detalle->tipoDispositivo->nombre ?? 'No especificado' }}</li>
-                                <li class="mb-1"><strong>Departamento:</strong> {{ $dispositivo_detalle->departamento->nombre ?? 'Sin Dep.' }}</li>
-                                <li class="mb-1"><strong>Responsable:</strong> {{ $dispositivo_detalle->trabajador->nombres ?? 'Ninguno' }} {{ $dispositivo_detalle->trabajador->apellidos ?? '' }}</li>
+                                <li class="mb-1"><strong>Marca/Tipo:</strong> {{ $dispositivo_detalle->marca->nombre ?? 'N/A' }} - {{ $dispositivo_detalle->tipoDispositivo->nombre ?? 'N/A' }}</li>
+                                <li class="mb-1"><strong>Ubicación:</strong> {{ $dispositivo_detalle->departamento->nombre ?? 'Sin asignar' }}</li>
+                                <li class="mb-1"><strong>Responsable:</strong> {{ $dispositivo_detalle->trabajador ? ($dispositivo_detalle->trabajador->nombres . ' ' . $dispositivo_detalle->trabajador->apellidos) : 'Sin asignar' }}</li>
                             </ul>
                         </div>
 
                         <div class="col-md-4 mb-4">
                             <h6 class="border-bottom pb-2 text-primary">Hardware y Especificaciones</h6>
                             <ul class="list-unstyled mb-0">
-                                <li class="mb-1"><strong>Modelo de Referencia:</strong> {{ $dispositivo_detalle->nombre ?? 'No especificado' }}</li>
-                                <li class="mb-1"><strong>Conectado en Red por medio de la IP:</strong> {{ $dispositivo_detalle->ip ?? 'No / USB Directo' }}</li>
-                                <li class="mb-1"><strong>Conectado local a PC:</strong> {{ $dispositivo_detalle->computador ? 'BN: ' . $dispositivo_detalle->computador->bien_nacional : 'Libre o en Red' }}</li>
-                                <li class="mb-1"><strong>Estado Físico Actual:</strong> {{ ucfirst(str_replace('_', ' ', $dispositivo_detalle->estado ?? 'Indeterminado')) }}</li>
+                                <li class="mb-1"><strong>Modelo:</strong> {{ $dispositivo_detalle->nombre ?? 'No especificado' }}</li>
+                                <li class="mb-1"><strong>Dirección IP:</strong> {{ $dispositivo_detalle->ip ?? 'No / Local' }}</li>
+                                <li class="mb-1"><strong>Conexión PC:</strong> {{ $dispositivo_detalle->computador ? ('BN: ' . $dispositivo_detalle->computador->bien_nacional) : 'Libre / En Red' }}</li>
+                                <li class="mb-1"><strong>Condición Física:</strong> {{ ucfirst(str_replace('_', ' ', $dispositivo_detalle->estado ?? 'Indeterminado')) }}</li>
                             </ul>
                         </div>
 
@@ -400,15 +402,13 @@
                     @endif
                 </div>
                 <div class="modal-footer bg-light d-flex justify-content-between">
-                    @if($dispositivo_detalle)
+                        @can('ver-dispositivos')
                         <div>
                             <a href="{{ route('asociaciones', ['tipo' => 'dispositivo', 'id' => $dispositivo_detalle->id]) }}" class="btn btn-outline-primary shadow-sm me-2">
                                 <i class="bi bi-diagram-3 me-1"></i> Asociaciones
                             </a>
-                            <a href="{{ route('reportes.dispositivo.ficha', $dispositivo_detalle->id) }}" target="_blank" class="btn btn-dark shadow-sm">
-                                <i class="bi bi-file-pdf me-1"></i> Ficha Técnica (PDF)
-                            </a>
                         </div>
+                        @endcan
                     @else
                         <div></div>
                     @endif

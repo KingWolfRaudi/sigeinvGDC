@@ -25,6 +25,12 @@ return new class extends Migration
             $table->foreignId('marca_id')->constrained('marcas')->onDelete('restrict');
             $table->foreignId('categoria_insumo_id')->constrained('categoria_insumos')->onDelete('restrict');
             
+            // Asociaciones opcionales (Ubicación/Responsable/Equipo)
+            $table->foreignId('departamento_id')->nullable()->constrained('departamentos')->onDelete('set null');
+            $table->foreignId('trabajador_id')->nullable()->constrained('trabajadores')->onDelete('set null');
+            $table->foreignId('dispositivo_id')->nullable()->constrained('dispositivos')->onDelete('set null');
+            $table->foreignId('computador_id')->nullable()->constrained('computadores')->onDelete('set null');
+            
             // Manejo de cantidades (Individual = 1 unidad. Bobinas = X metros)
             $table->enum('unidad_medida', ['unidad', 'metros', 'litros', 'cajas', 'pares'])->default('unidad');
             $table->decimal('medida_actual', 8, 2)->default(1.00); 

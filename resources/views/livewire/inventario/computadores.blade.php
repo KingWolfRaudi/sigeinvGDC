@@ -492,16 +492,16 @@
                             <div class="col-md-4 mb-4">
                                 <h6 class="border-bottom pb-2 text-primary">Identificación y Asignación</h6>
                                 <ul class="list-unstyled mb-0">
-                                    <li class="mb-1"><strong>Estado:</strong> 
+                                    <li class="mb-1"><strong>Estado Operativo:</strong> 
                                         {!! $computador_detalle->activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>' !!}
                                     </li>
-                                    <li class="mb-1"><strong>Nombre Equipo:</strong> <span class="text-primary fw-bold">{{ $computador_detalle->nombre_equipo }}</span></li>
-                                    <li class="mb-1"><strong>Tipo de Computador:</strong> {{ $computador_detalle->tipo_computador }}</li>
-                                    <li class="mb-1"><strong>Bien Nacional:</strong> {{ $computador_detalle->bien_nacional ?? 'No especificado' }}</li>
-                                    <li class="mb-1"><strong>Serial:</strong> {{ $computador_detalle->serial ?? 'No especificado' }}</li>
-                                    <li class="mb-1"><strong>Marca:</strong> {{ $computador_detalle->marca->nombre ?? 'No especificado' }}</li>
-                                    <li class="mb-1"><strong>Departamento:</strong> {{ $computador_detalle->departamento->nombre ?? 'No especificado (En Stock)' }}</li>
-                                    <li class="mb-1"><strong>Trabajador:</strong> {{ $computador_detalle->trabajador->nombres ?? 'No' }} {{ $computador_detalle->trabajador->apellidos ?? 'especificado' }}</li>
+                                    <li class="mb-1"><strong>Nombre Equipo:</strong> {{ $computador_detalle->nombre_equipo }}</li>
+                                    <li class="mb-1"><strong>Tipo Equipo:</strong> {{ $computador_detalle->tipo_computador }}</li>
+                                    <li class="mb-1"><strong>Bien Nacional:</strong> {{ $computador_detalle->bien_nacional ?? 'N/A' }}</li>
+                                    <li class="mb-1"><strong>Serial:</strong> {{ $computador_detalle->serial ?? 'N/A' }}</li>
+                                    <li class="mb-1"><strong>Marca:</strong> {{ $computador_detalle->marca->nombre ?? 'N/A' }}</li>
+                                    <li class="mb-1"><strong>Ubicación:</strong> {{ $computador_detalle->departamento->nombre ?? 'Sin asignar' }}</li>
+                                    <li class="mb-1"><strong>Responsable:</strong> {{ $computador_detalle->trabajador ? ($computador_detalle->trabajador->nombres . ' ' . $computador_detalle->trabajador->apellidos) : 'Sin asignar' }}</li>
                                 </ul>
                             </div>
 
@@ -529,12 +529,12 @@
                             <div class="col-md-4 mb-4">
                                 <h6 class="border-bottom pb-2 text-primary">Conectividad y Otros</h6>
                                 <ul class="list-unstyled mb-0">
-                                    <li class="mb-1"><strong>Dirección MAC:</strong> {{ $computador_detalle->mac ?? 'No especificada' }}</li>
-                                    <li class="mb-1"><strong>Dirección IP:</strong> {{ $computador_detalle->ip ?? 'No especificada' }}</li>
-                                    <li class="mb-1"><strong>Tipo de Conexión:</strong> {{ $computador_detalle->tipo_conexion ?? 'No especificado' }}</li>
-                                    <li class="mb-1"><strong>Estado Físico:</strong> {{ ucfirst(str_replace('_', ' ', $computador_detalle->estado_fisico ?? 'No especificado')) }}</li>
-                                    <li class="mb-1"><strong>Unidad DVD:</strong> {{ $computador_detalle->unidad_dvd ? 'Sí posee' : 'No posee' }}</li>
-                                    <li class="mb-1"><strong>Fuente de Poder:</strong> {{ $computador_detalle->fuente_poder ? 'Posee (Interna)' : 'No posee / Adaptador' }}</li>
+                                    <li class="mb-1"><strong>Dirección MAC:</strong> {{ $computador_detalle->mac ?? 'N/A' }}</li>
+                                    <li class="mb-1"><strong>Dirección IP:</strong> {{ $computador_detalle->ip ?? 'N/A' }}</li>
+                                    <li class="mb-1"><strong>Conexión:</strong> {{ $computador_detalle->tipo_conexion ?? 'N/A' }}</li>
+                                    <li class="mb-1"><strong>Condición Física:</strong> {{ ucfirst(str_replace('_', ' ', $computador_detalle->estado_fisico ?? 'Indeterminado')) }}</li>
+                                    <li class="mb-1"><strong>Unidad DVD:</strong> {{ $computador_detalle->unidad_dvd ? 'Sí' : 'No' }}</li>
+                                    <li class="mb-1"><strong>Fuente de Poder:</strong> {{ $computador_detalle->fuente_poder ? 'Interna' : 'Externa / Adaptador' }}</li>
                                 </ul>
                             </div>
                         </div>
@@ -561,11 +561,13 @@
                 </div>
                 <div class="modal-footer bg-light d-flex justify-content-between">
                     @if($computador_detalle)
+                        @can('ver-computadores')
                         <div>
                             <a href="{{ route('asociaciones', ['tipo' => 'computador', 'id' => $computador_detalle->id]) }}" class="btn btn-outline-primary shadow-sm me-2">
                                 <i class="bi bi-diagram-3 me-1"></i> Asociaciones
                             </a>
                         </div>
+                        @endcan
                     @else
                         <div></div>
                     @endif

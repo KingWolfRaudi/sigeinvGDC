@@ -28,6 +28,9 @@ class Insumos extends Component
     public $estado_fisico = 'operativo';
     public bool $activo = true;
 
+    // Asociaciones
+    public $departamento_id, $trabajador_id, $dispositivo_id, $computador_id;
+
     // Workflow de Movimientos
     public $justificacion = '';
     public bool $es_edicion = false;
@@ -106,7 +109,27 @@ class Insumos extends Component
         $marcas = Marca::where('activo', true)->orderBy('nombre')->get();
         $categorias = CategoriaInsumo::where('activo', true)->orderBy('nombre')->get();
 
-        return view('livewire.inventario.insumos', compact('insumos', 'marcas', 'categorias'));
+        $departamentos = \App\Models\Departamento::orderBy('nombre')->get();
+        $trabajadores = [];
+        $dispositivos = [];
+        $computadores = [];
+
+        if ($this->departamento_id) {
+            $trabajadores = \App\Models\Trabajador::where('departamento_id', $this->departamento_id)
+                ->where('activo', true)
+                ->orderBy('nombres')
+                ->get();
+            $dispositivos = \App\Models\Dispositivo::where('departamento_id', $this->departamento_id)
+                ->where('activo', true)
+                ->orderBy('nombre')
+                ->get();
+            $computadores = \App\Models\Computador::where('departamento_id', $this->departamento_id)
+                ->where('activo', true)
+                ->orderBy('nombre_equipo')
+                ->get();
+        }
+
+        return view('livewire.inventario.insumos', compact('insumos', 'marcas', 'categorias', 'departamentos', 'trabajadores', 'dispositivos', 'computadores'));
     }
 
     public function crear()
@@ -128,11 +151,23 @@ class Insumos extends Component
             'nombre'         => 'required|string',
             'estado_fisico'  => 'required|string',
             'unidad_medida'  => 'required|string',
-            'medida_actual'  => 'required|numeric|min:0',
-            'medida_minima'  => 'required|numeric|min:0',
             'marca_id'       => 'required_without:nueva_marca',
             'categoria_insumo_id' => 'required_without:nueva_categoria',
+            'departamento_id' => 'nullable|exists:departamentos,id',
+            'trabajador_id'   => 'nullable|exists:trabajadores,id',
+            'dispositivo_id'  => 'nullable|exists:dispositivos,id',
+            'computador_id'   => 'nullable|exists:computadores,id',
         ];
+
+        // Validación condicional de stock
+        $unidadesEnteras = ['unidad', 'cajas', 'pares'];
+        if (in_array($this->unidad_medida, $unidadesEnteras)) {
+            $rules['medida_actual'] = 'required|integer|min:0';
+            $rules['medida_minima'] = 'required|integer|min:0';
+        } else {
+            $rules['medida_actual'] = 'required|numeric|min:0';
+            $rules['medida_minima'] = 'required|numeric|min:0';
+        }
         if ($esEdicion) {
             $rules['justificacion'] = 'required|string|min:10';
         }
@@ -162,6 +197,10 @@ class Insumos extends Component
                 'instalable_en_equipo' => $this->instalable_en_equipo,
                 'estado_fisico'        => $this->estado_fisico,
                 'activo'               => $this->activo,
+                'departamento_id'      => $this->departamento_id ?: null,
+                'trabajador_id'        => $this->trabajador_id ?: null,
+                'dispositivo_id'       => $this->dispositivo_id ?: null,
+                'computador_id'        => $this->computador_id ?: null,
             ];
 
             if (!$esEdicion) {
@@ -190,6 +229,10 @@ class Insumos extends Component
                 'instalable_en_equipo' => $this->instalable_en_equipo,
                 'estado_fisico'        => $this->estado_fisico,
                 'activo'               => $this->activo,
+                'departamento_id'      => $this->departamento_id ?: null,
+                'trabajador_id'        => $this->trabajador_id ?: null,
+                'dispositivo_id'       => $this->dispositivo_id ?: null,
+                'computador_id'        => $this->computador_id ?: null,
             ];
             $boolCampos = ['activo', 'reutilizable', 'instalable_en_equipo'];
             $payloadNuevo = [];
@@ -242,7 +285,7 @@ class Insumos extends Component
             }
             $this->resetCampos();
         } catch (\Exception $e) {
-            Log::error('Error guardando insumo: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Error guardando insumo: ' . $e->getMessage());
             $this->dispatch('mostrar-toast', mensaje: 'Ocurrió un error guardando el registro.', tipo: 'error');
         }
     }
@@ -269,6 +312,10 @@ class Insumos extends Component
         $this->instalable_en_equipo = (bool) $insumo->instalable_en_equipo;
         $this->estado_fisico = $insumo->estado_fisico;
         $this->activo = (bool) $insumo->activo; 
+        $this->departamento_id = $insumo->departamento_id;
+        $this->trabajador_id = $insumo->trabajador_id;
+        $this->dispositivo_id = $insumo->dispositivo_id;
+        $this->computador_id = $insumo->computador_id;
 
         $this->tituloModal = 'Editar Insumo/Herramienta';
         $this->dispatch('abrir-modal', id: 'modalInsumo');
@@ -277,7 +324,7 @@ class Insumos extends Component
     public function ver($id)
     {
         abort_if(Gate::denies('ver-insumos'), 403);
-        $this->insumo_detalle = Insumo::with(['marca', 'categoriaInsumo'])->findOrFail($id);
+        $this->insumo_detalle = Insumo::with(['marca', 'categoriaInsumo', 'departamento', 'trabajador', 'dispositivo', 'computador'])->findOrFail($id);
         $this->dispatch('abrir-modal', id: 'modalDetalleInsumo');
     }
 
@@ -411,7 +458,8 @@ class Insumos extends Component
     {
         $this->reset([
             'insumo_id', 'bien_nacional', 'serial', 'nombre', 'descripcion', 
-            'marca_id', 'categoria_insumo_id', 'insumo_detalle', 'nueva_marca', 'nueva_categoria', 'justificacion'
+            'marca_id', 'categoria_insumo_id', 'insumo_detalle', 'nueva_marca', 'nueva_categoria', 'justificacion',
+            'departamento_id', 'trabajador_id', 'dispositivo_id', 'computador_id'
         ]);
         $this->creando_marca = false;
         $this->creando_categoria = false;

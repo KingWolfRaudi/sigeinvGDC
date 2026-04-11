@@ -244,7 +244,55 @@
                             </div>
                         </div>
 
-                        <h6 class="border-bottom pb-2 text-primary">2. Especificaciones de Stock y Naturaleza</h6>
+                        <h6 class="border-bottom pb-2 text-primary">2. Ubicación y Responsable (Opcional)</h6>
+                        <div class="row mb-4">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Departamento</label>
+                                <select class="form-select @error('departamento_id') is-invalid @enderror" wire:model.live="departamento_id">
+                                    <option value="">Seleccione Departamento...</option>
+                                    @foreach($departamentos as $dep)
+                                        <option value="{{ $dep->id }}">{{ $dep->nombre }}</option>
+                                    @endforeach
+                                </select>
+                                @error('departamento_id') <span class="text-danger small">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Responsable / Trabajador</label>
+                                <select class="form-select @error('trabajador_id') is-invalid @enderror" wire:model="trabajador_id" @if(!$departamento_id) disabled @endif>
+                                    <option value="">Seleccione Trabajador...</option>
+                                    @foreach($trabajadores as $trab)
+                                        <option value="{{ $trab->id }}">{{ $trab->nombres }} {{ $trab->apellidos }}</option>
+                                    @endforeach
+                                </select>
+                                @if(!$departamento_id) <small class="text-muted">Seleccione un departamento primero</small> @endif
+                                @error('trabajador_id') <span class="text-danger small">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Dispositivo Asociado</label>
+                                <select class="form-select @error('dispositivo_id') is-invalid @enderror" wire:model="dispositivo_id" @if(!$departamento_id) disabled @endif>
+                                    <option value="">Seleccione Dispositivo...</option>
+                                    @foreach($dispositivos as $disp)
+                                        <option value="{{ $disp->id }}">{{ $disp->nombre }} ({{ $disp->bien_nacional ?? $disp->serial }})</option>
+                                    @endforeach
+                                </select>
+                                @error('dispositivo_id') <span class="text-danger small">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Computador Asociado</label>
+                                <select class="form-select @error('computador_id') is-invalid @enderror" wire:model="computador_id" @if(!$departamento_id) disabled @endif>
+                                    <option value="">Seleccione Computador...</option>
+                                    @foreach($computadores as $comp)
+                                        <option value="{{ $comp->id }}">{{ $comp->nombre_equipo }} ({{ $comp->bien_nacional ?? $comp->serial }})</option>
+                                    @endforeach
+                                </select>
+                                @error('computador_id') <span class="text-danger small">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        <h6 class="border-bottom pb-2 text-primary">3. Especificaciones de Stock y Naturaleza</h6>
                         <div class="row w-100">
                             
                             <div class="col-md-3 mb-3">
@@ -261,13 +309,17 @@
 
                             <div class="col-md-3 mb-3">
                                 <label class="form-label">Stock / Cantidad Inicial <span class="text-danger">*</span></label>
-                                <input type="number" step="0.01" min="0" class="form-control @error('medida_actual') is-invalid @enderror" wire:model="medida_actual">
+                                <input type="number" 
+                                    @if(in_array($unidad_medida, ['unidad', 'cajas', 'pares'])) step="1" @else step="0.01" @endif 
+                                    min="0" class="form-control @error('medida_actual') is-invalid @enderror" wire:model="medida_actual">
                                 @error('medida_actual') <span class="text-danger small">{{ $message }}</span> @enderror
                             </div>
 
                             <div class="col-md-3 mb-3">
                                 <label class="form-label">Alerta Stock Crítico <span class="text-danger">*</span></label>
-                                <input type="number" step="0.01" min="0" class="form-control @error('medida_minima') is-invalid @enderror" wire:model="medida_minima" title="Cant. mínima para lanzar alerta visual">
+                                <input type="number" 
+                                    @if(in_array($unidad_medida, ['unidad', 'cajas', 'pares'])) step="1" @else step="0.01" @endif 
+                                    min="0" class="form-control @error('medida_minima') is-invalid @enderror" wire:model="medida_minima" title="Cant. mínima para lanzar alerta visual">
                                 @error('medida_minima') <span class="text-danger small">{{ $message }}</span> @enderror
                             </div>
 
@@ -298,7 +350,7 @@
                             </div>
                         </div>
 
-                        <h6 class="border-bottom pb-2 mt-2 text-primary">3. Detalles Descriptivos</h6>
+                        <h6 class="border-bottom pb-2 mt-2 text-primary">4. Detalles Descriptivos</h6>
                         <div class="row">
                             <div class="col-12">
                                 <label class="form-label">Descripción / Ficha Técnica</label>
@@ -376,7 +428,16 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-12">
+                        <div class="col-md-6 mb-4">
+                            <h6 class="border-bottom pb-2 text-primary">Asociaciones</h6>
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-1"><strong>Departamento:</strong> {{ $insumo_detalle->departamento->nombre ?? 'Sin asignar' }}</li>
+                                <li class="mb-1"><strong>Responsable:</strong> {{ $insumo_detalle->trabajador ? ($insumo_detalle->trabajador->nombres . ' ' . $insumo_detalle->trabajador->apellidos) : 'Sin asignar' }}</li>
+                                <li class="mb-1"><strong>Dispositivo:</strong> {{ $insumo_detalle->dispositivo->nombre ?? 'Sin asignar' }}</li>
+                                <li class="mb-1"><strong>Computador:</strong> {{ $insumo_detalle->computador->nombre_equipo ?? 'Sin asignar' }}</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6 mb-4">
                             <h6 class="border-bottom pb-2 text-primary">Descripción Completa</h6>
                             <div class="p-3 bg-light rounded text-dark small border">
                                 {{ $insumo_detalle->descripcion ?? 'El registro no posee descripción ampliada.' }}
@@ -386,23 +447,18 @@
                     @endif
                 </div>
                 <div class="modal-footer bg-light d-flex justify-content-between">
-                    @if($insumo_detalle)
+                        @can('ver-insumos')
                         <div>
                             <a href="{{ route('asociaciones', ['tipo' => 'insumo', 'id' => $insumo_detalle->id]) }}" class="btn btn-outline-primary shadow-sm me-2">
                                 <i class="bi bi-diagram-3 me-1"></i> Asociaciones
                             </a>
-                            <a href="{{ route('reportes.insumo.ficha', $insumo_detalle->id) }}" target="_blank" class="btn btn-dark shadow-sm">
-                                <i class="bi bi-file-pdf me-1"></i> Ficha Técnica (PDF)
-                            </a>
                         </div>
+                        @endcan
                     @else
                         <div></div>
                     @endif
                     <div>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        @if($insumo_detalle)
-                        <button type="button" wire:click="editar({{ $insumo_detalle->id }})" class="btn btn-primary" data-bs-dismiss="modal">Editar</button>
-                        @endif
                     </div>
                 </div>
             </div>

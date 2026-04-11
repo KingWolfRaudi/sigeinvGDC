@@ -1,4 +1,4 @@
-# Instructivo Técnico y Operacional: SigeinvGDC (V4.0)
+# Instructivo Técnico y Operacional: SigeinvGDC (V4.1)
 
 Este documento constituye la fuente de verdad absoluta para el desarrollo y mantenimiento del **Sistema de Gestión de Inventario Tecnológico (SigeinvGDC)**. Define las reglas arquitectónicas, los flujos de negocio y los estándares técnicos que deben seguirse rigurosamente.
 
@@ -39,6 +39,7 @@ El inventario se divide en tres grandes categorías con lógica diferenciada:
     - *Accesors Inteligentes:* El modelo calcula automáticamente el total de RAM y Almacenamiento limpiando sufijos como "GB" para operaciones matemáticas.
 - **Dispositivos:** Equipos periféricos o de red (Routers, Switches, Impresoras).
 - **Insumos/Herramientas:** Gestión de consumibles con control de stock y categorías.
+    - *Lógica de Medida:* El sistema valida el stock según la unidad. Unidades como "Metros" o "Litros" permiten decimales (Double), mientras que "Piezas", "Unidades" o "Cajas" se fuerzan estrictamente a **Enteros** en backend y frontend.
 
 ### 3.2. Gestión de Movimientos (Ciclo de Vida)
 El sistema rastrea cada cambio de custodia de un activo mediante:
@@ -79,7 +80,7 @@ Los usuarios estándar no pueden cambiar su información sensible directamente. 
 ### 5.2. Módulo de Reportes e Indicadores
 - **Hojas de Vida (PDF):** Generación de fichas técnicas individuales para equipos, resumiendo especificaciones y últimos movimientos.
 - **Actas de Entrega:** Documentos legales generables en PDF para la firma de custodia por parte de los trabajadores.
-- **Exportación de Datos:** Soporte integrado para `PDF` (`dompdf`) y `Excel` (`excel`).
+- **Exportación de Datos:** Soporte integrado para `PDF` (`dompdf`) y `Excel` (`excel`). El acceso a estas herramientas está blindado por los permisos `reportes-pdf` y `reportes-excel` respectivamente.
 - **Dashboard Visual:** El panel de inicio incluye KPIs en tiempo real y gráficos de barras (`Chart.js`) sobre la salud física del inventario.
 
 ---
@@ -96,6 +97,11 @@ Se implementó un **Panel de Configuración General** unificado que reemplaza aj
 - **Glassmorphism:** Uso de opacidades y desenfoques (backdrop-filter) en modales y tarjetas.
 - **Bootstrap Custom:** Se priorizan paletas de colores armónicas (Azure, Indigo, Teal) sobre los colores primarios base.
 - **Limpieza de Modales:** Livewire requiere un script de limpieza manual para eliminar el `.modal-backdrop` de Bootstrap tras cierres de modales asíncronos para evitar bloqueos de UI.
+- **Estándar de Modales de Detalle:** Los modales de "Vista Rápida" deben seguir un layout de 3 columnas (Identificación, Especificaciones, Notas) con etiquetas estandarizadas (ej. *"Ubicación"* para departamentos). El footer solo debe contener el enlace a Asociaciones y el botón de Cerrar.
+- **Estándar de Dashboard de Asociaciones:** La información debe segregarse en pestañas dinámicas protegidas por permisos:
+    - *Pestaña 1 (Humano/Espacial):* Trabajador y Departamento (Responsable y Ubicación).
+    - *Pestaña 2 (Hardware/Técnico):* Equipos vinculados (Computadores o Dispositivos).
+    - *Pestañas Siguientes:* Insumos e Incidencias.
 
 ---
 
