@@ -11,6 +11,13 @@ use App\Models\MovimientoComputador;
 use App\Models\Computador;
 use App\Models\ComputadorDisco;
 use App\Models\ComputadorRam;
+use App\Models\Marca;
+use App\Models\SistemaOperativo;
+use App\Models\Procesador;
+use App\Models\Gpu;
+use App\Models\Trabajador;
+use App\Models\Puerto;
+use App\Models\Departamento;
 
 class PanelComputadores extends Component
 {
@@ -31,6 +38,36 @@ class PanelComputadores extends Component
 
     // Detalle de movimiento
     public $movimiento_detalle = null;
+
+    // ── PROPIEDADES DEL GENERADOR DE MOVIMIENTOS ───────────────────────
+    public bool $mostrando_generador = false;
+    public int $paso_generador = 1; // 1: Selección, 2: Edición
+
+    // Filtros de Selección (Paso 1)
+    public $searchBN = '', $searchSerial = '', $searchDpto = '', $searchTrabajador = '';
+
+    // Campos del Formulario (Paso 2)
+    public $computador_id, $bien_nacional, $serial, $nombre_equipo, $marca_id, $tipo_computador, $sistema_operativo_id;
+    public $procesador_id, $gpu_id, $departamento_id, $trabajador_id, $tipo_ram, $mac, $ip;
+    public $tipo_conexion = 'Ethernet';
+    public $estado_fisico = 'operativo';
+    public bool $unidad_dvd = true;
+    public bool $fuente_poder = true;
+    public $observaciones;
+    public bool $activo = true;
+    public $justificacion = '';
+
+    public $discos = [];
+    public $rams = [];
+    public $puertos_seleccionados = [];
+
+    // Creación Rápida On The Fly
+    public bool $creando_marca = false; public $nueva_marca;
+    public bool $creando_so = false; public $nuevo_so;
+    public bool $creando_procesador = false; public $nuevo_procesador_modelo, $nuevo_procesador_marca_id;
+    public bool $creando_gpu = false; public $nueva_gpu_modelo, $nueva_gpu_marca_id;
+
+    public $computador_actual = null; // Instancia cargada para Step 2
 
     public function updatingSearch() { $this->resetPage(); }
     public function updatingPestana() { $this->resetPage(); }
@@ -64,7 +101,191 @@ class PanelComputadores extends Component
             'pendientes' => MovimientoComputador::where('estado_workflow', 'pendiente')->count(),
         ];
 
-        return view('livewire.movimientos.panel-computadores', compact('movimientos', 'conteo'));
+        // Catálogos para el Generador (Step 2)
+        $catalogos = [
+            'marcas' => collect(),
+            'sistemas' => collect(),
+            'procesadores' => collect(),
+            'gpus' => collect(),
+            'puertos' => collect(),
+            'departamentos' => collect(),
+            'trabajadores' => collect(),
+        ];
+
+        if ($this->mostrando_generador) {
+            $catalogos = [
+                'marcas' => Marca::where('activo', true)->orderBy('nombre')->get(),
+                'sistemas' => SistemaOperativo::where('activo', true)->orderBy('nombre')->get(),
+                'procesadores' => Procesador::with('marca')->where('activo', true)->orderBy('modelo')->get(),
+                'gpus' => Gpu::with('marca')->where('activo', true)->orderBy('modelo')->get(),
+                'puertos' => Puerto::where('activo', true)->orderBy('nombre')->get(),
+                'departamentos' => Departamento::where('activo', true)->orderBy('nombre')->get(),
+                'trabajadores' => Trabajador::where('activo', true)
+                    ->when($this->departamento_id, fn($q) => $q->where('departamento_id', $this->departamento_id))
+                    ->orderBy('nombres')->get(),
+            ];
+        }
+
+        return view('livewire.movimientos.panel-computadores', array_merge([
+            'movimientos' => $movimientos,
+            'conteo'      => $conteo,
+            'equipos'     => $this->equipos_filtrados,
+        ], $catalogos));
+    }
+
+    // ── Lógica del Generador ─────────────────────────────────────────────
+
+    public function getEquiposFiltradosProperty()
+    {
+        if (!$this->mostrando_generador || $this->paso_generador != 1) return [];
+
+        return Computador::with(['marca', 'trabajador', 'departamento'])
+            ->withCount(['movimientos as pendientes_count' => fn($q) => $q->where('estado_workflow', 'pendiente')])
+            ->when($this->searchBN, fn($q) => $q->where('bien_nacional', 'like', "%{$this->searchBN}%"))
+            ->when($this->searchSerial, fn($q) => $q->where('serial', 'like', "%{$this->searchSerial}%"))
+            ->when($this->searchDpto, fn($q) => $q->where('departamento_id', $this->searchDpto))
+            ->when($this->searchTrabajador, fn($q) => $q->where('trabajador_id', $this->searchTrabajador))
+            ->latest()
+            ->limit(10)
+            ->get();
+    }
+
+    public function abrirGenerador()
+    {
+        $this->mostrando_generador = true;
+        $this->paso_generador = 1;
+        $this->reset(['searchBN', 'searchSerial', 'searchDpto', 'searchTrabajador', 'computador_id', 'justificacion']);
+        $this->dispatch('abrir-modal', id: 'modalGenerador');
+    }
+
+    public function seleccionarEquipo($id)
+    {
+        $comp = Computador::with(['discos', 'rams', 'puertos'])->findOrFail($id);
+        $this->computador_actual = $comp;
+        $this->computador_id = $id;
+
+        // Cargar datos al formulario
+        $this->nombre_equipo   = $comp->nombre_equipo;
+        $this->bien_nacional   = $comp->bien_nacional;
+        $this->serial          = $comp->serial;
+        $this->marca_id        = $comp->marca_id;
+        $this->tipo_computador = $comp->tipo_computador;
+        $this->sistema_operativo_id = $comp->sistema_operativo_id;
+        $this->procesador_id   = $comp->procesador_id;
+        $this->gpu_id          = $comp->gpu_id;
+        $this->unidad_dvd      = (bool)$comp->unidad_dvd;
+        $this->fuente_poder    = (bool)$comp->fuente_poder;
+        $this->mac             = $comp->mac;
+        $this->ip              = $comp->ip;
+        $this->tipo_conexion   = $comp->tipo_conexion;
+        $this->estado_fisico   = $comp->estado_fisico;
+        $this->departamento_id = $comp->departamento_id;
+        $this->trabajador_id   = $comp->trabajador_id;
+        $this->observaciones   = $comp->observaciones;
+        $this->activo          = (bool)$comp->activo;
+        $this->tipo_ram        = $comp->tipo_ram;
+
+        $this->discos = $comp->discos->map(fn($d) => ['capacidad' => (int)filter_var($d->capacidad, FILTER_SANITIZE_NUMBER_INT), 'tipo' => $d->tipo])->toArray();
+        $this->rams   = $comp->rams->map(fn($r) => ['capacidad' => (int)filter_var($r->capacidad, FILTER_SANITIZE_NUMBER_INT), 'slot' => $r->slot])->toArray();
+        $this->puertos_seleccionados = $comp->puertos->pluck('id')->toArray();
+
+        $this->paso_generador = 2;
+    }
+
+    public function guardarNuevoMovimiento()
+    {
+        $this->validate([
+            'nombre_equipo' => 'required|string|max:15',
+            'bien_nacional' => 'required|string|unique:computadores,bien_nacional,' . $this->computador_id,
+            'serial'        => 'required|string|unique:computadores,serial,' . $this->computador_id,
+            'justificacion' => 'required|string|min:10',
+        ]);
+
+        try {
+            $comp = $this->computador_actual ?: Computador::with(['discos', 'rams', 'puertos'])->findOrFail($this->computador_id);
+            $payloadAnterior = $comp->toArray();
+            $payloadAnterior['discos']  = $comp->discos->toArray();
+            $payloadAnterior['rams']    = $comp->rams->toArray();
+            $payloadAnterior['puertos'] = $comp->puertos->pluck('id')->toArray();
+
+            $payloadNuevo = [
+                'nombre_equipo' => $this->nombre_equipo,
+                'bien_nacional' => $this->bien_nacional,
+                'serial' => $this->serial,
+                'marca_id' => $this->marca_id,
+                'tipo_computador' => $this->tipo_computador,
+                'sistema_operativo_id' => $this->sistema_operativo_id,
+                'procesador_id' => $this->procesador_id,
+                'gpu_id' => $this->gpu_id ?: null,
+                'unidad_dvd' => $this->unidad_dvd,
+                'fuente_poder' => $this->fuente_poder,
+                'mac' => $this->mac,
+                'ip' => $this->ip,
+                'tipo_conexion' => $this->tipo_conexion,
+                'estado_fisico' => $this->estado_fisico,
+                'departamento_id' => $this->departamento_id ?: null,
+                'trabajador_id' => $this->trabajador_id ?: null,
+                'observaciones' => $this->observaciones,
+                'activo' => $this->activo,
+                'tipo_ram' => $this->tipo_ram,
+                'discos' => $this->discos,
+                'rams' => $this->rams,
+                'puertos' => $this->puertos_seleccionados,
+            ];
+
+            // Determinar cambios (Diff)
+            $cambios = [];
+            foreach ($payloadNuevo as $k => $v) {
+                $ant = $payloadAnterior[$k] ?? null;
+                $iguales = is_array($v) 
+                    ? $this->_sonIgualesArrays($ant, $v) 
+                    : ((string)($ant ?? '') === (string)($v ?? ''));
+                if (!$iguales) $cambios[$k] = $v;
+            }
+
+            if (empty($cambios)) {
+                $this->dispatch('mostrar-toast', mensaje: 'No se detectaron cambios.', tipo: 'info');
+                return;
+            }
+
+            MovimientoComputador::create([
+                'computador_id'   => $this->computador_id,
+                'tipo_operacion'  => 'actualizacion_datos',
+                'payload_anterior' => $payloadAnterior,
+                'payload_nuevo'    => $cambios,
+                'estado_workflow'  => 'borrador',
+                'justificacion'   => $this->justificacion,
+                'solicitante_id'  => Auth::id(),
+            ]);
+
+            $this->mostrando_generador = false;
+            $this->dispatch('cerrar-modal', id: 'modalGenerador');
+            $this->dispatch('mostrar-toast', mensaje: 'Movimiento creado como borrador.', tipo: 'success');
+            $this->resetPage(); // Refrescar lista
+        } catch (\Exception $e) {
+            Log::error('Error creando movimiento desde panel: ' . $e->getMessage());
+            $this->dispatch('mostrar-toast', mensaje: 'Error al crear el movimiento.', tipo: 'error');
+        }
+    }
+
+    // ── Helpers de Formulario ────────────────────────────────────────────
+
+    public function addDisco() { $this->discos[] = ['capacidad' => '', 'tipo' => '']; }
+    public function removeDisco($index) { unset($this->discos[$index]); $this->discos = array_values($this->discos); }
+    public function addRam() { 
+        if (count($this->rams) < 6) {
+            $this->rams[] = ['capacidad' => '', 'slot' => count($this->rams) + 1]; 
+        }
+    }
+    public function removeRam($index) { 
+        unset($this->rams[$index]); $this->rams = array_values($this->rams); 
+        foreach($this->rams as $i => $r) $this->rams[$i]['slot'] = $i + 1;
+    }
+
+    private function _sonIgualesArrays($ant, $nuevo) {
+        if (!is_array($ant)) return false;
+        // Simplificado para comparación básica de arrays de discos/rams
+        return json_encode($ant) === json_encode($nuevo);
     }
 
     // ── Acciones sobre Borradores Propios ────────────────────────────────
@@ -136,7 +357,7 @@ class PanelComputadores extends Component
     {
         abort_if(Gate::denies('movimientos-computadores-ver'), 403);
         $this->movimiento_detalle = MovimientoComputador::with([
-            'computador.marca', 'computador.tipoDispositivo',
+            'computador.marca', 'computador.sistemaOperativo',
             'computador.departamento', 'computador.trabajador',
             'solicitante', 'aprobador'
         ])->findOrFail($id);

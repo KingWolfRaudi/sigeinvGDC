@@ -79,7 +79,7 @@ class Departamentos extends Component
             $q->where('nombre', 'like', $search)
               ->orWhereHas('trabajadores', fn($t) => $t->where('nombres', 'like', $search)->orWhere('apellidos', 'like', $search)->orWhere('cedula', 'like', $search))
               ->orWhereHas('computadores', fn($c) => $c->where('bien_nacional', 'like', $search)->orWhere('serial', 'like', $search))
-              ->orWhereHas('dispositivos', fn($d) => $d->where('codigo', 'like', $search)->orWhere('serial', 'like', $search));
+              ->orWhereHas('dispositivos', fn($d) => $d->where('bien_nacional', 'like', $search)->orWhere('serial', 'like', $search));
         });
 
         $departamentos = $query->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')

@@ -37,7 +37,7 @@
         'fuente_poder'         => 'Fuente de Poder',
         'observaciones'        => 'Observaciones',
         'notas'                => 'Notas',
-        'codigo'               => 'Código',
+        'codigo'               => 'Bien Nacional',
         'computador_id'        => 'Computador Asociado',
         'baja'                 => 'Baja del Sistema',
         'discos'               => 'Discos',
@@ -128,9 +128,21 @@
         }
 
         if (is_array($val)) {
-            return empty($val)
-                ? '<em class="text-muted">Sin elementos</em>'
-                : '<span class="badge bg-secondary fw-normal">' . count($val) . ' elemento(s)</span>';
+            if (empty($val)) return '<em class="text-muted">Sin elementos</em>';
+            
+            if ($field === 'rams') {
+                return '<div class="small">' . implode('<br>', array_map(fn($r) => "Slot ".($r['slot'] ?? '?').": ".($r['capacidad'] ?? '0')."GB", $val)) . '</div>';
+            }
+            if ($field === 'discos') {
+                return '<div class="small">' . implode('<br>', array_map(fn($d) => ($d['capacidad'] ?? '0')."GB (".($d['tipo'] ?? 'Desconocido').")", $val)) . '</div>';
+            }
+            if ($field === 'puertos') {
+                // Si es solo un array de IDs, no podemos mostrar los nombres aquí fácilmente sin consulta extra.
+                // Pero en el panel de movimientos usualmente se guarda el array de IDs.
+                return '<span class="badge bg-secondary fw-normal">' . count($val) . ' puertos seleccionados</span>';
+            }
+
+            return '<span class="badge bg-secondary fw-normal">' . count($val) . ' elemento(s)</span>';
         }
 
         $str = (string)$val;

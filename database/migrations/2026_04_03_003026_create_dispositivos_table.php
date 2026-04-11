@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('dispositivos', function (Blueprint $table) {
             $table->id();
-            $table->string('codigo')->nullable()->unique();
-            $table->string('serial')->nullable()->unique();
+            $table->string('bien_nacional')->unique();
+            $table->string('serial')->unique();
             $table->foreignId('tipo_dispositivo_id')->constrained('tipo_dispositivos')->onDelete('restrict');
             $table->foreignId('marca_id')->constrained('marcas')->onDelete('restrict');
             $table->string('nombre'); // Hace referencia al modelo específico

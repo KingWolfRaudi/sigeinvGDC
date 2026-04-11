@@ -54,9 +54,9 @@
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th wire:click="sortBy('codigo')" style="cursor: pointer; min-width: 140px;">
-                                Identificación
-                                @if($sortField === 'codigo') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            <th wire:click="sortBy('bien_nacional')" style="cursor: pointer; min-width: 140px;">
+                                Bien Nacional
+                                @if($sortField === 'bien_nacional') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
                             </th>
 
                             <th wire:click="sortBy('nombre')" style="cursor: pointer;">
@@ -93,7 +93,7 @@
                         @forelse($dispositivos as $disp)
                         <tr>
                                 <td>
-                                <strong>CÓD:</strong> {{ $disp->codigo ?? 'N/A' }}
+                                <strong>BN:</strong> {{ $disp->bien_nacional ?? 'N/A' }}
                                 @if($disp->pendientes_count > 0)
                                     <button wire:click="verCambioPendiente({{ $disp->id }})"
                                         class="badge bg-warning text-dark border-0 ms-1"
@@ -179,12 +179,12 @@
                         <h6 class="border-bottom pb-2 text-primary">1. Identificación y Atributos Físicos</h6>
                         <div class="row mb-4">
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">Código Interno</label>
-                                <input type="text" class="form-control @error('codigo') is-invalid @enderror" wire:model="codigo">
-                                @error('codigo') <span class="text-danger small">{{ $message }}</span> @enderror
+                                <label class="form-label">Bien Nacional <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control @error('bien_nacional') is-invalid @enderror" wire:model="bien_nacional">
+                                @error('bien_nacional') <span class="text-danger small">{{ $message }}</span> @enderror
                             </div>
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">Serial Fabricante</label>
+                                <label class="form-label">Serial Fabricante <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('serial') is-invalid @enderror" wire:model="serial">
                                 @error('serial') <span class="text-danger small">{{ $message }}</span> @enderror
                             </div>
@@ -362,7 +362,7 @@
                                 <li class="mb-1"><strong>Estado Operativo:</strong>
                                     {!! $dispositivo_detalle->activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>' !!}
                                 </li>
-                                <li class="mb-1"><strong>Código Interno:</strong> {{ $dispositivo_detalle->codigo ?? 'No especificado' }}</li>
+                                <li class="mb-1"><strong>Bien Nacional:</strong> {{ $dispositivo_detalle->bien_nacional ?? 'No especificado' }}</li>
                                 <li class="mb-1"><strong>Serial:</strong> {{ $dispositivo_detalle->serial ?? 'No especificado' }}</li>
                                 <li class="mb-1"><strong>Marca/Tipo:</strong> {{ $dispositivo_detalle->marca->nombre ?? 'N/A' }} - {{ $dispositivo_detalle->tipoDispositivo->nombre ?? 'N/A' }}</li>
                                 <li class="mb-1"><strong>Ubicación:</strong> {{ $dispositivo_detalle->departamento->nombre ?? 'Sin asignar' }}</li>
@@ -402,6 +402,7 @@
                     @endif
                 </div>
                 <div class="modal-footer bg-light d-flex justify-content-between">
+                    @if($dispositivo_detalle)
                         @can('ver-dispositivos')
                         <div>
                             <a href="{{ route('asociaciones', ['tipo' => 'dispositivo', 'id' => $dispositivo_detalle->id]) }}" class="btn btn-outline-primary shadow-sm me-2">

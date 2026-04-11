@@ -40,7 +40,7 @@ class PanelDispositivos extends Component
                 $q->whereHas('dispositivo', function ($sub) {
                     $sub->where('nombre', 'like', '%' . $this->search . '%')
                         ->orWhere('serial', 'like', '%' . $this->search . '%')
-                        ->orWhere('codigo', 'like', '%' . $this->search . '%');
+                        ->orWhere('bien_nacional', 'like', '%' . $this->search . '%');
                 })->orWhere('justificacion', 'like', '%' . $this->search . '%');
             })
             ->when($this->filtro_tipo, fn($q) => $q->where('tipo_operacion', $this->filtro_tipo));

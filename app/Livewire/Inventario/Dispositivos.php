@@ -22,7 +22,7 @@ class Dispositivos extends Component
     protected $paginationTheme = 'bootstrap';
 
     // Campos principales
-    public $dispositivo_id, $codigo, $serial, $tipo_dispositivo_id, $marca_id;
+    public $dispositivo_id, $bien_nacional, $serial, $tipo_dispositivo_id, $marca_id;
     public $nombre, $ip, $estado = 'operativo', $departamento_id, $trabajador_id;
     public $computador_id, $notas;
     public bool $activo = true;
@@ -119,7 +119,7 @@ class Dispositivos extends Component
         $query->where(function ($q) {
             $search = '%' . $this->search . '%';
             
-            $q->where('codigo', 'like', $search)
+            $q->where('bien_nacional', 'like', $search)
               ->orWhere('serial', 'like', $search)
               ->orWhere('nombre', 'like', $search)
               ->orWhere('ip', 'like', $search)
@@ -183,8 +183,8 @@ class Dispositivos extends Component
         abort_if(Gate::denies($esEdicion ? 'editar-dispositivos' : 'crear-dispositivos'), 403);
 
         $rules = [
-            'codigo'         => 'nullable|string|unique:dispositivos,codigo,' . $this->dispositivo_id,
-            'serial'         => 'nullable|string|unique:dispositivos,serial,' . $this->dispositivo_id,
+            'bien_nacional'  => 'required|string|unique:dispositivos,bien_nacional,' . $this->dispositivo_id,
+            'serial'         => 'required|string|unique:dispositivos,serial,' . $this->dispositivo_id,
             'ip'             => 'nullable|ipv4',
             'estado'         => 'required|string',
             'nombre'         => 'required|string',
@@ -206,7 +206,7 @@ class Dispositivos extends Component
             }
 
             $payloadNuevo = [
-                'codigo'              => $this->codigo,
+                'bien_nacional'       => $this->bien_nacional,
                 'serial'              => $this->serial,
                 'tipo_dispositivo_id' => $this->tipo_dispositivo_id,
                 'marca_id'            => $this->marca_id,
@@ -236,7 +236,7 @@ class Dispositivos extends Component
 
             // ── Computar solo los campos que CAMBIARON ──
             $candidato = [
-                'codigo'              => $this->codigo,              'serial'          => $this->serial,
+                'bien_nacional'       => $this->bien_nacional,       'serial'          => $this->serial,
                 'tipo_dispositivo_id' => $this->tipo_dispositivo_id, 'marca_id'        => $this->marca_id,
                 'nombre'              => $this->nombre,              'ip'              => $this->ip,
                 'estado'              => $this->estado,              'departamento_id' => $this->departamento_id,
@@ -312,7 +312,7 @@ class Dispositivos extends Component
         $dispositivo = Dispositivo::with(['puertos'])->findOrFail($id);
         
         $this->dispositivo_id = $dispositivo->id;
-        $this->codigo = $dispositivo->codigo;
+        $this->bien_nacional = $dispositivo->bien_nacional;
         $this->serial = $dispositivo->serial;
         $this->tipo_dispositivo_id = $dispositivo->tipo_dispositivo_id;
         $this->marca_id = $dispositivo->marca_id;
@@ -486,7 +486,7 @@ class Dispositivos extends Component
     public function resetCampos()
     {
         $this->reset([
-            'dispositivo_id', 'codigo', 'serial', 'tipo_dispositivo_id', 'marca_id', 
+            'dispositivo_id', 'bien_nacional', 'serial', 'tipo_dispositivo_id', 'marca_id', 
             'nombre', 'ip', 'estado', 'departamento_id', 'trabajador_id', 'computador_id', 
             'notas', 'dispositivo_detalle', 'nueva_marca', 'nuevo_tipo', 'justificacion'
         ]);

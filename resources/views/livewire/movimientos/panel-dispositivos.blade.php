@@ -27,7 +27,7 @@
             <div class="row g-2">
                 <div class="col-md-9">
                     <input type="text" wire:model.live.debounce.300ms="search" class="form-control"
-                        placeholder="Buscar por código, nombre, serial...">
+                        placeholder="Buscar por bien nacional, nombre, serial...">
                 </div>
                 <div class="col-md-3">
                     <select wire:model.live="filtro_tipo" class="form-select">
@@ -93,7 +93,7 @@
                             <td class="text-muted small">{{ $mov->id }}</td>
                             <td>
                                 <strong>{{ $mov->dispositivo->nombre ?? 'N/A' }}</strong><br>
-                                <small class="text-muted">{{ $mov->dispositivo->marca->nombre ?? '' }} · {{ $mov->dispositivo->codigo ?? '' }}</small>
+                                <small class="text-muted">{{ $mov->dispositivo->marca->nombre ?? '' }} · {{ $mov->dispositivo->bien_nacional ?? '' }}</small>
                             </td>
                             <td>
                                 @php

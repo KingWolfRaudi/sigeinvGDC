@@ -29,7 +29,7 @@ class DispositivosExport implements FromCollection, WithHeadings, WithMapping, W
         if (!empty($this->filters['search'])) {
             $search = $this->filters['search'];
             $query->where(function($q) use ($search) {
-                $q->where('codigo', 'like', "%$search%")
+                $q->where('bien_nacional', 'like', "%$search%")
                   ->orWhere('serial', 'like', "%$search%")
                   ->orWhere('nombre', 'like', "%$search%")
                   ->orWhere('ip', 'like', "%$search%")
@@ -53,7 +53,7 @@ class DispositivosExport implements FromCollection, WithHeadings, WithMapping, W
     {
         return [
             'ID',
-            'Código Interno',
+            'Bien Nacional',
             'Serial / S/N',
             'Dispositivo (Modelo)',
             'Marca',
@@ -79,7 +79,7 @@ class DispositivosExport implements FromCollection, WithHeadings, WithMapping, W
 
         return [
             $item->id,
-            $item->codigo ?? 'N/A',
+            $item->bien_nacional ?? 'N/A',
             $item->serial ?? 'N/A',
             $item->nombre,
             $item->marca->nombre ?? 'N/A',

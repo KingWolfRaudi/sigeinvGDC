@@ -447,6 +447,7 @@
                     @endif
                 </div>
                 <div class="modal-footer bg-light d-flex justify-content-between">
+                    @if($insumo_detalle)
                         @can('ver-insumos')
                         <div>
                             <a href="{{ route('asociaciones', ['tipo' => 'insumo', 'id' => $insumo_detalle->id]) }}" class="btn btn-outline-primary shadow-sm me-2">

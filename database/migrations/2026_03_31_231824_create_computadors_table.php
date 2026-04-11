@@ -11,9 +11,9 @@ return new class extends Migration
         Schema::create('computadores', function (Blueprint $table) {
             $table->id();
             
-            // Identificadores (Únicos pero aceptan NULL si se dejan en blanco)
-            $table->string('bien_nacional')->nullable()->unique();
-            $table->string('serial')->nullable()->unique();
+            // Identificadores (Únicos y obligatorios)
+            $table->string('bien_nacional')->unique();
+            $table->string('serial')->unique();
             $table->string('nombre_equipo', 15); // Campo obligatorio, máx 15 chars
             
             // Relaciones Foráneas (con restrict según V2.5)

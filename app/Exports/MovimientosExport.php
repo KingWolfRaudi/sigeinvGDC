@@ -73,7 +73,7 @@ class MovimientosExport implements FromCollection, WithHeadings, WithMapping, Wi
         $base = class_basename($this->modelClass);
         $referencia = 'Desconocido';
         if ($base === 'MovimientoComputador') $referencia = 'PC BN: ' . ($item->computador->bien_nacional ?? 'N/A');
-        if ($base === 'MovimientoDispositivo') $referencia = 'DISP CÓD: ' . ($item->dispositivo->codigo ?? 'N/A');
+        if ($base === 'MovimientoDispositivo') $referencia = 'DISP BN: ' . ($item->dispositivo->bien_nacional ?? 'N/A');
         if ($base === 'MovimientoInsumo') $referencia = 'INS BN: ' . ($item->insumo->bien_nacional ?? 'N/A');
 
         // Formatear cambios

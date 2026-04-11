@@ -25,7 +25,7 @@ class Dispositivo extends Model
     protected $table = 'dispositivos';
 
     protected $fillable = [
-        'codigo',
+        'bien_nacional',
         'serial',
         'tipo_dispositivo_id',
         'marca_id',

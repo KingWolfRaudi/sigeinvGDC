@@ -98,7 +98,7 @@ class Trabajadores extends Component
                      ->orWhere('serial', 'like', $search);
             })
             ->orWhereHas('dispositivos', function ($subQ) use ($search) {
-                $subQ->where('codigo', 'like', $search)
+                $subQ->where('bien_nacional', 'like', $search)
                      ->orWhere('serial', 'like', $search);
             });
         });

@@ -5,23 +5,33 @@
             <h3 class="mb-1"><i class="bi bi-arrow-left-right me-2"></i>Movimientos de Computadores</h3>
             <p class="text-muted small mb-0">Historial de cambios, bajas y actualizaciones de equipos.</p>
         </div>
-        <div class="col-md-3 text-end">
-            <div class="dropdown">
-                <button class="btn btn-outline-success border-2 fw-bold w-100 dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
-                    <i class="bi bi-file-earmark-excel me-1"></i> Excel
+        <div class="col-md-5 text-end">
+            <div class="d-flex gap-2 justify-content-end">
+                @can('reportes-excel')
+                <div class="dropdown">
+                    <button class="btn btn-outline-success border-2 fw-bold dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                    </button>
+                    <ul class="dropdown-menu shadow border-0">
+                        <li>
+                            <a class="dropdown-item py-2" href="{{ route('reportes.movimientos.excel', ['segmento' => 'computadores', 'search' => $search, 'tipo_operacion' => $filtro_tipo]) }}">
+                                <i class="bi bi-filter me-2 text-success"></i> Vista Actual (Filtrado)
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-2" href="{{ route('reportes.movimientos.excel', ['segmento' => 'computadores']) }}">
+                                <i class="bi bi-list-check me-2 text-primary"></i> Todo el Historial
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                @endcan
+
+                @can('movimientos-computadores-crear')
+                <button wire:click="abrirGenerador" class="btn btn-primary fw-bold shadow-sm">
+                    <i class="bi bi-plus-circle me-1"></i> Nuevo Movimiento
                 </button>
-                <ul class="dropdown-menu shadow border-0">
-                    <li>
-                        <a class="dropdown-item py-2" href="{{ route('reportes.movimientos.excel', ['segmento' => 'computadores', 'search' => $search, 'tipo_operacion' => $filtro_tipo]) }}">
-                            <i class="bi bi-filter me-2 text-success"></i> Vista Actual (Filtrado)
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item py-2" href="{{ route('reportes.movimientos.excel', ['segmento' => 'computadores']) }}">
-                            <i class="bi bi-list-check me-2 text-primary"></i> Todo el Historial
-                        </a>
-                    </li>
-                </ul>
+                @endcan
             </div>
         </div>
         <div class="col-md-12 mt-3">
@@ -322,4 +332,156 @@
         </div>
     </div>
 
+    {{-- ── MODAL: GENERADOR DE MOVIMIENTO (NUEVO ESTÁNDAR) ── --}}
+    <div wire:ignore.self class="modal fade" id="modalGenerador" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-plus-circle me-2"></i>Generar Nuevo Movimiento
+                        @if($paso_generador == 2) <small class="text-white-50 ms-2">| Editando Datos</small> @endif
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body p-0">
+                    {{-- Indicador de Pasos --}}
+                    <div class="bg-light p-3 border-bottom d-flex justify-content-center gap-4">
+                        <div class="d-flex align-items-center {{ $paso_generador == 1 ? 'text-primary fw-bold' : 'text-muted' }}">
+                            <span class="badge {{ $paso_generador == 1 ? 'bg-primary' : 'bg-secondary' }} me-2">1</span> Selección
+                        </div>
+                        <i class="bi bi-chevron-right text-muted"></i>
+                        <div class="d-flex align-items-center {{ $paso_generador == 2 ? 'text-primary fw-bold' : 'text-muted' }}">
+                            <span class="badge {{ $paso_generador == 2 ? 'bg-primary' : 'bg-secondary' }} me-2">2</span> Configuración
+                        </div>
+                    </div>
+
+                    @if($paso_generador == 1)
+                        {{-- PASO 1: SELECCIÓN --}}
+                        <div class="p-4">
+                            <div class="alert alert-info py-2 small mb-4">
+                                <i class="bi bi-info-circle me-2"></i>Filtra y selecciona el computador al que deseas aplicar un cambio.
+                            </div>
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold">Bien Nacional</label>
+                                    <input type="text" wire:model.live.debounce.300ms="searchBN" class="form-control form-control-sm" placeholder="Buscar BN...">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold">Serial</label>
+                                    <input type="text" wire:model.live.debounce.300ms="searchSerial" class="form-control form-control-sm" placeholder="Buscar Serial...">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold">Departamento</label>
+                                    <select wire:model.live="searchDpto" class="form-select form-select-sm">
+                                        <option value="">Todos los Dptos...</option>
+                                        @foreach(\App\Models\Departamento::where('activo',true)->orderBy('nombre')->get() as $d)
+                                            <option value="{{ $d->id }}">{{ $d->nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold">Trabajador</label>
+                                    <select wire:model.live="searchTrabajador" class="form-select form-select-sm">
+                                        <option value="">Todos los Trabajadores...</option>
+                                        @foreach(\App\Models\Trabajador::where('activo',true)->orderBy('nombres')->get() as $t)
+                                            <option value="{{ $t->id }}">{{ $t->nombres }} {{ $t->apellidos }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive border rounded bg-white shadow-sm" style="max-height: 400px;">
+                                <table class="table table-sm table-hover align-middle mb-0">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th>Equipo</th>
+                                            <th>Identificadores</th>
+                                            <th>Ubicación</th>
+                                            <th>Estado/Pendientes</th>
+                                            <th class="text-end">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($equipos as $e)
+                                            <tr>
+                                                <td>
+                                                    <span class="fw-bold">{{ $e->nombre_equipo }}</span><br>
+                                                    <small class="text-muted">{{ $e->marca->nombre ?? 'Sin Marca' }}</small>
+                                                </td>
+                                                <td>
+                                                    <code class="text-primary small">BN: {{ $e->bien_nacional }}</code><br>
+                                                    <code class="text-secondary small">SN: {{ $e->serial }}</code>
+                                                </td>
+                                                <td>
+                                                    <small>{{ $e->departamento->nombre ?? 'Sin Dpto' }}</small><br>
+                                                    <small class="text-muted">{{ $e->trabajador->nombres ?? '' }} {{ $e->trabajador->apellidos ?? '' }}</small>
+                                                </td>
+                                                <td>
+                                                    @if($e->pendientes_count > 0)
+                                                        <span class="badge bg-warning text-dark animate__animated animate__pulse animate__infinite">
+                                                            <i class="bi bi-exclamation-triangle me-1"></i> {{ $e->pendientes_count }} Pendiente(s)
+                                                        </span>
+                                                    @else
+                                                        <span class="badge bg-success-subtle text-success">Limpio</span>
+                                                    @endif
+                                                </td>
+                                                <td class="text-end">
+                                                    <button wire:click="seleccionarEquipo({{ $e->id }})" class="btn btn-sm btn-outline-primary px-3">
+                                                        Seleccionar <i class="bi bi-chevron-right ms-1"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="5" class="text-center py-5 text-muted italic">
+                                                    <i class="bi bi-search d-block fs-3 mb-2"></i>
+                                                    Usa los filtros para encontrar un equipo
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    @else
+                        {{-- PASO 2: CONFIGURACIÓN --}}
+                        <div class="p-4 bg-white">
+                            <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+                                <div>
+                                    <h5 class="mb-0 text-dark">{{ $nombre_equipo }} - <span class="text-muted small">{{ $bien_nacional }}</span></h5>
+                                    <p class="text-muted small mb-0">Configura los cambios que deseas proponer para este equipo.</p>
+                                </div>
+                                <button wire:click="$set('paso_generador', 1)" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-arrow-left me-1"></i> Cambiar Equipo
+                                </button>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-9 border-end">
+                                    {{-- Reutilización del formulario partial --}}
+                                    @include('livewire.inventario.partials._form_fields')
+                                </div>
+                                <div class="col-md-3 bg-light p-3">
+                                    <label class="form-label fw-bold text-danger">Justificación del Cambio <span class="text-danger">*</span></label>
+                                    <textarea wire:model="justificacion" class="form-control mb-3" rows="8" 
+                                        placeholder="Describe el motivo de este movimiento (Reparación, cambio de usuario, actualización disco, etc.)"></textarea>
+                                    @error('justificacion') <span class="text-danger small d-block mb-3">{{ $message }}</span> @enderror
+                                    
+                                    <div class="alert alert-warning small py-2">
+                                        <i class="bi bi-shield-lock me-1"></i> Este cambio se guardará como <strong>Borrador</strong> y deberá ser enviado a revisión.
+                                    </div>
+                                    
+                                    <button wire:click="guardarNuevoMovimiento" class="btn btn-success w-100 fw-bold py-2 mt-2">
+                                        <i class="bi bi-save me-2"></i> Crear Borrador
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

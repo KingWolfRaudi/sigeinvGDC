@@ -100,7 +100,7 @@ class InventarioSeeder extends Seeder
 
         // 2. Crear Dispositivos Semilla
         $disp1 = Dispositivo::create([
-            'codigo' => 'DISP-IMP-001',
+            'bien_nacional' => 'BN-DISP-0001',
             'serial' => 'EPS-L4260-X1',
             'tipo_dispositivo_id' => $tipoImpresora,
             'marca_id' => $marcaEpson,
@@ -119,7 +119,7 @@ class InventarioSeeder extends Seeder
         }
 
         $disp2 = Dispositivo::create([
-            'codigo' => 'DISP-RTR-002',
+            'bien_nacional' => 'BN-DISP-0002',
             'serial' => 'CISCO-RV340',
             'tipo_dispositivo_id' => $tipoRouter,
             'marca_id' => $marcaCisco,

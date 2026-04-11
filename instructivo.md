@@ -42,10 +42,15 @@ El inventario se divide en tres grandes categorías con lógica diferenciada:
     - *Lógica de Medida:* El sistema valida el stock según la unidad. Unidades como "Metros" o "Litros" permiten decimales (Double), mientras que "Piezas", "Unidades" o "Cajas" se fuerzan estrictamente a **Enteros** en backend y frontend.
 
 ### 3.2. Gestión de Movimientos (Ciclo de Vida)
-El sistema rastrea cada cambio de custodia de un activo mediante:
-- **Tipos de Movimiento:** Asignación, Préstamo, Devolución, Reparación, Baja.
-- **Workflow de Aprobación:** Algunos movimientos requieren ser "Enviados" para aprobación administrativa antes de "Ejecutarse".
-- **Trazabilidad:** Cada activo mantiene un historial (HasMany) de todos sus movimientos pasados.
+El sistema rastrea cada cambio de custodia de un activo mediante un flujo estandarizado:
+- **Tipos de Movimiento:** Asignación, Préstamo, Devolución, Reparación, Baja, Actualización.
+- **Generador Estándar (Flujo Multietapa):** Implementado en los paneles de cada segmento para centralizar la creación.
+    - **Etapa 1: Filtrado y Selección:** Buscador reactivo 2x2 (Bien Nacional, Serial, Departamento, Trabajador) con tabla de pre-selección.
+    - **Etapa 2: Configuración de Cambios (Diff Engine):**
+        - El sistema compara el estado actual contra el propuesto en el formulario (usando `Partial _form_fields`).
+        - Solo se almacenan en la columna `cambios` (JSON) los atributos que efectivamente fueron modificados.
+    - **Etapa 3: Justificación y Borrador:** Todo movimiento se guarda inicialmente como un **Borrador**, permitiendo correcciones antes de ser enviado a revisión.
+- **Trazabilidad:** Cada activo mantiene un historial (`HasMany`) de todos sus movimientos pasados.
 
 ### 3.3. Panel de Soporte (Incidencias)
 Sistema de ticketera interno para reporte de fallas.
@@ -102,6 +107,11 @@ Se implementó un **Panel de Configuración General** unificado que reemplaza aj
     - *Pestaña 1 (Humano/Espacial):* Trabajador y Departamento (Responsable y Ubicación).
     - *Pestaña 2 (Hardware/Técnico):* Equipos vinculados (Computadores o Dispositivos).
     - *Pestañas Siguientes:* Insumos e Incidencias.
+
+- **Estándar de Botones en Paneles:** Para mantener la consistencia en todos los módulos de movimientos y gestión:
+    - **Orden:** Los botones de exportación (Excel/Reportes) deben ubicarse a la izquierda del botón de acción principal (Nuevo/Registrar/Crear).
+    - **Estilo:** Excel (`btn-outline-success border-2 fw-bold`), Acción Principal (`btn-primary fw-bold`).
+    - **Seguridad:** Los botones de acción principal en paneles de movimientos deben estar estrictamente encapsulados en directivas `@can` con el sufijo `-crear` (ej. `movimientos-[segmento]-crear`).
 
 ---
 

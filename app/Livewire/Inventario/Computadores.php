@@ -249,8 +249,8 @@ class Computadores extends Component
 
         // Validación base
         $rules = [
-            'bien_nacional' => 'nullable|string|unique:computadores,bien_nacional,' . $this->computador_id,
-            'serial'        => 'nullable|string|unique:computadores,serial,' . $this->computador_id,
+            'bien_nacional' => 'required|string|unique:computadores,bien_nacional,' . $this->computador_id,
+            'serial'        => 'required|string|unique:computadores,serial,' . $this->computador_id,
             'nombre_equipo' => 'required|string|max:15',
             'tipo_computador' => 'required|string|in:Computador de escritorio,Laptop,Mini Laptop',
             'ip'            => 'nullable|ipv4',
