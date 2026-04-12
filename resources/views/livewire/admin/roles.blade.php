@@ -1,13 +1,35 @@
 <div>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="mb-0"><i class="bi bi-shield-lock me-2"></i>Gestión de Roles</h3>
-        <button wire:click="crear" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-1"></i> Nuevo Rol
-        </button>
+    <!-- Header Especial -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-12 d-flex align-items-center">
+            <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3 text-primary border shadow-sm">
+                <i class="bi bi-shield-lock fs-3"></i>
+            </div>
+            <div>
+                <h2 class="fw-bold mb-0 text-dark">Gestión de Roles</h2>
+                <p class="text-muted mb-0">Administración de perfiles de acceso, permisos y seguridad del sistema.</p>
+            </div>
+        </div>
     </div>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body">
+    <!-- Card de Acciones -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <div class="row justify-content-end align-items-center">
+                <div class="col-md-3 text-end">
+                    @can('crear-roles')
+                        <button wire:click="crear" class="btn btn-primary shadow-sm fw-bold w-100 py-2">
+                            <i class="bi bi-plus-lg me-1"></i> Nuevo Rol
+                        </button>
+                    @endcan
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor Principal (Tabla) -->
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+        <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">

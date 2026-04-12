@@ -1,57 +1,64 @@
 <div>
+    <!-- Header Especial -->
+    @if(!isset($ocultarTitulos) || !$ocultarTitulos)
     <div class="row mb-4 align-items-center">
-        <div class="col-md-4">
-            <h3 class="mb-0"><i class="bi bi-disc me-2"></i>Software</h3>
-        </div>
-        <div class="col-md-5">
-            <div class="input-group">
-                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar por nombre, licencia, serial...">
+        <div class="col-12 d-flex align-items-center">
+            <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3 text-primary border shadow-sm">
+                <i class="bi bi-disc fs-3"></i>
+            </div>
+            <div>
+                <h2 class="fw-bold mb-0 text-dark">Catálogo de Software</h2>
+                <p class="text-muted mb-0">Gestión de licencias, versiones y programas informáticos autorizados.</p>
             </div>
         </div>
-        <div class="col-md-3 text-end d-flex gap-2">
-            @can('reportes-excel')
-            <div class="dropdown w-100">
-                <button class="btn btn-outline-success border-2 fw-bold w-100 dropdown-toggle shadow-sm py-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-file-earmark-excel me-1"></i> Excel
-                </button>
-                <ul class="dropdown-menu shadow border-0">
-                    <li>
-                        <a class="dropdown-item py-2" href="{{ route('reportes.inventario.software.excel', ['search' => $search, 'estado' => $filtro_estado]) }}">
-                            <i class="bi bi-filter me-2 text-success"></i> Vista Actual (Filtrado)
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item py-2" href="{{ route('reportes.inventario.software.excel') }}">
-                            <i class="bi bi-list-check me-2 text-primary"></i> Todo el Inventario
-                        </a>
-                    </li>
-                </ul>
+    </div>
+    @endif
+
+    <!-- Card de Búsqueda y Acciones -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <div class="row g-3 justify-content-between align-items-center">
+                <div class="col-md-5">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar por nombre, licencia, serial...">
+                    </div>
+                </div>
+                
+                @can('ver-estado-software')
+                <div class="col-md-3">
+                    <select class="form-select shadow-sm" wire:model.live="filtro_estado">
+                        <option value="todos">Mostrar Todos</option>
+                        <option value="activos">Solo Activos</option>
+                        <option value="inactivos">Solo Inactivos</option>
+                    </select>
+                </div>
+                @endcan
+
+                <div class="col-md-4 text-end d-flex gap-2 justify-content-end">
+                    @can('reportes-excel')
+                    <div class="dropdown">
+                        <button class="btn btn-outline-success border-2 fw-bold dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                        </button>
+                        <ul class="dropdown-menu shadow border-0">
+                            <li><a class="dropdown-item py-2" href="{{ route('reportes.inventario.software.excel', ['search' => $search, 'estado' => $filtro_estado]) }}"><i class="bi bi-filter me-2 text-success"></i> Vista Actual</a></li>
+                            <li><a class="dropdown-item py-2" href="{{ route('reportes.inventario.software.excel') }}"><i class="bi bi-list-check me-2 text-primary"></i> Todo el Inventario</a></li>
+                        </ul>
+                    </div>
+                    @endcan
+                    @can('crear-software')
+                        <button wire:click="crear" class="btn btn-primary shadow-sm fw-bold px-4">
+                            <i class="bi bi-plus-lg me-1"></i> Nuevo
+                        </button>
+                    @endcan
+                </div>
             </div>
-            @endcan
-            @can('crear-software')
-                <button wire:click="crear" class="btn btn-primary w-100 shadow-sm py-2 fw-bold">
-                    <i class="bi bi-plus-lg me-1"></i> Nuevo
-                </button>
-            @endcan
         </div>
     </div>
 
-    @can('ver-estado-software')
-    <!-- Filtro Estatus -->
-    <div class="row mb-3">
-        <div class="col-md-3">
-            <select class="form-select shadow-sm" wire:model.live="filtro_estado">
-                <option value="todos">Todos los Estados</option>
-                <option value="activos">Solo Activos</option>
-                <option value="inactivos">Solo Inactivos</option>
-            </select>
-        </div>
-    </div>
-    @endcan
-
-    <!-- Tabla -->
-    <div class="card shadow-sm border-0 overflow-hidden">
+    <!-- Contenedor Principal (Tabla) -->
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-dark text-white">

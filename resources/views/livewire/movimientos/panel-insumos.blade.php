@@ -1,44 +1,30 @@
 <div>
+    <!-- Header Especial -->
     <div class="row mb-4 align-items-center">
-        <div class="col-md-5">
-            <h3 class="mb-1"><i class="bi bi-arrow-left-right me-2"></i>Movimientos de Insumos</h3>
-            <p class="text-muted small mb-0">Entradas, salidas, préstamos y actualizaciones del almacén.</p>
-        </div>
-        <div class="col-md-7 text-end d-flex justify-content-end gap-2">
-            @can('reportes-excel')
-            <div class="dropdown">
-                <button class="btn btn-outline-success border-2 fw-bold dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
-                    <i class="bi bi-file-earmark-excel me-1"></i> Excel
-                </button>
-                <ul class="dropdown-menu shadow border-0">
-                    <li>
-                        <a class="dropdown-item py-2" href="{{ route('reportes.movimientos.excel', ['segmento' => 'insumos', 'search' => $search, 'tipo_operacion' => $filtro_tipo]) }}">
-                            <i class="bi bi-filter me-2 text-success"></i> Vista Actual (Filtrado)
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item py-2" href="{{ route('reportes.movimientos.excel', ['segmento' => 'insumos']) }}">
-                            <i class="bi bi-list-check me-2 text-primary"></i> Todo el Historial
-                        </a>
-                    </li>
-                </ul>
+        <div class="col-12 d-flex align-items-center">
+            <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3 text-primary border shadow-sm">
+                <i class="bi bi-arrow-left-right fs-3"></i>
             </div>
-            @endcan
-
-            @can('movimientos-insumos-crear')
-            <button wire:click="abrirGenerador" class="btn btn-primary shadow-sm fw-bold">
-                <i class="bi bi-plus-circle me-1"></i> Nuevo Movimiento
-            </button>
-            @endcan
+            <div>
+                <h2 class="fw-bold mb-0 text-dark">Movimientos de Insumos</h2>
+                <p class="text-muted mb-0">Entradas, salidas, préstamos y actualizaciones del almacén.</p>
+            </div>
         </div>
-        <div class="col-md-12 mt-3">
-            <div class="row g-2">
-                <div class="col-md-9">
-                    <input type="text" wire:model.live.debounce.300ms="search" class="form-control"
-                        placeholder="Buscar por nombre, Bien Nacional, serial o justificación...">
+    </div>
+
+    <!-- Card de Búsqueda y Acciones -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar por nombre, Bien Nacional, serial o justificación...">
+                    </div>
                 </div>
+                
                 <div class="col-md-3">
-                    <select wire:model.live="filtro_tipo" class="form-select">
+                    <select wire:model.live="filtro_tipo" class="form-select shadow-sm">
                         <option value="">Todos los tipos</option>
                         <option value="entrada_stock">Entrada de Stock</option>
                         <option value="salida_consumo">Salida de Insumo</option>
@@ -48,6 +34,25 @@
                         <option value="toggle_activo">Cambio de Estado</option>
                         <option value="baja">Baja</option>
                     </select>
+                </div>
+
+                <div class="col-md-4 text-end d-flex gap-2 justify-content-end">
+                    @can('reportes-excel')
+                    <div class="dropdown">
+                        <button class="btn btn-outline-success border-2 fw-bold dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                        </button>
+                        <ul class="dropdown-menu shadow border-0">
+                            <li><a class="dropdown-item py-2" href="{{ route('reportes.movimientos.excel', ['segmento' => 'insumos', 'search' => $search, 'tipo_operacion' => $filtro_tipo]) }}"><i class="bi bi-filter me-2 text-success"></i> Vista Actual</a></li>
+                            <li><a class="dropdown-item py-2" href="{{ route('reportes.movimientos.excel', ['segmento' => 'insumos']) }}"><i class="bi bi-list-check me-2 text-primary"></i> Todo el Historial</a></li>
+                        </ul>
+                    </div>
+                    @endcan
+                    @can('movimientos-insumos-crear')
+                        <button wire:click="abrirGenerador" class="btn btn-primary shadow-sm fw-bold px-4">
+                            <i class="bi bi-plus-lg me-1"></i> Nuevo Movimiento
+                        </button>
+                    @endcan
                 </div>
             </div>
         </div>

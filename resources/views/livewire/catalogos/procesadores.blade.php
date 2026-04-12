@@ -1,55 +1,67 @@
 <div>
+    <!-- Header Especial -->
+    @if(!isset($ocultarTitulos) || !$ocultarTitulos)
     <div class="row mb-4 align-items-center">
-        <div class="col-md-5">
-            <h3 class="mb-0"><i class="bi bi-cpu me-2"></i>Catálogo de Procesadores</h3>
-        </div>
-        <div class="col-md-4">
-            <div class="input-group">
-                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar por modelo o marca...">
+        <div class="col-12 d-flex align-items-center">
+            <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3 text-primary border shadow-sm">
+                <i class="bi bi-cpu fs-3"></i>
+            </div>
+            <div>
+                <h2 class="fw-bold mb-0 text-dark">Catálogo de Procesadores</h2>
+                <p class="text-muted mb-0">Gestión de unidades centrales de procesamiento (CPU) para estaciones y servidores.</p>
             </div>
         </div>
-        <div class="col-md-3 text-end d-flex gap-2">
-            @can('reportes-excel')
-            <div class="dropdown w-100">
-                <button class="btn btn-outline-success border-2 fw-bold w-100 dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
-                    <i class="bi bi-file-earmark-excel me-1"></i> Excel
-                </button>
-                <ul class="dropdown-menu shadow border-0">
-                    <li>
-                        <a class="dropdown-item py-2" href="{{ route('reportes.catalogo.excel', ['tipo' => 'procesadores', 'search' => $search, 'estado' => $filtro_estado]) }}">
-                            <i class="bi bi-filter me-2 text-success"></i> Vista Actual
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item py-2" href="{{ route('reportes.catalogo.excel', ['tipo' => 'procesadores']) }}">
-                            <i class="bi bi-list-check me-2 text-primary"></i> Todo el Catálogo
-                        </a>
-                    </li>
-                </ul>
+    </div>
+    @endif
+
+    <!-- Card de Búsqueda y Acciones -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <div class="row g-3 justify-content-between align-items-center">
+                <div class="col-md-5">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar por modelo o marca...">
+                    </div>
+                </div>
+                
+                @can('ver-estado-procesadores')
+                <div class="col-md-3">
+                    <select class="form-select shadow-sm" wire:model.live="filtro_estado">
+                        <option value="todos">Mostrar Todos</option>
+                        <option value="activos">Solo Activos</option>
+                        <option value="inactivos">Solo Inactivos (Bajas)</option>
+                    </select>
+                </div>
+                @endcan
+
+                <div class="col-md-4 text-end d-flex gap-2 justify-content-end">
+                    @can('reportes-excel')
+                    <div class="dropdown">
+                        <button class="btn btn-outline-success border-2 fw-bold dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                        </button>
+                        <ul class="dropdown-menu shadow border-0">
+                            <li><a class="dropdown-item py-2" href="{{ route('reportes.catalogo.excel', ['tipo' => 'procesadores', 'search' => $search, 'estado' => $filtro_estado]) }}"><i class="bi bi-filter me-2 text-success"></i> Vista Actual</a></li>
+                            <li><a class="dropdown-item py-2" href="{{ route('reportes.catalogo.excel', ['tipo' => 'procesadores']) }}"><i class="bi bi-list-check me-2 text-primary"></i> Todo el Catálogo</a></li>
+                        </ul>
+                    </div>
+                    @endcan
+                    @can('crear-procesadores')
+                        <button wire:click="crear" class="btn btn-primary shadow-sm fw-bold px-4">
+                            <i class="bi bi-plus-lg me-1"></i> Nuevo
+                        </button>
+                    @endcan
+                </div>
             </div>
-            @endcan
-            @can('crear-procesadores')
-                <button wire:click="crear" class="btn btn-primary w-100 shadow-sm fw-bold border-2">
-                    <i class="bi bi-plus-circle me-1"></i> Nuevo
-                </button>
-            @endcan
         </div>
     </div>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body">
-            @can('ver-estado-procesadores')
-                <div class="col-md-3">
-                    <select class="form-select" wire:model.live="filtro_estado">
-                        <option value="todos">Todos los Estados</option>
-                        <option value="activos">Solo Activos</option>
-                        <option value="inactivos">Solo Inactivos</option>
-                    </select>
-                </div>
-            @endcan
+    <!-- Contenedor Principal (Tabla) -->
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
                             <th class="th-id" wire:click="sortBy('marca_id')" style="cursor: pointer;">Marca @if($sortField === 'marca_id') <i class="bi bi-sort-down ms-1"></i> @endif</th>

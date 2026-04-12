@@ -1,35 +1,52 @@
 <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="mb-0"><i class="bi bi-person-gear me-2"></i>Solicitudes de Cambio de Perfil</h3>
-    </div>
-
-    <!-- Filtros -->
-    <div class="card shadow-sm border-0 mb-4 px-3 py-3 bg-light">
-        <div class="row g-3">
-            <div class="col-md-5">
-                <input type="text" class="form-control shadow-sm" placeholder="Buscar por nombre o usuario..." wire:model.live="search">
+    <!-- Header Especial -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-12 d-flex align-items-center">
+            <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3 text-primary border shadow-sm">
+                <i class="bi bi-person-gear fs-3"></i>
             </div>
-            <div class="col-md-3">
-                <select class="form-select shadow-sm" wire:model.live="filtro_estado">
-                    <option value="todos">Todas las solicitudes</option>
-                    <option value="pendiente">Solo Pendientes</option>
-                    <option value="aprobado">Solo Aprobados</option>
-                    <option value="rechazado">Solo Rechazados</option>
-                </select>
-            </div>
-            <div class="col-md-4 text-end d-flex align-items-end justify-content-end gap-2">
-                <button wire:click="exportExcel" class="btn btn-outline-success shadow-sm">
-                    <i class="bi bi-file-earmark-excel me-1"></i> Excel
-                </button>
-                <button wire:click="exportPDF" class="btn btn-outline-danger shadow-sm">
-                    <i class="bi bi-file-earmark-pdf me-1"></i> PDF
-                </button>
+            <div>
+                <h2 class="fw-bold mb-0 text-dark">Solicitudes de Cambio de Perfil</h2>
+                <p class="text-muted mb-0">Gestión de requerimientos para actualización de datos y perfiles de usuario.</p>
             </div>
         </div>
     </div>
 
-    <!-- Listado de Solicitudes -->
-    <div class="card shadow-sm border-0 overflow-hidden">
+    <!-- Card de Búsqueda y Acciones -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <div class="row g-3 justify-content-between align-items-center">
+                <div class="col-md-5">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control border-start-0 ps-0" placeholder="Buscar por nombre o usuario..." wire:model.live="search">
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <select class="form-select shadow-sm" wire:model.live="filtro_estado">
+                        <option value="todos">Todas las solicitudes</option>
+                        <option value="pendiente">Solo Pendientes</option>
+                        <option value="aprobado">Solo Aprobados</option>
+                        <option value="rechazado">Solo Rechazados</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4 text-end d-flex gap-2 justify-content-end">
+                    <button wire:click="exportExcel" class="btn btn-outline-success border-2 fw-bold shadow-sm">
+                        <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                    </button>
+                    <button wire:click="exportPDF" class="btn btn-outline-danger border-2 fw-bold shadow-sm">
+                        <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor Principal (Tabla) -->
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+        <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-dark text-white">

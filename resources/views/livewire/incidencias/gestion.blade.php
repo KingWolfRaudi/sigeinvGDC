@@ -1,62 +1,70 @@
 <div>
+    <!-- Header Especial -->
     @if(!$ocultarTitulos)
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="mb-0 text-secondary"><i class="bi bi-list-task me-2"></i>Gestión de Incidencias</h3>
-        <div class="d-flex gap-2">
-            <div class="dropdown">
-                <button class="btn btn-outline-success border-2 fw-bold dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
-                    <i class="bi bi-file-earmark-excel me-1"></i> Excel
-                </button>
-                <ul class="dropdown-menu shadow border-0">
-                    <li>
-                        <a class="dropdown-item py-2" href="{{ route('reportes.incidencias.excel', ['search' => $search, 'departamento_id' => $filtro_departamento, 'estado' => $filtro_estado]) }}">
-                            <i class="bi bi-filter me-2 text-success"></i> Vista Actual (Filtrado)
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item py-2" href="{{ route('reportes.incidencias.excel') }}">
-                            <i class="bi bi-list-check me-2 text-primary"></i> Todo el Historial
-                        </a>
-                    </li>
-                </ul>
+    <div class="row mb-4 align-items-center">
+        <div class="col-12 d-flex align-items-center">
+            <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3 text-primary border shadow-sm">
+                <i class="bi bi-list-task fs-3"></i>
             </div>
-            <button type="button" class="btn btn-primary px-4 shadow-sm fw-bold border-2" wire:click="resetForm" data-bs-toggle="modal" data-bs-target="#modalIncidencia">
-                <i class="bi bi-plus-circle me-1"></i> Nueva
-            </button>
+            <div>
+                <h2 class="fw-bold mb-0 text-dark">Gestión de Incidencias</h2>
+                <p class="text-muted mb-0">Seguimiento de problemas técnicos, soporte a usuarios y mantenimiento de activos.</p>
+            </div>
         </div>
     </div>
     @endif
 
-    <!-- Filtros -->
-    <div class="card shadow-sm border-0 mb-4 px-3 py-3 bg-light">
-        <div class="row g-3 align-items-center">
-            <div class="col-md-4">
-                <div class="input-group shadow-sm">
-                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                    <input type="text" class="form-control border-start-0 ps-0" placeholder="Buscar por descripción o trabajador..." wire:model.live.debounce.300ms="search">
+    <!-- Card de Búsqueda y Acciones -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <div class="row g-3 justify-content-between align-items-center">
+                <div class="col-md-4">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control border-start-0 ps-0" placeholder="Buscar por descripción o trabajador..." wire:model.live.debounce.300ms="search">
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <select class="form-select shadow-sm" wire:model.live="filtro_departamento">
-                    <option value="">Todos los Departamentos</option>
-                    @foreach($departamentos as $depto)
-                        <option value="{{ $depto->id }}">{{ $depto->nombre }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-3">
-                <select class="form-select shadow-sm" wire:model.live="filtro_estado">
-                    <option value="">Todos los Estados</option>
-                    <option value="abierto">Abiertos</option>
-                    <option value="solventado">Solventados</option>
-                    <option value="cerrado">Cerrados</option>
-                </select>
+                
+                <div class="col-md-2">
+                    <select class="form-select shadow-sm" wire:model.live="filtro_departamento">
+                        <option value="">Departamentos</option>
+                        @foreach($departamentos as $depto)
+                            <option value="{{ $depto->id }}">{{ $depto->nombre }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <select class="form-select shadow-sm" wire:model.live="filtro_estado">
+                        <option value="">Todos los Estados</option>
+                        <option value="abierto">Abiertos</option>
+                        <option value="solventado">Solventados</option>
+                        <option value="cerrado">Cerrados</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4 text-end d-flex gap-2 justify-content-end">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-success border-2 fw-bold dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                        </button>
+                        <ul class="dropdown-menu shadow border-0">
+                            <li><a class="dropdown-item py-2" href="{{ route('reportes.incidencias.excel', ['search' => $search, 'departamento_id' => $filtro_departamento, 'estado' => $filtro_estado]) }}"><i class="bi bi-filter me-2 text-success"></i> Vista Actual</a></li>
+                            <li><a class="dropdown-item py-2" href="{{ route('reportes.incidencias.excel') }}"><i class="bi bi-list-check me-2 text-primary"></i> Todo el Historial</a></li>
+                        </ul>
+                    </div>
+                    @can('crear-incidencias') {{-- Assuming this permission exists based on context --}}
+                    <button type="button" class="btn btn-primary shadow-sm fw-bold px-4" wire:click="resetForm" data-bs-toggle="modal" data-bs-target="#modalIncidencia">
+                        <i class="bi bi-plus-lg me-1"></i> Nueva
+                    </button>
+                    @endcan
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Listado -->
-    <div class="card shadow-sm border-0 animated fadeIn animate__faster">
+    <!-- Contenedor Principal (Tabla) -->
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">

@@ -1,56 +1,66 @@
 <div>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="mb-0"><i class="bi bi-people-fill me-2"></i>Gestión de Usuarios</h3>
-        <div class="d-flex gap-2">
-            <div class="dropdown">
-                <button class="btn btn-outline-success border-2 fw-bold dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
-                    <i class="bi bi-file-earmark-excel me-1"></i> Excel
-                </button>
-                <ul class="dropdown-menu shadow border-0">
-                    <li>
-                        <a class="dropdown-item py-2" href="{{ route('reportes.usuarios.excel', ['search' => $search, 'estado' => $filtro_estado]) }}">
-                            <i class="bi bi-filter me-2 text-success"></i> Vista Actual (Filtrado)
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item py-2" href="{{ route('reportes.usuarios.excel') }}">
-                            <i class="bi bi-list-check me-2 text-primary"></i> Todo el Directorio
-                        </a>
-                    </li>
-                </ul>
+    <!-- Header Especial -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-12 d-flex align-items-center">
+            <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3 text-primary border shadow-sm">
+                <i class="bi bi-people-fill fs-3"></i>
             </div>
-            @can('crear-usuarios')
-                <button wire:click="crear" class="btn btn-primary shadow-sm fw-bold border-2">
-                    <i class="bi bi-person-plus-fill me-1"></i> Nuevo
-                </button>
-            @endcan
+            <div>
+                <h2 class="fw-bold mb-0 text-dark">Gestión de Usuarios</h2>
+                <p class="text-muted mb-0">Administración de cuentas, perfiles de acceso y directorio de personal del sistema.</p>
+            </div>
         </div>
     </div>
 
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <input type="text" class="form-control" placeholder="Buscar por nombre, usuario o correo..." wire:model.live="search">
-        </div>
-        @can('ver-estado-usuarios')
-            <div class="col-md-3">
-                <select class="form-select" wire:model.live="filtro_estado">
-                    <option value="todos">Todos los Estados</option>
-                    <option value="activos">Solo Activos</option>
-                    <option value="inactivos">Solo Inactivos</option>
-                </select>
+    <!-- Card de Búsqueda y Acciones -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <div class="row g-3 justify-content-between align-items-center">
+                <div class="col-md-5">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control border-start-0 ps-0" placeholder="Buscar por nombre, usuario o correo..." wire:model.live="search">
+                    </div>
+                </div>
+                
+                @can('ver-estado-usuarios')
+                <div class="col-md-3">
+                    <select class="form-select shadow-sm" wire:model.live="filtro_estado">
+                        <option value="todos">Todos los Estados</option>
+                        <option value="activos">Solo Activos</option>
+                        <option value="inactivos">Solo Inactivos</option>
+                    </select>
+                </div>
+                @endcan
+
+                <div class="col-md-4 text-end d-flex gap-2 justify-content-end">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-success border-2 fw-bold dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                        </button>
+                        <ul class="dropdown-menu shadow border-0">
+                            <li><a class="dropdown-item py-2" href="{{ route('reportes.usuarios.excel', ['search' => $search, 'estado' => $filtro_estado]) }}"><i class="bi bi-filter me-2 text-success"></i> Vista Actual</a></li>
+                            <li><a class="dropdown-item py-2" href="{{ route('reportes.usuarios.excel') }}"><i class="bi bi-list-check me-2 text-primary"></i> Todo el Directorio</a></li>
+                        </ul>
+                    </div>
+                    @can('crear-usuarios')
+                        <button wire:click="crear" class="btn btn-primary shadow-sm fw-bold px-4">
+                            <i class="bi bi-person-plus-fill me-1"></i> Nuevo
+                        </button>
+                    @endcan
+                </div>
             </div>
-        @endcan
+        </div>
     </div>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body">
+    <!-- Contenedor Principal (Tabla) -->
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+        <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th class="th-id" wire:click="sortBy('id')" style="cursor: pointer;">
-                                ID @if($sortField === 'id') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
-                            </th>
+
                             <th wire:click="sortBy('name')" style="cursor: pointer;">
                                 Nombre @if($sortField === 'name') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
                             </th>
@@ -69,7 +79,7 @@
                     <tbody>
                         @forelse($usuarios as $user)
                             <tr>
-                                <td>{{ $user->id }}</td>
+
                                 <td>
                                     <strong>{{ $user->name }}</strong>
                                     @if(Auth::id() == $user->id)
@@ -124,7 +134,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-4">No hay usuarios registrados que coincidan con la búsqueda.</td>
+                                <td colspan="5" class="text-center text-muted py-4">No hay usuarios registrados que coincidan con la búsqueda.</td>
                             </tr>
                         @endforelse
                     </tbody>

@@ -1,15 +1,19 @@
 <div>
+    <!-- Header Especial -->
     <div class="row mb-4 align-items-center">
-        <div class="col-md-9">
-            <h3 class="mb-0">
-                <a href="{{ url()->previous() }}" class="btn btn-sm btn-outline-secondary me-2">
-                    <i class="bi bi-arrow-left"></i> Volver
-                </a>
-                {{ $titulo }}
-            </h3>
-            @if($subtitulo)
-                <p class="text-muted mt-1 mb-0 fs-6">{{ $subtitulo }}</p>
-            @endif
+        <div class="col-12 d-flex align-items-center">
+            <a href="{{ url()->previous() }}" class="btn btn-outline-secondary me-3 shadow-sm border-2">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3 text-primary border shadow-sm">
+                <i class="bi bi-diagram-3 fs-3"></i>
+            </div>
+            <div>
+                <h2 class="fw-bold mb-0 text-dark">{{ $titulo }}</h2>
+                @if($subtitulo)
+                    <p class="text-muted mb-0">{{ $subtitulo }}</p>
+                @endif
+            </div>
         </div>
     </div>
 
