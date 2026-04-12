@@ -34,7 +34,7 @@ trait RecordSignature
         return $this->belongsTo(User::class, 'created_by')->withTrashed();
     }
 
-    public function editor()
+    public function updater()
     {
         return $this->belongsTo(User::class, 'updated_by')->withTrashed();
     }

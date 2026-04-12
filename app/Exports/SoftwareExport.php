@@ -55,7 +55,10 @@ class SoftwareExport implements FromCollection, WithHeadings, WithMapping, WithT
             'Serial / Clave',
             'Descripción',
             'Estado',
-            'Fecha de Registro'
+            'Creado Por',
+            'Última Modif. Por',
+            'Fecha de Registro',
+            'Última Modificación'
         ];
     }
 
@@ -69,7 +72,10 @@ class SoftwareExport implements FromCollection, WithHeadings, WithMapping, WithT
             $software->serial ?? 'N/A',
             $software->descripcion_programa ?? 'N/A',
             $software->activo ? 'Activo' : 'Inactivo',
-            $software->created_at->format('d/m/Y H:i')
+            $software->creator->name ?? 'Sistema',
+            $software->updater->name ?? 'N/A',
+            $software->created_at->format('d/m/Y H:i'),
+            $software->updated_at->format('d/m/Y H:i')
         ];
     }
 }

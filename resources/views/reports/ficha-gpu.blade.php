@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="h1">Ficha Técnica de Componente: GPU</div>
-    <div class="text-muted mb-20 italic">ID de Sistema: #{{ $gpu->id }}</div>
+
 
     <div class="h2">Información de la Tarjeta de Video</div>
     <table class="table">

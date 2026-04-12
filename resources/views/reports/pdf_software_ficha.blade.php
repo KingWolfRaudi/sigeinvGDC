@@ -26,10 +26,7 @@
 
     <table>
         <tbody>
-            <tr>
-                <th>Código de Registro</th>
-                <td>SFT-{{ str_pad($software->id, 5, '0', STR_PAD_LEFT) }}</td>
-            </tr>
+
             <tr>
                 <th>Nombre del Programa</th>
                 <td><strong>{{ $software->nombre_programa }}</strong></td>
@@ -76,7 +73,7 @@
     </table>
 
     <div class="footer">
-        Documento generado el {{ now()->format('d/m/Y H:i') }} - ID Interno: {{ $software->id }}
+        Documento generado el {{ now()->format('d/m/Y H:i') }}
     </div>
 </body>
 </html>

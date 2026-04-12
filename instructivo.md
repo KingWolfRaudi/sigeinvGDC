@@ -1,4 +1,4 @@
-# Instructivo Técnico y Operacional: SigeinvGDC (V4.1)
+# Instructivo Técnico y Operacional: SigeinvGDC (V5.0)
 
 Este documento constituye la fuente de verdad absoluta para el desarrollo y mantenimiento del **Sistema de Gestión de Inventario Tecnológico (SigeinvGDC)**. Define las reglas arquitectónicas, los flujos de negocio y los estándares técnicos que deben seguirse rigurosamente.
 
@@ -7,122 +7,91 @@ Este documento constituye la fuente de verdad absoluta para el desarrollo y mant
 ## 1. Stack Tecnológico y Arquitectura Core
 El sistema está construido sobre una arquitectura moderna y escalable:
 - **Lenguaje:** PHP 8.3+
-- **Framework:** Laravel 10/12 (Estructura de directorios organizada por módulos).
-- **Frontend:** Livewire 3 (Interacción en tiempo real sin recarga) + Bootstrap 5.
-- **Iconografía:** Bootstrap Icons.
-- **Base de Datos:** MariaDB (Relacional estricta con integridad referencial avanzada).
+- **Framework:** Laravel 10/12.
+- **Frontend:** Livewire 3 (Interacción en tiempo real) + Bootstrap 5.
+- **Iconografía:** Bootstrap Icons (Estandarizados en Header y Acciones).
+- **Base de Datos:** MariaDB (Relacional con integridad referencial avanzada).
 
 ---
 
 ## 2. Reglas de Oro del Desarrollo (Inviolables)
 
 ### 2.1. Gestión de Datos y Modelos
-- **SoftDeletes Obligatorio:** NUNCA se realiza un borrado físico (`Hard Delete`). Todas las tablas deben usar `$table->softDeletes()` y los modelos el trait `use SoftDeletes;`. Esto incluye a la tabla nativa `users`.
-- **Casteos Booleanos:** Cada modelo con columna `activo` debe incluir `protected $casts = ['activo' => 'boolean'];`.
-- **Integridad Referencial:**
-    - Relaciones maestras (Marcas, Tipos, etc.): `onDelete('restrict')` para evitar orfandad de datos.
-    - Tablas pivote (Muchos a Muchos): `cascadeOnDelete()`.
-- **Campos Únicos Opcionales:** Deben definirse como `$table->string('campo')->nullable()->unique();` para permitir valores nulos sin colisiones de unicidad.
+- **SoftDeletes:** Obligatorio para todas las tablas operativos y de seguridad (`users` inclusive).
+- **Casteos Booleanos:** Obligatorio para columnas `activo` y flags de configuración.
+- **Gestión de Auditoría (RecordSignature):** 
+    - Todos los modelos operativos (Equipos, Insumos, Software, Usuarios) DEBEN usar el trait `RecordSignature`.
+    - Este trait gestiona automáticamente `created_by` y `updated_by`.
+    - Las relaciones de auditoría deben llamarse `creator()` y `updater()`.
+- **Visibilidad de IDs:** Está **estrictamente prohibido** mostrar el ID de base de datos en la interfaz de usuario (Tablas, Listados, Modales) o reportes PDF. Solo se permite su uso en exportaciones Excel para fines técnicos.
 
 ### 2.2. Estándares Livewire 3
-- **Data Scoping:** Separar el permiso `ver-estado-modulo` (ver registros inactivos y el filtro) del permiso `cambiar-estatus-modulo` (ejecutar el switch). Por defecto, los usuarios sin permiso de estado solo ven `activo = true`.
-- **Deep Search:** Las búsquedas en el `render()` deben usar grupos de condiciones `where(function($q) { ... })` para no romper los alcances globales (scoping).
-- **Toasts unificados:** Toda respuesta de éxito o error debe enviarse vía `$this->dispatch('mostrar-toast', mensaje: '...', tipo: 'success|danger|warning|info')`.
+- **Deep Search:** Búsqueda profunda en múltiples tablas usando `whereHas` y grupos de condiciones.
+- **Toasts:** Uso exclusivo de `$this->dispatch('mostrar-toast', ...)` para notificaciones fluidas.
+- **Filtros de Estado:** Siempre incluir un modo "todos" y proteger la visibilidad por permisos (`ver-estado-modulo`).
 
 ---
 
-## 3. Módulos y Lógica de Negocio Detallada
+## 3. Módulos y Lógica de Negocio
 
 ### 3.1. Inventario Tecnológico
-El inventario se divide en tres grandes categorías con lógica diferenciada:
-- **Computadores:** Módulo complejo que gestiona hardware dinámico (RAMs y Discos) a través de modelos relacionados (`ComputadorRam`, `ComputadorDisco`).
-    - *Accesors Inteligentes:* El modelo calcula automáticamente el total de RAM y Almacenamiento limpiando sufijos como "GB" para operaciones matemáticas.
-- **Dispositivos:** Equipos periféricos o de red (Routers, Switches, Impresoras).
-- **Insumos/Herramientas:** Gestión de consumibles con control de stock y categorías.
-    - *Lógica de Medida:* El sistema valida el stock según la unidad. Unidades como "Metros" o "Litros" permiten decimales (Double), mientras que "Piezas", "Unidades" o "Cajas" se fuerzan estrictamente a **Enteros** en backend y frontend.
+- **Computadores:** Gestión de hardware dinámico (RAM/Discos). Los modelos deben autonivelar unidades (GB) para reportes.
+- **Dispositivos:** Periféricos con trazabilidad de red (IP) y asociación a Computadores.
+- **Insumos/Herramientas:** 
+    - Control de stock con medidas estrictas (Enteros para unidades, Double para medidas físicas).
+    - **Nivel de Detalle Completo:** Los registros de insumos deben rastrear su ubicación física (Departamento) y su asignatario (Trabajador/Equipo).
+- **Software:** Control de licencias y arquitecturas. Incluye trazabilidad de quién registró el programa.
 
-### 3.2. Gestión de Movimientos (Ciclo de Vida)
-El sistema rastrea cada cambio de custodia de un activo mediante un flujo estandarizado:
-- **Tipos de Movimiento:** Asignación, Préstamo, Devolución, Reparación, Baja, Actualización.
-- **Generador Estándar (Flujo Multietapa):** Implementado en los paneles de cada segmento para centralizar la creación.
-    - **Etapa 1: Filtrado y Selección:** Buscador reactivo 2x2 (Bien Nacional, Serial, Departamento, Trabajador) con tabla de pre-selección.
-    - **Etapa 2: Configuración de Cambios (Diff Engine):**
-        - El sistema compara el estado actual contra el propuesto en el formulario (usando `Partial _form_fields`).
-        - Solo se almacenan en la columna `cambios` (JSON) los atributos que efectivamente fueron modificados.
-    - **Etapa 3: Justificación y Borrador:** Todo movimiento se guarda inicialmente como un **Borrador**, permitiendo correcciones antes de ser enviado a revisión.
-- **Trazabilidad:** Cada activo mantiene un historial (`HasMany`) de todos sus movimientos pasados.
-
-### 3.3. Panel de Soporte (Incidencias)
-Sistema de ticketera interno para reporte de fallas.
-- **Catálogo de Problemas:** Definido por el administrador para estandarizar reportes.
-- **Roles Técnicos:** El sistema permite configurar qué roles (ej. `personal-ti`) actúan como "Agentes de Soporte".
-- **Cierre Irreversible:** Opción de configuración para evitar la reapertura de casos finalizados.
+### 3.2. Gestión de Movimientos y Ciclo de Vida
+- **Borradores e Historial:** Rastreo total de cambios de custodia (`Movimientos`).
+- **Diff Engine:** Almacenamiento JSON solo de campos modificados para optimizar espacio y auditoría.
 
 ---
 
-## 4. Perfil de Usuario y Seguridad
-
-### 4.1. Inmutabilidad del SuperAdmin
-- El usuario con rol `super-admin` (o ID 1) es **INMUTABLE**.
-- No puede ser modificado por otros usuarios ni por sí mismo desde el panel de perfil.
-- El sistema bloquea en backend y oculta en frontend cualquier control de edición para esta cuenta.
-
-### 4.2. Workflow de Solicitudes de Cambio
-Los usuarios estándar no pueden cambiar su información sensible directamente. Deben enviar una solicitud:
-- **Campos Sujetos a Aprobación:** Nombre, Username, Email, Password.
-- **Regla de los 180 Días:** No se puede solicitar un cambio del mismo tipo si existe una solicitud aprobada hace menos de 180 días. Esta lógica reside en `SolicitudPerfil::canRequest()`.
-- **Gestión de Avatares:** Las fotos se almacenan en `storage/app/public/avatars` y se renombran usando el slug del nombre del usuario para consistencia.
+## 4. Auditoría y Seguridad
+- **Inmutabilidad:** El rol `super-admin` es ineditable desde la interfaz.
+- **Activity Logs:** Captura de estados "Antes" y "Después" vía Spatie.
+- **Solicitudes de Perfil:** Workflow de aprobación de 180 días para cambios de datos sensibles.
 
 ---
 
-## 5. Auditoría del Sistema y Reportes
+## 5. Sistema de Reportes (Estándar Premium)
 
-### 5.1. Centro de Auditoría (Activity Logs)
-- **Activación Masiva:** Implementado vía `spatie/laravel-activitylog` en todos los modelos críticos (`User`, `Computador`, `Dispositivo`, `Insumo`, `Incidencia`, `SolicitudPerfil`).
-- **Trazabilidad Forense:** El sistema captura automáticamente el estado **Anterior** y el **Nuevo** de cada atributo modificado.
-- **Panel Administrativo:** Ubicado en `/admin/auditoria`, permite visualizar quién realizó cada acción, en qué fecha y ver el detalle comparativo de los campos.
+### 5.1. Exportaciones Excel
+- **Campos Requeridos:** Deben incluir TODA la información del modelo, incluyendo asociaciones (ej. en Insumos mostrar el nombre del Departamento, no el ID).
+- **Auditoría:** Incluir siempre columnas: `Creado Por`, `Modificado Por`, `Fecha Registro`, `Última Modificación`.
+- **ID Técnica:** La columna ID se mantiene en Excel por utilidad administrativa.
 
-### 5.2. Módulo de Reportes e Indicadores
-- **Hojas de Vida (PDF):** Generación de fichas técnicas individuales para equipos, resumiendo especificaciones y últimos movimientos.
-- **Actas de Entrega:** Documentos legales generables en PDF para la firma de custodia por parte de los trabajadores.
-- **Exportación de Datos:** Soporte integrado para `PDF` (`dompdf`) y `Excel` (`excel`). El acceso a estas herramientas está blindado por los permisos `reportes-pdf` y `reportes-excel` respectivamente.
-- **Dashboard Visual:** El panel de inicio incluye KPIs en tiempo real y gráficos de barras (`Chart.js`) sobre la salud física del inventario.
+### 5.2. Reportes PDF (Fichas Técnicas)
+- **Privacidad:** Prohibido el uso de IDs de sistema. Usar Bien Nacional o Folio como referencia.
+- **Ubicación de Acciones:** El botón de exportación PDF debe situarse en las acciones de cada registro individual y no en la cabecera del módulo para evitar confusión con reportes masivos.
 
 ---
 
-## 6. Configuración Centralizada
-Se implementó un **Panel de Configuración General** unificado que reemplaza ajustes dispersos:
-- **Grupo Incidencias:** Control de roles técnicos y reglas de activos obligatorios.
-- **Grupo Perfil:** Toggles para habilitar/deshabilitar qué campos son editables/solicitables globalmente.
-- **Tabla `configuracions`:** Almacenamiento tipo Clave-Valor para máxima flexibilidad.
+## 6. Guía de Interfaz (Premium UI)
+
+### 6.1. Patrón de Layout "Premium"
+Todas las vistas principales deben seguir esta estructura:
+1.  **Header Especial**: Bloque superior con icono descriptivo en caja sombreada (`bg-primary bg-opacity-10`), título destacado (`h2 fw-bold`) y descripción.
+2.  **Card Flotante de Acciones**: Tarjeta con `rounded-4` y `shadow-sm` que agrupa búsqueda, filtros y botones de acción (Excel, Nuevo).
+3.  **Contenedor de Tabla**: Tarjeta independiente con `card-body p-0` y `overflow-hidden`.
+
+### 6.2. Estilos de Botones
+- **Exportación Excel**: `btn-outline-success border-2 fw-bold`.
+- **Exportación PDF**: `btn-outline-danger shadow-sm` (Ícono de PDF).
+- **Acción Principal (Nuevo)**: `btn-primary fw-bold shadow-sm`.
+- **Acciones de Tabla**: Botones pequeños (`btn-sm`) con iconos limpios.
+
+### 6.3. Modales y Experiencia de Usuario
+- **Scroll Limitado**: `modal-body` con `max-height: 65vh; overflow-y: auto;`.
+- **Limpieza de Backdrops**: Script manual obligatorio tras cierres de Livewire para evitar bloqueos de UI.
+- **Alertas**: Deben estar contenidas dentro del `modal-body`.
 
 ---
 
-## 7. Guía de Interfaz (Aesthetics)
-- **Glassmorphism:** Uso de opacidades y desenfoques (backdrop-filter) en modales y tarjetas.
-- **Bootstrap Custom:** Se priorizan paletas de colores armónicas (Azure, Indigo, Teal) sobre los colores primarios base.
-- **Limpieza de Modales:** Livewire requiere un script de limpieza manual para eliminar el `.modal-backdrop` de Bootstrap tras cierres asíncronos.
-- **Scroll Fijo en Modales (Obligatorio):** Todo `<div class="modal-body">` debe incorporar estrictamente el CSS en línea `style="max-height: 65vh; overflow-y: auto;"`. Esto garantiza que los botones de acción (`modal-footer`) nunca sean desplazados fuera de la pantalla, evitando el antiestético doble scroll del navegador.
-- **Contención Estricta de Alertas:** Cualquier bloque de advertencia dinámico, alerta de error o cuadro de **"Justificación del Cambio"** debe ir SIEMPRE DENTRO del `modal-body` afectado por el patrón de 65vh. Está estrictamente prohibido ubicar elementos expansivos entre el `modal-body` y el `modal-footer`.
-- **Estándar de Modales de Detalle:** Los modales de "Vista Rápida" deben seguir un layout de 3 columnas (Identificación, Especificaciones, Notas) con etiquetas estandarizadas (ej. *"Ubicación"* para departamentos). El footer solo debe contener el enlace a Asociaciones y el botón de Cerrar.
-- **Estándar de Dashboard de Asociaciones:** La información debe segregarse en pestañas dinámicas protegidas por permisos:
-    - *Pestaña 1 (Humano/Espacial):* Trabajador y Departamento (Responsable y Ubicación).
-    - *Pestaña 2 (Hardware/Técnico):* Equipos vinculados (Computadores o Dispositivos).
-    - *Pestañas Siguientes:* Insumos e Incidencias.
-- **Estándar de Botones en Paneles:** Para mantener la consistencia en todos los módulos de movimientos y gestión:
-    - **Orden e Integración:** Los botones de exportación (Excel/PDF) deben ubicarse a la izquierda del botón de acción principal. Se apoyarán en un filtro global que maneje un estado "todos" (para visualizar un panorama completo en reportes).
-    - **Estilo:** Excel (`btn-outline-success border-2 fw-bold`), PDF (`btn-outline-danger shadow-sm`), Acción Principal (`btn-primary fw-bold`).
-    - **Seguridad:** Los botones de acción principal en paneles de movimientos deben estar estrictamente encapsulados en directivas `@can` con el sufijo `-crear`. Adicionalmente, se debe separar rígidamente la lógica de "Visualización u Operación" (`ver-incidencias`) de la lógica "Administrativa Central" (`admin-incidencias`) para evitar que perfiles híbridos vean configuraciones a las que no conciernen.
+## 7. Mantenimiento del Sistema
+- **Storage Link:** Necesario para gestión de avatares.
+- **Seeders:** Seguir el orden `Roles` -> `Configuraciones` -> `Datos Maestros`.
 
 ---
-
-## 8. Mantenimiento del Sistema
-- **Storage Link:** Es obligatorio ejecutar `php artisan storage:link` para visualizar avatares.
-- **Seeders de Inicialización:** 
-    1. `RolesAndPermissionsSeeder` (Define el espectro de seguridad).
-    2. `IncidenciasSeeder` (Carga configuraciones iniciales).
-    3. `DatabaseSeeder` (Orquesta la construcción total).
-
-
----
-*Este instructivo debe ser actualizado ante cualquier cambio en las reglas de negocio o arquitectura del sistema.*
+*Este instructivo se actualiza a la V5.0 para reflejar la estandarización Premium de SIGEINV.*

@@ -86,17 +86,18 @@ class SolicitudesPerfil extends Component
         return Excel::download(new SolicitudesPerfilExport($this->query), 'solicitudes_perfil_' . now()->format('Ymd_His') . '.xlsx');
     }
 
-    public function exportPDF()
+    public function exportPDF($id)
     {
-        $solicitudes = $this->query->get();
+        $solicitud = SolicitudPerfil::with(['user', 'revisor'])->findOrFail($id);
+        
         $pdf = Pdf::loadView('reports.pdf_solicitudes_perfil', [
-            'solicitudes' => $solicitudes,
-            'filtro' => $this->filtro_estado
+            'solicitudes' => [$solicitud],
+            'filtro' => 'Individual'
         ])->setPaper('a4', 'landscape');
 
         return response()->streamDownload(function() use ($pdf) {
             echo $pdf->output();
-        }, 'solicitudes_perfil_' . now()->format('Ymd_His') . '.pdf');
+        }, 'solicitud_perfil_' . $solicitud->id . '_' . now()->format('Ymd_His') . '.pdf');
     }
 
     public function render()

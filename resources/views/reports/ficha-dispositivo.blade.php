@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="h1">Ficha Técnica de Dispositivo ({{ $disp->bien_nacional ?? 'S/BN' }})</div>
-    <div class="text-muted mb-20 italic">ID de Sistema: #{{ $disp->id }}</div>
+
 
     <div class="h2">Información del Activo</div>
     <table class="table">

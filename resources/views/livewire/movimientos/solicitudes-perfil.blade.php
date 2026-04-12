@@ -36,9 +36,6 @@
                     <button wire:click="exportExcel" class="btn btn-outline-success border-2 fw-bold shadow-sm">
                         <i class="bi bi-file-earmark-excel me-1"></i> Excel
                     </button>
-                    <button wire:click="exportPDF" class="btn btn-outline-danger border-2 fw-bold shadow-sm">
-                        <i class="bi bi-file-earmark-pdf me-1"></i> PDF
-                    </button>
                 </div>
             </div>
         </div>
@@ -118,6 +115,9 @@
                                 </td>
                             @endif
                             <td class="pe-4 text-end">
+                                <button class="btn btn-sm btn-outline-danger me-2 shadow-sm" wire:click="exportPDF({{ $sol->id }})" title="Exportar PDF">
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                </button>
                                 @if($sol->estado === 'pendiente')
                                     <button class="btn btn-sm btn-success px-3 shadow-sm me-1" wire:click="aprobar({{ $sol->id }})" wire:confirm="¿Aprobar y aplicar este cambio?">
                                         <i class="bi bi-check-lg"></i> Aprobar

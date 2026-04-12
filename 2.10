@@ -1,0 +1,44 @@
+SISTEMA DE INVENTARIO TECNOLÓGICO
+Documento de Arquitectura y Estándares (Actualización V2.10)
+
+1. Stack Tecnológico Base
+    • Core: PHP 8.3+ / Laravel 10+ / Livewire 3.
+    • UI: Bootstrap 5 + Bootstrap Icons.
+    • DB: MariaDB (Motor relacional estricto).
+    • Seguridad: Spatie Laravel-Permission (Roles y Permisos).
+
+2. Patrones de Base de Datos y Modelos
+    • Integridad Referencial Estricta: Las llaves foráneas a catálogos maestros deben usar onDelete('restrict'). Las llaves foráneas en tablas pivote pueden usar cascadeOnDelete().
+    • SoftDeletes (Obligatorio): Todos los catálogos y módulos de inventario utilizan SoftDeletes ($table->softDeletes() y use SoftDeletes;). NUNCA se borran registros permanentemente.
+    • Gestión de Auditoría (RecordSignature): Todos los modelos con impacto administrativo deben incorporar el trait `RecordSignature`. Este automatiza `created_by` y `updated_by`. Es obligatorio que las relaciones se definan como `creator()` y `updater()`.
+    • Casteo de Booleanos ("Regla de Oro"): Todos los campos de estado (ej. activo) deben ser casteados en el modelo: protected $casts = ['activo' => 'boolean'];.
+    • Política de Visibilidad de IDs: Se prohíbe la visualización de IDs internos en cualquier parte de la UI y en reportes PDF. Solo se permite su inclusión en exportaciones Excel por razones técnicas.
+
+3. Patrones de Interfaz Premium (UI/UX)
+    • Header Premium: Toda vista principal debe iniciar con un Header que contiene un ícono dentro de una caja sombreada (`bg-primary bg-opacity-10`), seguido de título y descripción.
+    • Tarjeta Flotante de Acciones: Las acciones de búsqueda, filtrado y botones globales (Crear/Excel) se agrupan en una tarjeta superior con `rounded-4` y `shadow-sm`, separada del cuerpo de la tabla.
+    • Tarjeta de Tabla: Contenedor minimalista con `card-body p-0` y `overflow-hidden`. Las tablas no deben tener bordes externos para una visión más limpia.
+    • Intercambio de Modales (Modal Switch): Para creaciones "al vuelo" de entidades complejas, se debe cerrar el modal principal antes de abrir el secundario para evitar conflictos de backdrop.
+
+4. Procesamiento y Automatización
+    • Accessors de Laravel: Los cálculos de hardware (Total RAM/Almacenamiento) deben realizarse en el modelo, limpiando sufijos mediante Accessors.
+    • Validación Condicional de Stock: Forzar tipos según unidad de medida (Entero vs Numeric).
+    • Sincronización de Auditoría: Al heredar el sistema de firmas, se debe asegurar que el namespace `App\Traits\RecordSignature` sea llamado en cada modelo nuevo (ej. Software).
+
+5. Lógica de Búsqueda y Reportes
+    • Deep Search: Estructura de búsqueda envuelta en subconsultas `where(function($q) { ... })` para no afectar el scoping de activos.
+    • Exportaciones Excel: Deben ser detalladas y completas. No mostrar llaves foráneas crudas (IDs); se deben mapear los nombres de las relaciones (ej. Nombre del Departamento). Incluir siempre metadatos de auditoría.
+    • Exportaciones PDF: El botón de descarga individual se ubica en las acciones de fila. No debe incluir IDs internos.
+
+6. Seguridad y Data Scoping
+    • Segregación de Estados: Separar permiso de visualización (`ver-estado-xxxx`) de acción (`cambiar-estatus-xxxx`).
+    • Blindaje Super-Admin: Toda consulta de listado de usuarios debe excluir al super-admin y bloquear cualquier acción sobre este vía backend.
+    • Protección de Reportes: Blindar cada botón con directivas `@can('reportes-excel')` o `@can('reportes-pdf')`.
+
+7. Organización y Mantenimiento
+    • Namespaces por Carpeta: Módulos agrupados (Inventario, Asignaciones, Catálogos).
+    • Seeders en Cadena: Roles -> Configuraciones -> Catálogos -> Transaccionales.
+    • Cleanups: Obligatorio limpiar backdrops tras cierres de modales asíncronos.
+
+---
+V2.10: Actualización de Estándares Visuales Premium y Política de Privacidad de Datos (IDs).

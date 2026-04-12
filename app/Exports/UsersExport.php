@@ -54,6 +54,7 @@ class UsersExport implements FromCollection, WithHeadings, WithMapping, WithTitl
             'Trabajador Asociado',
             'Estado de Cuenta',
             'Fecha Registro',
+            'Última Modificación',
         ];
     }
 
@@ -67,7 +68,8 @@ class UsersExport implements FromCollection, WithHeadings, WithMapping, WithTitl
             $item->getRoleNames()->implode(', '),
             $item->trabajador ? ($item->trabajador->nombres . ' ' . $item->trabajador->apellidos) : 'Administrador Manual',
             $item->activo ? 'ACTIVO' : 'INACTIVO',
-            $item->created_at->format('d/m/Y'),
+            $item->created_at->format('d/m/Y H:i'),
+            $item->updated_at->format('d/m/Y H:i'),
         ];
     }
 }

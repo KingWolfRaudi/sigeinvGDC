@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="h1">Ficha Técnica de Insumo / Herramienta</div>
-    <div class="text-muted mb-20 italic">ID de Sistema: #{{ $insumo->id }}</div>
+
 
     <div class="h2">Información General</div>
     <table class="table">

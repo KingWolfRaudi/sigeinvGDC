@@ -96,12 +96,7 @@ class ComputadoresExport implements FromCollection, WithHeadings, WithMapping, W
 
     public function map($pc): array
     {
-        // Calcular RAM total
-        $totalRam = $pc->rams->sum(function($r) {
-            return (int) str_replace('GB', '', $r->capacidad);
-        });
-
-        // Calcular Almacenamiento total y detallado
+        // Almacenamiento detallado
         $storageInfo = $pc->discos->map(function($d) {
             return $d->capacidad . ' (' . $d->tipo . ')';
         })->implode(' + ');
@@ -121,8 +116,8 @@ class ComputadoresExport implements FromCollection, WithHeadings, WithMapping, W
             $pc->marca->nombre ?? 'Generico',
             $pc->tipo_computador ?? 'N/A',
             compact_string($cpu),
-            $totalRam > 0 ? $totalRam . ' GB (' . $pc->tipo_ram . ')' : 'N/A',
-            $storageInfo ?: 'N/A',
+            $pc->total_ram . ' (' . $pc->tipo_ram . ')',
+            $pc->total_almacenamiento . ($storageInfo ? " [$storageInfo]" : ''),
             compact_string($gpu),
             $pc->sistemaOperativo->nombre ?? 'N/A',
             $pc->ip ?? 'Dinamica/NA',
