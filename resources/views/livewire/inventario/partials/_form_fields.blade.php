@@ -221,12 +221,24 @@
     
     <div class="col-md-4 mb-3">
         <label class="form-label">Departamento / Área</label>
-        <select class="form-select" wire:model.live="departamento_id">
-            <option value="">Sin asignar / En stock</option>
-            @foreach($departamentos as $dep) 
-                <option value="{{ $dep->id }}">{{ $dep->nombre }}</option> 
-            @endforeach
-        </select>
+        <div class="input-group">
+            @if($creando_departamento ?? false)
+                <input type="text" class="form-control border-primary" wire:model="nuevo_departamento" placeholder="Nombre del departamento...">
+                <button class="btn btn-outline-danger" type="button" wire:click="$set('creando_departamento', false)">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            @else
+                <select class="form-select" wire:model.live="departamento_id">
+                    <option value="">Sin asignar / En stock</option>
+                    @foreach($departamentos as $dep)
+                        <option value="{{ $dep->id }}">{{ $dep->nombre }}</option>
+                    @endforeach
+                </select>
+                <button class="btn btn-outline-success" type="button" wire:click="$set('creando_departamento', true)" title="Crear nuevo departamento">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+            @endif
+        </div>
     </div>
 
     <div class="col-md-8 mb-3">

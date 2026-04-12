@@ -38,6 +38,7 @@ class Dispositivos extends Component
     // Creación Rápida On The Fly (Select vs Input)
     public $creando_marca = false, $nueva_marca;
     public $creando_tipo = false, $nuevo_tipo;
+    public $creando_departamento = false, $nuevo_departamento;
     // Variables para el Modal Completo de Trabajador
     public $nuevo_trab_nombres, $nuevo_trab_apellidos, $nuevo_trab_cedula, $nuevo_trab_departamento_id; 
 
@@ -188,7 +189,7 @@ class Dispositivos extends Component
             'ip'             => 'nullable|ipv4',
             'estado'         => 'required|string',
             'nombre'         => 'required|string',
-            'departamento_id'=> 'required|exists:departamentos,id'
+            'departamento_id'=> 'required_without:nuevo_departamento'
         ];
         if ($esEdicion) {
             $rules['justificacion'] = 'required|string|min:10';
@@ -203,6 +204,10 @@ class Dispositivos extends Component
             if ($this->creando_tipo && !empty($this->nuevo_tipo)) {
                 $tipo = TipoDispositivo::firstOrCreate(['nombre' => $this->nuevo_tipo], ['activo' => true]);
                 $this->tipo_dispositivo_id = $tipo->id;
+            }
+            if ($this->creando_departamento && !empty($this->nuevo_departamento)) {
+                $dpto = \App\Models\Departamento::firstOrCreate(['nombre' => $this->nuevo_departamento], ['activo' => true]);
+                $this->departamento_id = $dpto->id;
             }
 
             $payloadNuevo = [
@@ -488,10 +493,11 @@ class Dispositivos extends Component
         $this->reset([
             'dispositivo_id', 'bien_nacional', 'serial', 'tipo_dispositivo_id', 'marca_id', 
             'nombre', 'ip', 'estado', 'departamento_id', 'trabajador_id', 'computador_id', 
-            'notas', 'dispositivo_detalle', 'nueva_marca', 'nuevo_tipo', 'justificacion'
+            'notas', 'dispositivo_detalle', 'nueva_marca', 'nuevo_tipo', 'nuevo_departamento', 'justificacion'
         ]);
         $this->creando_marca = false;
         $this->creando_tipo = false;
+        $this->creando_departamento = false;
         $this->estado = 'operativo';
         $this->activo = true;
         $this->es_edicion = false;

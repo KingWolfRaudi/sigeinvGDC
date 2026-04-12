@@ -144,7 +144,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetCampos"></button>
                 </div>
                 <form wire:submit.prevent="guardar">
-                    <div class="modal-body">
+                    <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                         <div class="row">
                             <div class="col-md-6 border-end pr-3">
                                 <h6 class="mb-3"><i class="bi bi-person-lines-fill me-2"></i>Datos Personales</h6>
@@ -221,7 +221,7 @@
                     <h5 class="modal-title"><i class="bi bi-person-vcard me-2"></i>Detalles del Usuario</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" wire:click="resetCampos"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                     @if($usuario_detalle)
                         <ul class="list-group list-group-flush">
                             @can('ver-estado-usuarios')

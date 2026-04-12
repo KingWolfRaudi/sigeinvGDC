@@ -1,6 +1,6 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="mb-0 text-secondary"><i class="bi bi-person-gear me-2"></i>Solicitudes de Cambio de Perfil</h3>
+        <h3 class="mb-0"><i class="bi bi-person-gear me-2"></i>Solicitudes de Cambio de Perfil</h3>
     </div>
 
     <!-- Filtros -->
@@ -11,10 +11,19 @@
             </div>
             <div class="col-md-3">
                 <select class="form-select shadow-sm" wire:model.live="filtro_estado">
+                    <option value="todos">Todas las solicitudes</option>
                     <option value="pendiente">Solo Pendientes</option>
                     <option value="aprobado">Solo Aprobados</option>
                     <option value="rechazado">Solo Rechazados</option>
                 </select>
+            </div>
+            <div class="col-md-4 text-end d-flex align-items-end justify-content-end gap-2">
+                <button wire:click="exportExcel" class="btn btn-outline-success shadow-sm">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                </button>
+                <button wire:click="exportPDF" class="btn btn-outline-danger shadow-sm">
+                    <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+                </button>
             </div>
         </div>
     </div>
@@ -130,7 +139,7 @@
                     <h5 class="modal-title fw-bold"><i class="bi bi-x-circle me-2"></i> Rechazar Solicitud</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body p-4" style="max-height: 65vh; overflow-y: auto;">
                     <div class="alert alert-info border-0 shadow-sm small py-2 mb-4">
                         <i class="bi bi-info-circle-fill me-2"></i> Indica el motivo detallado para que el usuario pueda corregirlo.
                     </div>

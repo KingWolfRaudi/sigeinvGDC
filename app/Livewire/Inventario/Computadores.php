@@ -51,6 +51,7 @@ class Computadores extends Component
     public $creando_so = false, $nuevo_so;
     public $creando_procesador = false, $nuevo_procesador_modelo, $nuevo_procesador_marca_id;
     public $creando_gpu = false, $nueva_gpu_modelo, $nueva_gpu_marca_id;
+    public $creando_departamento = false, $nuevo_departamento;
     // Variables para el Modal Completo de Trabajador
     public $nuevo_trab_nombres, $nuevo_trab_apellidos, $nuevo_trab_cedula, $nuevo_trab_departamento_id; 
     // (Agrega aquí otras variables si tu tabla trabajadores pide correo, cédula, etc.)
@@ -132,7 +133,7 @@ class Computadores extends Component
     {
         // 1. Iniciamos la consulta base
         $userId = Auth::id();
-        $query = Computador::with(['marca', 'trabajador', 'discos', 'rams'])
+        $query = Computador::with(['marca', 'trabajador', 'departamento', 'discos', 'rams'])
             ->withCount([
                 'movimientos as pendientes_count' => fn($q) => $q->where('estado_workflow', 'pendiente'),
                 'movimientos as mis_borradores_count' => fn($q) => $q->where('estado_workflow', 'borrador')->where('solicitante_id', $userId),
@@ -285,6 +286,14 @@ class Computadores extends Component
                 'marca_id' => $this->nueva_gpu_marca_id
             ], ['activo' => true]);
             $this->gpu_id = $gpu->id;
+        }
+        if ($this->creando_departamento && !empty($this->nuevo_departamento)) {
+            $dep = Departamento::firstOrCreate(
+                ['nombre' => trim($this->nuevo_departamento)],
+                ['activo' => true]
+            );
+            $this->departamento_id = $dep->id;
+            $this->creando_departamento = false;
         }
 
         // Payload con los datos propuestos
@@ -722,6 +731,7 @@ class Computadores extends Component
         $this->creando_so = false;
         $this->creando_procesador = false;
         $this->creando_gpu = false;
+        $this->creando_departamento = false;
         $this->unidad_dvd = true;
         $this->fuente_poder = true;
         $this->tipo_conexion = 'Ethernet';

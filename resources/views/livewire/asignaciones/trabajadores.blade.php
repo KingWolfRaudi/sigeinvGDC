@@ -2,7 +2,7 @@
     <div class="row mb-4 align-items-center">
         <div class="col-md-4">
             @if(!$ocultarTitulos)
-                <h3 class="mb-0">Gestión de Trabajadores</h3>
+                <h3 class="mb-0"><i class="bi bi-person-badge me-2"></i>Gestión de Trabajadores</h3>
             @endif
         </div>
         <div class="col-md-5">
@@ -143,7 +143,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetCampos"></button>
                 </div>
                 <form wire:submit.prevent="guardar">
-                    <div class="modal-body">
+                    <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label">Nombres <span class="text-danger">*</span></label>
@@ -223,7 +223,7 @@
                     <h5 class="modal-title"><i class="bi bi-info-circle me-2"></i>Detalles del Trabajador</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" wire:click="$set('trabajador_detalle', null)"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                     @if($trabajador_detalle)
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item"><strong>Cédula:</strong> {{ $trabajador_detalle->cedula }}</li>

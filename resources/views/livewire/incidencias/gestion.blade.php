@@ -136,7 +136,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" wire:click="resetForm"></button>
                 </div>
                 <form wire:submit.prevent="guardar">
-                    <div class="modal-body p-4 bg-light">
+                    <div class="modal-body p-4 bg-light" style="max-height: 65vh; overflow-y: auto;">
                         
                         <div class="row g-3">
                             <!-- Sección 1: Responsable y Ubicación -->

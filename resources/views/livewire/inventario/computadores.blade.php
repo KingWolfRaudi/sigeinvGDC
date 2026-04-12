@@ -2,7 +2,7 @@
     <div class="row mb-4 align-items-center">
         <div class="col-md-4">
             @if(!$ocultarTitulos)
-                <h3 class="mb-0">Inventario de Computadores</h3>
+                <h3 class="mb-0"><i class="bi bi-pc-display me-2"></i>Inventario de Computadores</h3>
             @endif
         </div>
         <div class="col-md-5">
@@ -14,7 +14,7 @@
         <div class="col-md-3 text-end d-flex gap-2">
             @can('reportes-excel')
             <div class="dropdown w-100">
-                <button class="btn btn-outline-success border-2 fw-bold w-100 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <button class="btn btn-outline-success border-2 fw-bold w-100 dropdown-toggle shadow-sm py-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bi bi-file-earmark-excel me-1"></i> Excel
                 </button>
                 <ul class="dropdown-menu shadow border-0">
@@ -32,7 +32,7 @@
             </div>
             @endcan
             @can('crear-computadores')
-                <button wire:click="crear" class="btn btn-primary w-100">
+                <button wire:click="crear" class="btn btn-primary w-100 shadow-sm py-2 fw-bold">
                     <i class="bi bi-pc-display me-1"></i> Nuevo
                 </button>
             @endcan
@@ -69,6 +69,11 @@
                             <th wire:click="sortBy('ip')" style="cursor: pointer;">
                                 Red 
                                 @if($sortField === 'ip') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            </th>
+
+                            <th wire:click="sortBy('departamento_id')" style="cursor: pointer;">
+                                Ubicación 
+                                @if($sortField === 'departamento_id') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
                             </th>
 
                             <th wire:click="sortBy('estado_fisico')" style="cursor: pointer;">
@@ -123,10 +128,14 @@
                                     <small class="text-muted">{{ $comp->mac ?? 'Sin MAC' }}</small>
                                 </td>
                                 <td>
+                                    {{ $comp->departamento->nombre ?? 'N/A' }}
+                                </td>
+                                <td>
                                     <span class="badge bg-{{ $comp->estado_fisico === 'operativo' ? 'success' : ($comp->estado_fisico === 'danado' ? 'danger' : 'warning') }}">
                                         {{ strtoupper($comp->estado_fisico) }}
                                     </span>
                                 </td>
+                                
                                 @can('ver-estado-computadores')
                                     <td>
                                         {!! $comp->activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>' !!}
@@ -173,25 +182,26 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetCampos"></button>
                 </div>
                 <form wire:submit.prevent="guardar">
-                    <div class="modal-body p-4">
+                    <div class="modal-body p-4" style="max-height: 65vh; overflow-y: auto;">
                         @include('livewire.inventario.partials._form_fields')
-                    </div>
-
-                    {{-- ── Campo Justificación (solo en modo edición) ─── --}}
-                    @if($es_edicion)
-                    <div class="alert alert-warning border-warning mx-4 mb-0 mt-2 py-2">
-                        <div class="d-flex align-items-start gap-2">
-                            <i class="bi bi-shield-lock-fill text-warning mt-1"></i>
-                            <div class="w-100">
-                                <strong class="small">Justificación del Cambio (requerida)</strong>
-                                <textarea class="form-control form-control-sm mt-1 @error('justificacion') is-invalid @enderror"
-                                    wire:model="justificacion" rows="2"
-                                    placeholder="Describa el motivo técnico u operativo de esta modificación (mín. 10 caracteres)..."></textarea>
-                                @error('justificacion') <span class="text-danger small">{{ $message }}</span> @enderror
+                        
+                        {{-- ── Campo Justificación (solo en modo edición) ─── --}}
+                        @if($es_edicion)
+                        <div class="alert alert-warning border-warning mb-0 mt-4 py-2">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="bi bi-shield-lock-fill text-warning mt-1"></i>
+                                <div class="w-100">
+                                    <strong class="small">Justificación del Cambio (requerida)</strong>
+                                    <textarea class="form-control form-control-sm mt-1 @error('justificacion') is-invalid @enderror"
+                                        wire:model="justificacion" rows="2"
+                                        placeholder="Describa el motivo técnico u operativo de esta modificación (mín. 10 caracteres)..."></textarea>
+                                    @error('justificacion') <span class="text-danger small">{{ $message }}</span> @enderror
+                                </div>
                             </div>
                         </div>
+                        @endif
                     </div>
-                    @endif
+
 
                     <div class="modal-footer bg-light">
                         @can('cambiar-estatus-computadores')
@@ -215,7 +225,7 @@
                     <h5 class="modal-title"><i class="bi bi-pc-display me-2"></i>Detalles del Equipo</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                     @if($computador_detalle)
                         <div class="row">
                             <div class="col-md-4 mb-4">
@@ -312,7 +322,7 @@
                     <h5 class="modal-title"><i class="bi bi-person-plus-fill me-2"></i>Nuevo Trabajador</h5>
                     <button type="button" class="btn-close btn-close-white" wire:click="cancelarModalTrabajador"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Nombres <span class="text-danger">*</span></label>
@@ -381,7 +391,7 @@
                         class="btn-close {{ $esRevisión ? '' : 'btn-close-white' }}"
                         data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                     {{-- Solicitante y Metadata --}}
                     <div class="d-flex align-items-start gap-3 p-3 bg-light rounded mb-3">
                         <div class="flex-shrink-0">

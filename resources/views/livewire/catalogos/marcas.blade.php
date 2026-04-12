@@ -1,7 +1,7 @@
 <div>
     <div class="row mb-4 align-items-center">
         <div class="col-md-4">
-            <h3 class="mb-0">Catálogo de Marcas</h3>
+            <h3 class="mb-0"><i class="bi bi-tags me-2"></i>Catálogo de Marcas</h3>
         </div>
         <div class="col-md-5">
             <div class="input-group">
@@ -131,7 +131,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetCampos"></button>
                 </div>
                 <form wire:submit.prevent="guardar">
-                    <div class="modal-body">
+                    <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                         <div class="mb-3">
                             <label for="nombre" class="form-label">Nombre de la Marca <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('nombre') is-invalid @enderror" id="nombre" wire:model="nombre">
@@ -161,7 +161,7 @@
                     <h5 class="modal-title"><i class="bi bi-info-circle me-2"></i>Detalles de la Marca</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                     @if($marca_detalle)
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item"><strong>Nombre:</strong> {{ $marca_detalle->nombre }}</li>

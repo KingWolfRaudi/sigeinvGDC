@@ -66,11 +66,20 @@ class PanelComputadores extends Component
     public bool $creando_so = false; public $nuevo_so;
     public bool $creando_procesador = false; public $nuevo_procesador_modelo, $nuevo_procesador_marca_id;
     public bool $creando_gpu = false; public $nueva_gpu_modelo, $nueva_gpu_marca_id;
+    public bool $creando_departamento = false; public $nuevo_departamento;
+
+    // Trabajador On The Fly (Modal)
+    public $nuevo_trab_nombres, $nuevo_trab_apellidos, $nuevo_trab_cedula, $nuevo_trab_departamento_id; 
 
     public $computador_actual = null; // Instancia cargada para Step 2
 
     public function updatingSearch() { $this->resetPage(); }
     public function updatingPestana() { $this->resetPage(); }
+
+    public function updatedDepartamentoId($value)
+    {
+        $this->trabajador_id = null;
+    }
 
     public function render()
     {
@@ -154,7 +163,12 @@ class PanelComputadores extends Component
     {
         $this->mostrando_generador = true;
         $this->paso_generador = 1;
-        $this->reset(['searchBN', 'searchSerial', 'searchDpto', 'searchTrabajador', 'computador_id', 'justificacion']);
+        $this->reset([
+            'searchBN', 'searchSerial', 'searchDpto', 'searchTrabajador', 'computador_id', 'justificacion',
+            'creando_marca', 'nueva_marca', 'creando_so', 'nuevo_so', 'creando_procesador', 
+            'nuevo_procesador_modelo', 'nuevo_procesador_marca_id', 'creando_gpu', 
+            'nueva_gpu_modelo', 'nueva_gpu_marca_id', 'creando_departamento', 'nuevo_departamento'
+        ]);
         $this->dispatch('abrir-modal', id: 'modalGenerador');
     }
 
@@ -202,6 +216,34 @@ class PanelComputadores extends Component
         ]);
 
         try {
+            // Resolución de Creación Rápida
+            if ($this->creando_marca && !empty($this->nueva_marca)) {
+                $m = \App\Models\Marca::firstOrCreate(['nombre' => $this->nueva_marca], ['activo' => true]);
+                $this->marca_id = $m->id;
+            }
+            if ($this->creando_so && !empty($this->nuevo_so)) {
+                $so = \App\Models\SistemaOperativo::firstOrCreate(['nombre' => $this->nuevo_so], ['activo' => true]);
+                $this->sistema_operativo_id = $so->id;
+            }
+            if ($this->creando_procesador && !empty($this->nuevo_procesador_modelo)) {
+                $pr = \App\Models\Procesador::firstOrCreate([
+                    'modelo' => $this->nuevo_procesador_modelo,
+                    'marca_id' => $this->nuevo_procesador_marca_id
+                ], ['activo' => true]);
+                $this->procesador_id = $pr->id;
+            }
+            if ($this->creando_gpu && !empty($this->nueva_gpu_modelo)) {
+                $g = \App\Models\Gpu::firstOrCreate([
+                    'modelo' => $this->nueva_gpu_modelo,
+                    'marca_id' => $this->nueva_gpu_marca_id
+                ], ['activo' => true]);
+                $this->gpu_id = $g->id;
+            }
+            if ($this->creando_departamento && !empty($this->nuevo_departamento)) {
+                $d = \App\Models\Departamento::firstOrCreate(['nombre' => $this->nuevo_departamento], ['activo' => true]);
+                $this->departamento_id = $d->id;
+            }
+
             $comp = $this->computador_actual ?: Computador::with(['discos', 'rams', 'puertos'])->findOrFail($this->computador_id);
             $payloadAnterior = $comp->toArray();
             $payloadAnterior['discos']  = $comp->discos->toArray();
@@ -248,19 +290,40 @@ class PanelComputadores extends Component
                 return;
             }
 
-            MovimientoComputador::create([
-                'computador_id'   => $this->computador_id,
-                'tipo_operacion'  => 'actualizacion_datos',
-                'payload_anterior' => $payloadAnterior,
-                'payload_nuevo'    => $cambios,
-                'estado_workflow'  => 'borrador',
-                'justificacion'   => $this->justificacion,
-                'solicitante_id'  => Auth::id(),
-            ]);
+            if (Gate::allows('movimientos-computadores-ejecutar-directo')) {
+                // Ejecución Directa (Bypass Workflow)
+                $this->_aplicarPayload($comp, $cambios);
+
+                MovimientoComputador::create([
+                    'computador_id'   => $this->computador_id,
+                    'tipo_operacion'  => 'actualizacion_datos',
+                    'payload_anterior' => $payloadAnterior,
+                    'payload_nuevo'    => $cambios,
+                    'estado_workflow'  => 'ejecutado_directo',
+                    'justificacion'   => $this->justificacion,
+                    'solicitante_id'  => Auth::id(),
+                    'aprobador_id'    => Auth::id(),
+                    'aprobado_at'     => now(),
+                ]);
+
+                $this->dispatch('mostrar-toast', mensaje: 'Movimiento ejecutado directamente.', tipo: 'success');
+            } else {
+                // Flujo Estándar (Crear Borrador)
+                MovimientoComputador::create([
+                    'computador_id'   => $this->computador_id,
+                    'tipo_operacion'  => 'actualizacion_datos',
+                    'payload_anterior' => $payloadAnterior,
+                    'payload_nuevo'    => $cambios,
+                    'estado_workflow'  => 'borrador',
+                    'justificacion'   => $this->justificacion,
+                    'solicitante_id'  => Auth::id(),
+                ]);
+
+                $this->dispatch('mostrar-toast', mensaje: 'Movimiento creado como borrador.', tipo: 'success');
+            }
 
             $this->mostrando_generador = false;
             $this->dispatch('cerrar-modal', id: 'modalGenerador');
-            $this->dispatch('mostrar-toast', mensaje: 'Movimiento creado como borrador.', tipo: 'success');
             $this->resetPage(); // Refrescar lista
         } catch (\Exception $e) {
             Log::error('Error creando movimiento desde panel: ' . $e->getMessage());
@@ -467,6 +530,50 @@ class PanelComputadores extends Component
                     ]);
                 }
             }
+        }
+    }
+
+    // --- MÉTODOS PARA EL MODAL DE TRABAJADOR ---
+    public function abrirModalTrabajador()
+    {
+        $this->dispatch('cerrar-modal', id: 'modalGeneradorComputadores');
+        $this->dispatch('abrir-modal', id: 'modalTrabajador');
+    }
+
+    public function cancelarModalTrabajador()
+    {
+        $this->reset(['nuevo_trab_nombres', 'nuevo_trab_apellidos', 'nuevo_trab_cedula', 'nuevo_trab_departamento_id']);
+        $this->dispatch('cerrar-modal', id: 'modalTrabajador');
+        $this->dispatch('abrir-modal', id: 'modalGeneradorComputadores');
+    }
+
+    public function guardarTrabajadorRapido()
+    {
+        $this->validate([
+            'nuevo_trab_nombres' => 'required|string|max:255',
+            'nuevo_trab_apellidos' => 'required|string|max:255',
+            'nuevo_trab_cedula' => 'nullable|string|unique:trabajadores,cedula', 
+            'nuevo_trab_departamento_id' => 'required|exists:departamentos,id',
+        ]);
+
+        try {
+            $trab = \App\Models\Trabajador::create([
+                'nombres' => $this->nuevo_trab_nombres,
+                'apellidos' => $this->nuevo_trab_apellidos,
+                'cedula' => $this->nuevo_trab_cedula,
+                'departamento_id' => $this->nuevo_trab_departamento_id,
+                'activo' => true
+            ]);
+
+            $this->trabajador_id = $trab->id;
+
+            $this->reset(['nuevo_trab_nombres', 'nuevo_trab_apellidos', 'nuevo_trab_cedula', 'nuevo_trab_departamento_id']);
+            $this->dispatch('cerrar-modal', id: 'modalTrabajador');
+            $this->dispatch('abrir-modal', id: 'modalGeneradorComputadores');
+            $this->dispatch('mostrar-toast', mensaje: 'Trabajador creado e importado.', tipo:'success');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error en trabajador rápido Panel Computadores: ' . $e->getMessage());
+            $this->dispatch('mostrar-toast', mensaje: 'Error al registrar trabajador.', tipo:'error');
         }
     }
 }

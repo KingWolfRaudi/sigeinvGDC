@@ -157,7 +157,7 @@
                         </h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body p-0">
+                    <div class="modal-body p-0" style="max-height: 65vh; overflow-y: auto;">
                         <div class="p-4 bg-light border-bottom">
                             <div class="row">
                                 <div class="col-md-6 mb-3 mb-md-0">
@@ -240,7 +240,7 @@
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4 bg-light">
+                <div class="modal-body p-4 bg-light" style="max-height: 65vh; overflow-y: auto;">
                     <p class="text-muted mb-4">Seleccione los módulos que desea incluir en el archivo Excel y aplique los filtros necesarios para cada uno.</p>
 
                     <div class="row g-4">

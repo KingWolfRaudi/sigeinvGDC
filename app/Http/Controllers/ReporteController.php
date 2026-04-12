@@ -17,6 +17,7 @@ use App\Exports\MassiveReportExport;
 use App\Exports\IncidenciasExport;
 use App\Exports\MovimientosExport;
 use App\Exports\UsersExport;
+use App\Exports\SoftwareExport;
 
 class ReporteController extends Controller
 {
@@ -206,6 +207,20 @@ class ReporteController extends Controller
         activity()->log("Exportó listado de Usuarios del Sistema a Excel con filtros: " . json_encode($filters));
 
         return Excel::download(new UsersExport($filters), 'Listado_Usuarios_' . now()->format('d-m-Y') . '.xlsx');
+    }
+
+    /**
+     * Exporta el catálogo de software a Excel.
+     */
+    public function softwareExcel(Request $request)
+    {
+        $this->authorize('reportes-excel');
+
+        $filters = $request->only(['search', 'estado']);
+        
+        activity()->log("Exportó catálogo de Software a Excel con filtros: " . json_encode($filters));
+
+        return Excel::download(new SoftwareExport($filters), 'Catalogo_Software_' . now()->format('d-m-Y') . '.xlsx');
     }
 
     /**

@@ -7,6 +7,10 @@ use Livewire\WithPagination;
 use App\Models\SolicitudPerfil;
 use Illuminate\Support\Facades\Auth;
 
+use App\Exports\SolicitudesPerfilExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 class SolicitudesPerfil extends Component
 {
     use WithPagination;
@@ -64,16 +68,40 @@ class SolicitudesPerfil extends Component
         $this->dispatch('cerrar-modal', id: 'modalRechazo');
     }
 
-    public function render()
+    public function getQueryProperty()
     {
-        $solicitudes = SolicitudPerfil::with(['user', 'revisor'])
-            ->where('estado', $this->filtro_estado)
+        return SolicitudPerfil::with(['user', 'revisor'])
+            ->when($this->filtro_estado !== 'todos', function($q) {
+                return $q->where('estado', $this->filtro_estado);
+            })
             ->whereHas('user', function($q) {
                 $q->where('name', 'like', '%' . $this->search . '%')
                   ->orWhere('username', 'like', '%' . $this->search . '%');
             })
-            ->latest()
-            ->paginate(10);
+            ->latest();
+    }
+
+    public function exportExcel()
+    {
+        return Excel::download(new SolicitudesPerfilExport($this->query), 'solicitudes_perfil_' . now()->format('Ymd_His') . '.xlsx');
+    }
+
+    public function exportPDF()
+    {
+        $solicitudes = $this->query->get();
+        $pdf = Pdf::loadView('reports.pdf_solicitudes_perfil', [
+            'solicitudes' => $solicitudes,
+            'filtro' => $this->filtro_estado
+        ])->setPaper('a4', 'landscape');
+
+        return response()->streamDownload(function() use ($pdf) {
+            echo $pdf->output();
+        }, 'solicitudes_perfil_' . now()->format('Ymd_His') . '.pdf');
+    }
+
+    public function render()
+    {
+        $solicitudes = $this->query->paginate(10);
 
         return view('livewire.movimientos.solicitudes-perfil', [
             'solicitudes' => $solicitudes

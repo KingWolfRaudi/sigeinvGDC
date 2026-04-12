@@ -21,8 +21,8 @@ class Insumos extends Component
     public $insumo_id, $bien_nacional, $serial, $nombre, $descripcion;
     public $marca_id, $categoria_insumo_id;
     public $unidad_medida = 'unidad';
-    public $medida_actual = 1.00;
-    public $medida_minima = 1.00;
+    public int $medida_actual = 1;
+    public int $medida_minima = 1;
     public $reutilizable = false;
     public $instalable_en_equipo = false;
     public $estado_fisico = 'operativo';
@@ -39,6 +39,10 @@ class Insumos extends Component
     // On The Fly
     public $creando_marca = false, $nueva_marca;
     public $creando_categoria = false, $nueva_categoria;
+    public $creando_departamento = false, $nuevo_departamento;
+
+    // Trabajador On The Fly (Modal)
+    public $nuevo_trab_nombres, $nuevo_trab_apellidos, $nuevo_trab_cedula, $nuevo_trab_departamento_id;
 
     public $insumo_detalle;
     public $tituloModal = 'Nuevo Insumo/Herramienta';
@@ -58,6 +62,11 @@ class Insumos extends Component
     }
 
     public function updatingSearch() { $this->resetPage(); }
+
+    public function updatedDepartamentoId($value)
+    {
+        $this->trabajador_id = null;
+    }
 
     public function sortBy($field)
     {
@@ -153,21 +162,14 @@ class Insumos extends Component
             'unidad_medida'  => 'required|string',
             'marca_id'       => 'required_without:nueva_marca',
             'categoria_insumo_id' => 'required_without:nueva_categoria',
-            'departamento_id' => 'nullable|exists:departamentos,id',
+            'departamento_id' => 'nullable|required_with:nuevo_departamento',
             'trabajador_id'   => 'nullable|exists:trabajadores,id',
             'dispositivo_id'  => 'nullable|exists:dispositivos,id',
             'computador_id'   => 'nullable|exists:computadores,id',
         ];
 
-        // Validación condicional de stock
-        $unidadesEnteras = ['unidad', 'cajas', 'pares'];
-        if (in_array($this->unidad_medida, $unidadesEnteras)) {
-            $rules['medida_actual'] = 'required|integer|min:0';
-            $rules['medida_minima'] = 'required|integer|min:0';
-        } else {
-            $rules['medida_actual'] = 'required|numeric|min:0';
-            $rules['medida_minima'] = 'required|numeric|min:0';
-        }
+        $rules['medida_actual'] = 'required|integer|min:0';
+        $rules['medida_minima'] = 'required|integer|min:0';
         if ($esEdicion) {
             $rules['justificacion'] = 'required|string|min:10';
         }
@@ -181,6 +183,10 @@ class Insumos extends Component
             if ($this->creando_categoria && !empty($this->nueva_categoria)) {
                 $cat = CategoriaInsumo::firstOrCreate(['nombre' => $this->nueva_categoria], ['activo' => true]);
                 $this->categoria_insumo_id = $cat->id;
+            }
+            if ($this->creando_departamento && !empty($this->nuevo_departamento)) {
+                $dpto = \App\Models\Departamento::firstOrCreate(['nombre' => $this->nuevo_departamento], ['activo' => true]);
+                $this->departamento_id = $dpto->id;
             }
 
             $payloadNuevo = [
@@ -458,19 +464,69 @@ class Insumos extends Component
     {
         $this->reset([
             'insumo_id', 'bien_nacional', 'serial', 'nombre', 'descripcion', 
-            'marca_id', 'categoria_insumo_id', 'insumo_detalle', 'nueva_marca', 'nueva_categoria', 'justificacion',
+            'marca_id', 'categoria_insumo_id', 'insumo_detalle', 'nueva_marca', 'nueva_categoria', 'nuevo_departamento', 'justificacion',
             'departamento_id', 'trabajador_id', 'dispositivo_id', 'computador_id'
         ]);
         $this->creando_marca = false;
         $this->creando_categoria = false;
+        $this->creando_departamento = false;
         $this->estado_fisico = 'operativo';
         $this->unidad_medida = 'unidad';
-        $this->medida_actual = 1.00;
-        $this->medida_minima = 1.00;
+        $this->medida_actual = 1;
+        $this->medida_minima = 1;
         $this->reutilizable = false;
         $this->instalable_en_equipo = false;
         $this->activo = true;
         $this->es_edicion = false;
         $this->resetValidation();
+    }
+
+    // --- MÉTODOS PARA EL MODAL DE TRABAJADOR ---
+    public function abrirModalTrabajador()
+    {
+        $this->dispatch('cerrar-modal', id: 'modalInsumo');
+        $this->dispatch('abrir-modal', id: 'modalTrabajador');
+    }
+
+    public function cancelarModalTrabajador()
+    {
+        $this->reset([
+            'nuevo_trab_nombres', 
+            'nuevo_trab_apellidos', 
+            'nuevo_trab_cedula', 
+            'nuevo_trab_departamento_id'
+        ]);
+        $this->dispatch('cerrar-modal', id: 'modalTrabajador');
+        $this->dispatch('abrir-modal', id: 'modalInsumo');
+    }
+
+    public function guardarTrabajadorRapido()
+    {
+        $this->validate([
+            'nuevo_trab_nombres' => 'required|string|max:255',
+            'nuevo_trab_apellidos' => 'required|string|max:255',
+            'nuevo_trab_cedula' => 'nullable|string|unique:trabajadores,cedula', 
+            'nuevo_trab_departamento_id' => 'required|exists:departamentos,id',
+        ]);
+
+        try {
+            $trab = \App\Models\Trabajador::create([
+                'nombres' => $this->nuevo_trab_nombres,
+                'apellidos' => $this->nuevo_trab_apellidos,
+                'cedula' => $this->nuevo_trab_cedula,
+                'departamento_id' => $this->nuevo_trab_departamento_id,
+                'activo' => true
+            ]);
+
+            $this->trabajador_id = $trab->id;
+
+            $this->reset(['nuevo_trab_nombres', 'nuevo_trab_apellidos', 'nuevo_trab_cedula', 'nuevo_trab_departamento_id']);
+            $this->dispatch('cerrar-modal', id: 'modalTrabajador');
+            $this->dispatch('abrir-modal', id: 'modalInsumo');
+            $this->dispatch('mostrar-toast', mensaje: 'Trabajador creado.', tipo:'success');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error trabajador rapido (Insumos): ' . $e->getMessage());
+            $this->dispatch('mostrar-toast', mensaje: 'Error al registrar trabajador.', tipo:'error');
+        }
     }
 }

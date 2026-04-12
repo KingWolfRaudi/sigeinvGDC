@@ -59,6 +59,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'ver-categorias-insumos', 'crear-categorias-insumos', 'editar-categorias-insumos', 'cambiar-estatus-categorias-insumos', 'ver-estado-categorias-insumos', 'eliminar-categorias-insumos',
             // Insumos
             'ver-insumos', 'crear-insumos', 'editar-insumos', 'cambiar-estatus-insumos', 'ver-estado-insumos', 'eliminar-insumos',
+            // Software
+            'ver-software', 'crear-software', 'editar-software', 'cambiar-estatus-software', 'ver-estado-software', 'eliminar-software',
 
             // ── Movimientos Computadores ──────────────────────────────────────
             'movimientos-computadores-crear',

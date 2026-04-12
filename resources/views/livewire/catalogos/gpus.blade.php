@@ -1,7 +1,7 @@
 <div>
     <div class="row mb-4 align-items-center">
         <div class="col-md-5">
-            <h3 class="mb-0">Catálogo de GPUs</h3>
+            <h3 class="mb-0"><i class="bi bi-cpu me-2"></i>Catálogo de GPUs</h3>
         </div>
         <div class="col-md-4">
             <div class="input-group">
@@ -116,7 +116,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetCampos"></button>
                 </div>
                 <form wire:submit.prevent="guardar">
-                    <div class="modal-body">
+                    <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                         <div class="row">
                             <div class="mb-3">
                                 <label class="form-label">Marca de la GPU <span class="text-danger">*</span></label>
@@ -226,7 +226,7 @@
                     <h5 class="modal-title"><i class="bi bi-gpu-card me-2"></i>Detalles de GPU</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                     @if($gpu_detalle)
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item"><strong>Marca:</strong> {{ $gpu_detalle->marca->nombre ?? 'N/A' }}</li>

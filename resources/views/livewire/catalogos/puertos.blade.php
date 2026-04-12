@@ -1,7 +1,7 @@
 <div>
     <div class="row mb-4 align-items-center">
         <div class="col-md-5">
-            <h3 class="mb-0">Catálogo de Puertos</h3>
+            <h3 class="mb-0"><i class="bi bi-usb-plug me-2"></i>Catálogo de Puertos</h3>
         </div>
         <div class="col-md-4">
             <div class="input-group">
@@ -126,7 +126,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetCampos"></button>
                 </div>
                 <form wire:submit.prevent="guardar">
-                    <div class="modal-body">
+                    <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                         <div class="mb-3">
                             <label class="form-label">Nombre del Puerto <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('nombre') is-invalid @enderror" wire:model="nombre" placeholder="Ej: USB 3.0, HDMI">
@@ -156,7 +156,7 @@
                     <h5 class="modal-title"><i class="bi bi-info-circle me-2"></i>Detalles</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                     @if($puerto_detalle)
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item"><strong>Nombre:</strong> {{ $puerto_detalle->nombre }}</li>

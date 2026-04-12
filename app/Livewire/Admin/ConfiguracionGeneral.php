@@ -38,6 +38,11 @@ class ConfiguracionGeneral extends Component
 
     public function mount()
     {
+        // Determinar pestaña inicial según permisos
+        if (Gate::denies('admin-incidencias')) {
+            $this->activeTab = 'perfil-ajustes';
+        }
+
         // 1. Cargar Configuración de Incidencias
         $this->cargarConfigIncidencias();
 
@@ -87,6 +92,7 @@ class ConfiguracionGeneral extends Component
 
     public function guardarProblema()
     {
+        abort_if(Gate::denies('admin-incidencias'), 403);
         $this->validate([
             'nombre_problema' => 'required|min:3|unique:problemas,nombre,' . $this->problema_id,
         ]);
@@ -103,6 +109,7 @@ class ConfiguracionGeneral extends Component
 
     public function editarProblema($id)
     {
+        abort_if(Gate::denies('admin-incidencias'), 403);
         $problema = Problema::findOrFail($id);
         $this->problema_id = $problema->id;
         $this->nombre_problema = $problema->nombre;
@@ -112,6 +119,7 @@ class ConfiguracionGeneral extends Component
 
     public function eliminarProblema($id)
     {
+        abort_if(Gate::denies('admin-incidencias'), 403);
         $problema = Problema::findOrFail($id);
         if ($problema->incidencias()->count() > 0) {
             $this->dispatch('mostrar-toast', mensaje: 'No se puede eliminar un tipo de incidencia que ya tiene registros asociados.', tipo: 'danger');

@@ -5,7 +5,7 @@
             <h3 class="mb-1"><i class="bi bi-arrow-left-right me-2"></i>Movimientos de Computadores</h3>
             <p class="text-muted small mb-0">Historial de cambios, bajas y actualizaciones de equipos.</p>
         </div>
-        <div class="col-md-5 text-end">
+        <div class="col-md-7 text-end">
             <div class="d-flex gap-2 justify-content-end">
                 @can('reportes-excel')
                 <div class="dropdown">
@@ -38,15 +38,15 @@
             <div class="row g-2">
                 <div class="col-md-9">
                     <input type="text" wire:model.live.debounce.300ms="search" class="form-control"
-                        placeholder="Buscar por BN, Serial, Justificación...">
+                        placeholder="Buscar por Bien Nacional, Serial, Justificación...">
                 </div>
                 <div class="col-md-3">
                     <select wire:model.live="filtro_tipo" class="form-select">
                         <option value="">Todos los tipos</option>
                         <option value="actualizacion_datos">Actualización de Datos</option>
                         <option value="cambio_departamento">Cambio de Departamento</option>
-                        <option value="cambio_estado">Cambio de Estado</option>
-                        <option value="toggle_activo">Cambio de Estado</option>
+                        <option value="cambio_estado">Cambio de Estado Físico</option>
+                        <option value="toggle_activo">Cambio de Estatus (Activar/Inactivar)</option>
                         <option value="baja">Baja</option>
                     </select>
                 </div>
@@ -222,7 +222,7 @@
                     <h5 class="modal-title"><i class="bi bi-arrow-left-right me-2"></i>Detalle del Movimiento</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                     @if($movimiento_detalle)
                     <div class="row">
                         <div class="col-md-6">
@@ -280,7 +280,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         wire:click="$set('rechazando_id', null)"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                     <p class="text-muted small">Indique el motivo del rechazo. El solicitante podrá ver esta justificación.</p>
                     <label class="form-label fw-bold">Motivo del Rechazo <span class="text-danger">*</span></label>
                     <textarea wire:model="motivo_rechazo" class="form-control @error('motivo_rechazo') is-invalid @enderror"
@@ -307,7 +307,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         wire:click="$set('editando_borrador_id', null)"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                     <p class="text-muted small">
                         <i class="bi bi-info-circle me-1"></i>
                         Puedes corregir la justificación antes de enviar el borrador a revisión.
@@ -344,7 +344,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
 
-                <div class="modal-body p-0">
+                <div class="modal-body p-0" style="max-height: 65vh; overflow-y: auto;">
                     {{-- Indicador de Pasos --}}
                     <div class="bg-light p-3 border-bottom d-flex justify-content-center gap-4">
                         <div class="d-flex align-items-center {{ $paso_generador == 1 ? 'text-primary fw-bold' : 'text-muted' }}">
@@ -480,6 +480,59 @@
                             </div>
                         </div>
                     @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Trabajador (Creación Rápida) -->
+    <div wire:ignore.self class="modal fade" id="modalTrabajador" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content border-primary shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title font-weight-bold"><i class="bi bi-person-plus-fill me-2"></i>Nuevo Trabajador</h5>
+                    <button type="button" class="btn-close btn-close-white" wire:click="cancelarModalTrabajador"></button>
+                </div>
+                <div class="modal-body p-4" style="max-height: 65vh; overflow-y: auto;">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label font-weight-bold">Nombres <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('nuevo_trab_nombres') is-invalid @enderror" wire:model="nuevo_trab_nombres" placeholder="Ej: Juan">
+                            @error('nuevo_trab_nombres') <span class="text-danger small">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label font-weight-bold">Apellidos <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('nuevo_trab_apellidos') is-invalid @enderror" wire:model="nuevo_trab_apellidos" placeholder="Ej: Pérez">
+                            @error('nuevo_trab_apellidos') <span class="text-danger small">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold">Cédula (Opcional)</label>
+                        <input type="text" class="form-control @error('nuevo_trab_cedula') is-invalid @enderror" wire:model="nuevo_trab_cedula" placeholder="Ej: 12345678">
+                        @error('nuevo_trab_cedula') <span class="text-danger small">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold">Departamento <span class="text-danger">*</span></label>
+                        <select class="form-select @error('nuevo_trab_departamento_id') is-invalid @enderror" wire:model="nuevo_trab_departamento_id">
+                            <option value="">Seleccione...</option>
+                            @foreach(\App\Models\Departamento::orderBy('nombre')->get() as $dep)
+                                <option value="{{ $dep->id }}">{{ $dep->nombre }}</option>
+                            @endforeach
+                        </select>
+                        @error('nuevo_trab_departamento_id') <span class="text-danger small">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="alert alert-info py-2 small mb-0 border-0 shadow-sm">
+                        <i class="bi bi-info-circle-fill me-1"></i> Se creará el registro completo del trabajador en la base de datos.
+                    </div>
+                </div>
+                <div class="modal-footer bg-light px-4 py-3">
+                    <button type="button" class="btn btn-secondary px-4" wire:click="cancelarModalTrabajador">Volver</button>
+                    <button type="button" class="btn btn-primary px-4 fw-bold shadow-sm" wire:click="guardarTrabajadorRapido">
+                        <i class="bi bi-save me-1"></i> Guardar Trabajador
+                    </button>
                 </div>
             </div>
         </div>

@@ -156,25 +156,79 @@
     $ant   = $movimiento_detalle->payload_anterior ?? [];
     $nuevo = $movimiento_detalle->payload_nuevo    ?? [];
 
+    // ── Nombres para IDs (Departamento, Trabajador, etc.) ──────────────────
+    $resolverNombre = function($id, string $field) {
+        if (!$id) return null;
+        try {
+            return match($field) {
+                'departamento_id' => \App\Models\Departamento::find($id)?->nombre,
+                'trabajador_id'   => \App\Models\Trabajador::find($id)?->nombres_apellidos,
+                'marca_id'        => \App\Models\Marca::find($id)?->nombre,
+                'categoria_insumo_id' => \App\Models\CategoriaInsumo::find($id)?->nombre,
+                'dispositivo_id'  => \App\Models\Dispositivo::find($id)?->nombre,
+                'computador_id'   => \App\Models\Computador::find($id)?->nombre_equipo,
+                default => null,
+            };
+        } catch (\Exception $e) { return "ID: $id"; }
+    };
+
     // ── Calcular diff real ─────────────────────────────────────────────────
-    // Funciona para borradores nuevos (payload_nuevo = diff puro) Y para
-    // borradores antiguos (payload_nuevo = registro completo). En ambos casos
-    // comparamos cada campo contra payload_anterior y solo mostramos cambios reales.
     $camposAMostrar = [];
     if (!empty($ant)) {
         foreach ($nuevo as $field => $valNuevo) {
             $valAnterior = $ant[$field] ?? null;
             if (!$sonIguales($valAnterior, $valNuevo, $field)) {
+                
+                // Intentar resolver nombres para IDs si aplica
+                if (str_ends_with($field, '_id')) {
+                    $valAnterior = $resolverNombre($valAnterior, $field) ?? $valAnterior;
+                    $valNuevo    = $resolverNombre($valNuevo, $field) ?? $valNuevo;
+                }
+
                 $camposAMostrar[$field] = ['anterior' => $valAnterior, 'nuevo' => $valNuevo];
             }
         }
     } else {
-        // Sin snapshot anterior: mostrar todo lo que hay en payload_nuevo
         foreach ($nuevo as $field => $valNuevo) {
-            $camposAMostrar[$field] = ['anterior' => null, 'nuevo' => $valNuevo];
+            $valFinal = str_ends_with($field, '_id') ? ($resolverNombre($valNuevo, $field) ?? $valNuevo) : $valNuevo;
+            $camposAMostrar[$field] = ['anterior' => null, 'nuevo' => $valFinal];
         }
     }
 @endphp
+
+{{-- ════ CAMBIO DE STOCK (ALERTA VISUAL) ══════════════════════════════════ --}}
+@if(in_array($tipo, ['entrada_stock', 'salida_consumo', 'prestamo', 'devolucion']) && $movimiento_detalle->cantidad_movida > 0)
+@php
+    $stockAntes = (int)($ant['medida_actual'] ?? $movimiento_detalle->insumo->medida_actual);
+    $cantidad   = (int)$movimiento_detalle->cantidad_movida;
+    $stockDespues = match($tipo) {
+        'entrada_stock', 'devolucion' => $stockAntes + $cantidad,
+        'salida_consumo', 'prestamo' => max(0, $stockAntes - $cantidad),
+        default => $stockAntes
+    };
+    $esAumento = in_array($tipo, ['entrada_stock', 'devolucion']);
+@endphp
+<div class="card border-{{ $esAumento ? 'success' : 'warning' }} mb-3 bg-light shadow-sm">
+    <div class="card-body py-2 px-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <small class="text-muted d-block uppercase fw-bold" style="font-size: 0.65rem;">Impacto en Existencias</small>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fs-5 fw-bold text-dark">{{ $stockAntes }}</span>
+                    <i class="bi bi-arrow-right text-muted"></i>
+                    <span class="fs-4 fw-bold text-{{ $esAumento ? 'success' : 'danger' }}">{{ $stockDespues }}</span>
+                    <span class="badge bg-{{ $esAumento ? 'success' : 'danger' }} ms-2">
+                        {{ $esAumento ? '+' : '-' }}{{ $cantidad }}
+                    </span>
+                </div>
+            </div>
+            <div class="text-end">
+                <i class="bi bi-box-seam fs-2 opacity-25"></i>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 
 {{-- ════ BAJA ════════════════════════════════════════════════════════════ --}}
 @if($tipo === 'baja')

@@ -159,7 +159,7 @@
                 </li>
                 @endcanany
 
-                @canany(['ver-computadores', 'ver-dispositivos', 'ver-insumos'])
+                @canany(['ver-computadores', 'ver-dispositivos', 'ver-insumos', 'ver-software'])
                 <li class="nav-item mb-1">
                     <a href="#submenuInventario" data-bs-toggle="collapse" aria-expanded="{{ request()->routeIs('inventario.*') ? 'true' : 'false' }}" class="nav-link {{ request()->routeIs('inventario.*') ? 'active' : 'text-white' }} d-flex justify-content-between align-items-center">
                         <div><i class="bi bi-box-seam me-2"></i> Inventario</div>
@@ -188,13 +188,20 @@
                                 </a>
                             </li>
                             @endcan
+                            @can('ver-software')
+                            <li class="nav-item">
+                                <a href="{{ route('inventario.software') }}" class="nav-link {{ request()->routeIs('inventario.software') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-disc me-2"></i> Software
+                                </a>
+                            </li>
+                            @endcan
                         </ul>
                     </div>
                 </li>
                 @endcanany
 
                 {{-- Sección: Incidencias --}}
-                @canany(['ver-incidencias', 'admin-incidencias'])
+                @can('ver-incidencias')
                 <li class="nav-item mb-1 mt-3">
                     <h6 class="sidebar-heading px-3 mt-4 mb-1 text-white-50 text-uppercase" style="font-size: 0.75rem;">
                         <span>Incidencias</span>
@@ -289,12 +296,15 @@
                         <i class="bi bi-gear-wide-connected me-2"></i> Configuración General
                     </a>
                 </li>
+                @endcanany
+
+                @can('admin-auditoria')
                 <li class="nav-item mb-1">
                     <a href="{{ route('admin.auditoria') }}" class="nav-link {{ request()->routeIs('admin.auditoria') ? 'active' : 'text-white' }} d-flex align-items-center">
                         <i class="bi bi-clock-history me-2"></i> Auditoría de Logs
                     </a>
                 </li>
-                @endcanany
+                @endcan
                 @can('ver-usuarios')
                 <li class="nav-item mb-1">
                     <a href="{{ route('admin.usuarios') }}" class="nav-link {{ request()->routeIs('admin.usuarios') ? 'active' : 'text-white' }} d-flex align-items-center">

@@ -2,13 +2,13 @@
     <div class="row mb-4 align-items-center">
         <div class="col-md-4">
             @if(!$ocultarTitulos)
-                <h3 class="mb-0">Inventario de Dispositivos</h3>
+                <h3 class="mb-0"><i class="bi bi-router me-2"></i>Inventario de Dispositivos</h3>
             @endif
         </div>
         <div class="col-md-5">
             <div class="input-group">
                 <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar por Código, Serial, Modelo o IP...">
+                <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar por Bien Nacional, Serial, Modelo o IP...">
             </div>
         </div>
         <div class="col-md-3 text-end d-flex gap-2">
@@ -69,15 +69,17 @@
                                 @if($sortField === 'ip') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
                             </th>
 
+                            <th wire:click="sortBy('departamento_id')" style="cursor: pointer;">
+                                Ubicación
+                                @if($sortField === 'departamento_id') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            </th>
+
                             <th wire:click="sortBy('estado')" style="cursor: pointer;">
                                 Condición
                                 @if($sortField === 'estado') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
                             </th>
 
-                            <th wire:click="sortBy('departamento_id')" style="cursor: pointer;">
-                                Ubicación
-                                @if($sortField === 'departamento_id') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
-                            </th>
+                            
 
                             @can('ver-estado-dispositivos')
                             <th class="th-estado" wire:click="sortBy('activo')" style="cursor: pointer;">
@@ -119,12 +121,12 @@
                                 {{ $disp->ip ?? 'Sin IP' }}
                             </td>
                             <td>
+                                {{ $disp->departamento->nombre ?? 'N/A' }}
+                            </td>
+                            <td>
                                 <span class="badge bg-{{ $disp->estado === 'operativo' ? 'success' : ($disp->estado === 'dañado' ? 'danger' : 'warning') }}">
                                     {{ strtoupper(str_replace('_', ' ', $disp->estado)) }}
                                 </span>
-                            </td>
-                            <td>
-                                {{ $disp->departamento->nombre ?? 'N/A' }}
                             </td>
                             @can('ver-estado-dispositivos')
                             <td>
@@ -174,161 +176,24 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetCampos"></button>
                 </div>
                 <form wire:submit.prevent="guardar">
-                    <div class="modal-body p-4">
-
-                        <h6 class="border-bottom pb-2 text-primary">1. Identificación y Atributos Físicos</h6>
-                        <div class="row mb-4">
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label">Bien Nacional <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('bien_nacional') is-invalid @enderror" wire:model="bien_nacional">
-                                @error('bien_nacional') <span class="text-danger small">{{ $message }}</span> @enderror
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label">Serial Fabricante <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('serial') is-invalid @enderror" wire:model="serial">
-                                @error('serial') <span class="text-danger small">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label">Marca <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    @if($creando_marca)
-                                    <input type="text" class="form-control border-primary" wire:model="nueva_marca" placeholder="Nueva marca...">
-                                    <button class="btn btn-outline-danger" type="button" wire:click="$set('creando_marca', false)"><i class="bi bi-x-lg"></i></button>
-                                    @else
-                                    <select class="form-select @error('marca_id') is-invalid @enderror" wire:model="marca_id">
-                                        <option value="">Seleccione...</option>
-                                        @foreach($marcas as $m) <option value="{{ $m->id }}">{{ $m->nombre }}</option> @endforeach
-                                    </select>
-                                    <button class="btn btn-outline-success" type="button" wire:click="$set('creando_marca', true)" title="Crear nueva marca"><i class="bi bi-plus-lg"></i></button>
-                                    @endif
+                    <div class="modal-body p-4" style="max-height: 65vh; overflow-y: auto;">
+                        @include('livewire.inventario.partials._form_fields_dispositivos')
+                        {{-- ── Campo Justificación (solo en modo edición) ─── --}}
+                        @if($es_edicion)
+                        <div class="alert alert-warning border-warning mb-0 mt-4 py-2">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="bi bi-shield-lock-fill text-warning mt-1"></i>
+                                <div class="w-100">
+                                    <strong class="small">Justificación del Cambio (requerida)</strong>
+                                    <textarea class="form-control form-control-sm mt-1 @error('justificacion') is-invalid @enderror"
+                                        wire:model="justificacion" rows="2"
+                                        placeholder="Describa el motivo técnico u operativo de esta modificación (mín. 10 caracteres)..."></textarea>
+                                    @error('justificacion') <span class="text-danger small">{{ $message }}</span> @enderror
                                 </div>
-                            </div>
-
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label">Tipo Dispositivo <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    @if($creando_tipo)
-                                    <input type="text" class="form-control border-primary" wire:model="nuevo_tipo" placeholder="Nuevo tipo...">
-                                    <button class="btn btn-outline-danger" type="button" wire:click="$set('creando_tipo', false)"><i class="bi bi-x-lg"></i></button>
-                                    @else
-                                    <select class="form-select @error('tipo_dispositivo_id') is-invalid @enderror" wire:model="tipo_dispositivo_id">
-                                        <option value="">Seleccione...</option>
-                                        @foreach($tipos as $t) <option value="{{ $t->id }}">{{ $t->nombre }}</option> @endforeach
-                                    </select>
-                                    <button class="btn btn-outline-success" type="button" wire:click="$set('creando_tipo', true)"><i class="bi bi-plus-lg"></i></button>
-                                    @endif
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Modelo / Diseño Específico <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('nombre') is-invalid @enderror" wire:model="nombre" placeholder="Ej: LaserJet Pro M402dn">
-                                @error('nombre') <span class="text-danger small">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label">Estado de Funcionamiento <span class="text-danger">*</span></label>
-                                <select class="form-select @error('estado') is-invalid @enderror" wire:model="estado">
-                                    <option value="operativo">Operativo</option>
-                                    <option value="dañado">Dañado</option>
-                                    <option value="en_reparacion">En Reparación</option>
-                                    <option value="indeterminado">Indeterminado</option>
-                                </select>
-                                @error('estado') <span class="text-danger small">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label">Dirección IP (Red)</label>
-                                <input type="text" class="form-control @error('ip') is-invalid @enderror" wire:model="ip" placeholder="192.168.X.X">
-                                @error('ip') <span class="text-danger small">{{ $message }}</span> @enderror
                             </div>
                         </div>
-
-                        <h6 class="border-bottom pb-2 text-primary">2. Distribución y Asignación</h6>
-                        <div class="row w-100">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Departamento / Área <span class="text-danger">*</span></label>
-                                <select class="form-select @error('departamento_id') is-invalid @enderror" wire:model.live="departamento_id">
-                                    <option value="">Seleccione...</option>
-                                    @foreach($departamentos as $dep)
-                                    <option value="{{ $dep->id }}">{{ $dep->nombre }}</option>
-                                    @endforeach
-                                </select>
-                                @error('departamento_id') <span class="text-danger small">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Trabajador Responsable</label>
-                                <div class="input-group">
-                                    <select class="form-select" wire:model="trabajador_id" @if(!$departamento_id) disabled @endif>
-                                        @if(!$departamento_id)
-                                        <option value="">Seleccione dep. primero...</option>
-                                        @else
-                                        <option value="">(Sin asignar)</option>
-                                        @foreach($trabajadores as $t)
-                                        <option value="{{ $t->id }}">{{ $t->nombres }} {{ $t->apellidos }}</option>
-                                        @endforeach
-                                        @endif
-                                    </select>
-                                    <button class="btn btn-outline-primary" type="button" wire:click="abrirModalTrabajador" title="Registrar Trabajador" @if(!$departamento_id) disabled @endif>
-                                        <i class="bi bi-person-plus-fill"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Conectado a Computador</label>
-                                <select class="form-select" wire:model="computador_id">
-                                    <option value="">Seleccione si aplica...</option>
-                                    @foreach($computadores as $comp)
-                                    <option value="{{ $comp->id }}">{{ $comp->nombre_equipo }} ({{ $comp->tipo_computador }}) - BN: {{ $comp->bien_nacional }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-
-                        <h6 class="border-bottom pb-2 text-primary">3. Puertos de Salida y Notas Adicionales</h6>
-                        <div class="row">
-                            <div class="col-12 mb-3">
-                                <div class="border rounded p-3 bg-light">
-                                    <div class="row">
-                                        @foreach($puertos as $puerto)
-                                        <div class="col-md-3 col-sm-4 mb-2">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="{{ $puerto->id }}" id="puerto_{{ $puerto->id }}" wire:model="puertos_seleccionados">
-                                                <label class="form-check-label text-sm" for="puerto_{{ $puerto->id }}">
-                                                    {{ $puerto->nombre }}
-                                                </label>
-                                            </div>
-                                        </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label">Observaciones Adicionales</label>
-                                <textarea class="form-control" wire:model="notas" rows="2"></textarea>
-                            </div>
-                        </div>
-
+                        @endif
                     </div>
-
-                    {{-- ── Campo Justificación (solo en modo edición) ─── --}}
-                    @if($es_edicion)
-                    <div class="alert alert-warning border-warning mx-4 mb-0 mt-2 py-2">
-                        <div class="d-flex align-items-start gap-2">
-                            <i class="bi bi-shield-lock-fill text-warning mt-1"></i>
-                            <div class="w-100">
-                                <strong class="small">Justificación del Cambio (requerida)</strong>
-                                <textarea class="form-control form-control-sm mt-1 @error('justificacion') is-invalid @enderror"
-                                    wire:model="justificacion" rows="2"
-                                    placeholder="Describa el motivo técnico u operativo de esta modificación (mín. 10 caracteres)..."></textarea>
-                                @error('justificacion') <span class="text-danger small">{{ $message }}</span> @enderror
-                            </div>
-                        </div>
-                    </div>
-                    @endif
 
                     <div class="modal-footer bg-light">
                         @can('cambiar-estatus-dispositivos')
@@ -353,7 +218,7 @@
                     <h5 class="modal-title"><i class="bi bi-printer me-2"></i>Detalles del Dispositivo</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                     @if($dispositivo_detalle)
                     <div class="row">
                         <div class="col-md-4 mb-4">
@@ -427,7 +292,7 @@
                     <h5 class="modal-title"><i class="bi bi-person-plus-fill me-2"></i>Nuevo Trabajador</h5>
                     <button type="button" class="btn-close btn-close-white" wire:click="cancelarModalTrabajador"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Nombres <span class="text-danger">*</span></label>
@@ -496,7 +361,7 @@
                         class="btn-close {{ $esRevisión ? '' : 'btn-close-white' }}"
                         data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                     <div class="d-flex align-items-start gap-3 p-3 bg-light rounded mb-3">
                         <div class="flex-shrink-0">
                             <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white fw-bold"

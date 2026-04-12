@@ -31,14 +31,16 @@ class Roles extends Component
         
         foreach ($queryPermisos->get() as $permiso) {
             $name = $permiso->name;
+            $accion_label = null;
             
             // Determinar macro categoría
             $macro = 'Catálogos';
             if (str_starts_with($name, 'movimientos-')) $macro = 'Movimientos';
-            elseif (str_ends_with($name, '-usuarios') || str_ends_with($name, '-roles')) $macro = 'Administración';
+            elseif ($name === 'admin-incidencias' || str_contains($name, 'solicitudes-perfil') || str_ends_with($name, '-usuarios') || str_ends_with($name, '-roles')) $macro = 'Administración';
             elseif (str_ends_with($name, '-trabajadores') || str_ends_with($name, '-departamentos')) $macro = 'Asignaciones';
             elseif (str_ends_with($name, '-computadores') || str_ends_with($name, '-dispositivos') || str_ends_with($name, '-insumos')) $macro = 'Inventarios';
             elseif (str_ends_with($name, '-incidencias')) $macro = 'Incidencias';
+            elseif (str_starts_with($name, 'reportes-') || $name === 'admin-auditoria' || str_contains($name, 'auditoria')) $macro = 'Reportes y Auditoría';
             
             // Determinar entidad base
             $entidades = [
@@ -58,6 +60,9 @@ class Roles extends Component
                 'roles'               => 'Roles',
                 'problemas'           => 'Tipos de Incidencias',
                 'incidencias'         => 'Gestión de Incidencias',
+                'configuraciones'     => 'Configuraciones',
+                'reportes'            => 'Módulo de Reportes',
+                'auditoria'           => 'Auditoría y Logs',
             ];
             
             $entidadNombre = 'Otros';
@@ -74,6 +79,18 @@ class Roles extends Component
                      $entidadNombre = 'Movimientos Insumos';
                      $accion = str_replace('movimientos-insumos-', '', $name);
                  }
+            } elseif ($macro === 'Reportes y Auditoría') {
+                $entidadNombre = 'Generación de Reportes';
+                if ($name === 'admin-auditoria') {
+                    $entidadNombre = 'Auditoría';
+                    $accion = 'Ver Logs';
+                } else {
+                    $accion = str_replace('reportes-', '', $name);
+                }
+            } elseif ($name === 'admin-solicitudes-perfil' || $name === 'admin-incidencias') {
+                $entidadNombre = 'Configuraciones';
+                $accion = $name;
+                $accion_label = ($name === 'admin-solicitudes-perfil') ? 'Solicitudes de Perfil' : 'Configuraciones de Incidencias';
             } else {
                  foreach ($entidades as $key => $label) {
                      if (str_ends_with($name, $key)) {
@@ -84,6 +101,11 @@ class Roles extends Component
                  }
             }
             
+            // Generar la etiqueta si no fue asignada manualmente arriba
+            if (!isset($accion_label)) {
+                $accion_label = ucfirst(str_replace('-', ' ', $accion));
+            }
+            
             if (!isset($permisosAgrupados[$macro])) {
                 $permisosAgrupados[$macro] = [];
             }
@@ -91,11 +113,12 @@ class Roles extends Component
                 $permisosAgrupados[$macro][$entidadNombre] = [];
             }
             
+
             $permisosAgrupados[$macro][$entidadNombre][] = [
                 'id' => $permiso->id,
                 'name' => $permiso->name,
-                'accion' => $accion, // Guardamos la acción pura para el sorteo
-                'label' => ucfirst(str_replace('-', ' ', $accion))
+                'accion' => $accion,
+                'label' => $accion_label
             ];
         }
 
@@ -112,6 +135,11 @@ class Roles extends Component
             'aprobar'           => 8,
             'rechazar'          => 9,
             'ejecutar-directo'  => 10,
+            // Reportes
+            'excel'             => 11,
+            'pdf'               => 12,
+            'masivos-filtros'   => 13,
+            'Ver Logs'          => 14,
         ];
 
         foreach ($permisosAgrupados as $macro => &$subgrupos) {

@@ -4,9 +4,10 @@
             <h3 class="mb-1"><i class="bi bi-arrow-left-right me-2"></i>Movimientos de Dispositivos</h3>
             <p class="text-muted small mb-0">Historial de cambios, bajas y actualizaciones de dispositivos periféricos.</p>
         </div>
-        <div class="col-md-3 text-end">
+        <div class="col-md-7 text-end d-flex justify-content-end gap-2">
+            @can('reportes-excel')
             <div class="dropdown">
-                <button class="btn btn-outline-success border-2 fw-bold w-100 dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                <button class="btn btn-outline-success border-2 fw-bold dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
                     <i class="bi bi-file-earmark-excel me-1"></i> Excel
                 </button>
                 <ul class="dropdown-menu shadow border-0">
@@ -22,12 +23,19 @@
                     </li>
                 </ul>
             </div>
+            @endcan
+
+            @can('movimientos-dispositivos-crear')
+            <button wire:click="abrirGenerador" class="btn btn-primary shadow-sm fw-bold">
+                <i class="bi bi-plus-circle me-1"></i> Nuevo Movimiento
+            </button>
+            @endcan
         </div>
         <div class="col-md-12 mt-3">
             <div class="row g-2">
                 <div class="col-md-9">
                     <input type="text" wire:model.live.debounce.300ms="search" class="form-control"
-                        placeholder="Buscar por bien nacional, nombre, serial...">
+                        placeholder="Buscar por Bien Nacional, nombre, serial...">
                 </div>
                 <div class="col-md-3">
                     <select wire:model.live="filtro_tipo" class="form-select">
@@ -35,8 +43,8 @@
                         <option value="actualizacion_datos">Actualización de Datos</option>
                         <option value="cambio_departamento">Cambio de Departamento</option>
                         <option value="reasignacion_trabajador">Reasignación Trabajador</option>
-                        <option value="cambio_estado">Cambio de Estado</option>
-                        <option value="toggle_activo">Cambio de Estado</option>
+                        <option value="cambio_estado">Cambio de Estado Físico</option>
+                        <option value="toggle_activo">Cambio de Estatus (Activar/Inactivar)</option>
                         <option value="baja">Baja</option>
                     </select>
                 </div>
@@ -205,7 +213,7 @@
                     <h5 class="modal-title"><i class="bi bi-arrow-left-right me-2"></i>Detalle del Movimiento</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                     @if($movimiento_detalle)
                     <div class="row">
                         <div class="col-md-6">
@@ -262,7 +270,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         wire:click="$set('rechazando_id', null)"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                     <p class="text-muted small">Indique el motivo del rechazo.</p>
                     <label class="form-label fw-bold">Motivo del Rechazo <span class="text-danger">*</span></label>
                     <textarea wire:model="motivo_rechazo" class="form-control @error('motivo_rechazo') is-invalid @enderror"
@@ -289,7 +297,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         wire:click="$set('editando_borrador_id', null)"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                     <p class="text-muted small">
                         <i class="bi bi-info-circle me-1"></i>
                         Puedes corregir la justificación antes de enviar el borrador a revisión.
@@ -314,4 +322,207 @@
         </div>
     </div>
 
+
+    {{-- ── MODAL GENERADOR DE MOVIMIENTOS (STANDARDIZED) ────────────────── --}}
+    <div wire:ignore.self class="modal fade" id="modalGeneradorDispositivos" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog {{ $paso_generador == 2 ? 'modal-xl' : 'modal-lg' }} modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-dark text-white py-3">
+                    <h5 class="modal-title d-flex align-items-center">
+                        <i class="bi bi-magic me-2"></i> Generador de Movimiento: Dispositivos
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" wire:click="resetGenerador"></button>
+                </div>
+
+                <div class="modal-body p-0" style="max-height: 65vh; overflow-y: auto;">
+                    <div class="bg-light border-bottom px-4 py-2 d-flex align-items-center gap-3">
+                        <div class="d-flex align-items-center {{ $paso_generador == 1 ? 'text-primary fw-bold' : 'text-muted' }}">
+                            <span class="badge {{ $paso_generador == 1 ? 'bg-primary' : 'bg-secondary' }} me-2">1</span> Selección
+                        </div>
+                        <i class="bi bi-chevron-right text-muted"></i>
+                        <div class="d-flex align-items-center {{ $paso_generador == 2 ? 'text-primary fw-bold' : 'text-muted' }}">
+                            <span class="badge {{ $paso_generador == 2 ? 'bg-primary' : 'bg-secondary' }} me-2">2</span> Configuración
+                        </div>
+                    </div>
+
+                    @if($paso_generador == 1)
+                        {{-- PASO 1: SELECCIÓN --}}
+                        <div class="p-4">
+                            <div class="alert alert-info py-2 small mb-4">
+                                <i class="bi bi-info-circle me-2"></i>Filtra y selecciona el dispositivo al que deseas aplicar un cambio.
+                            </div>
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold">Bien Nacional</label>
+                                    <input type="text" wire:model.live.debounce.300ms="searchBN" class="form-control form-control-sm" placeholder="Buscar BN...">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold">Serial</label>
+                                    <input type="text" wire:model.live.debounce.300ms="searchSerial" class="form-control form-control-sm" placeholder="Buscar Serial...">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold">Departamento</label>
+                                    <select wire:model.live="searchDpto" class="form-select form-select-sm">
+                                        <option value="">Todos los Dptos...</option>
+                                        @foreach(\App\Models\Departamento::where('activo',true)->orderBy('nombre')->get() as $d)
+                                            <option value="{{ $d->id }}">{{ $d->nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold">Trabajador</label>
+                                    <select wire:model.live="searchTrabajador" class="form-select form-select-sm">
+                                        <option value="">Todos los Trabajadores...</option>
+                                        @foreach(\App\Models\Trabajador::where('activo',true)->orderBy('nombres')->get() as $t)
+                                            <option value="{{ $t->id }}">{{ $t->nombres }} {{ $t->apellidos }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive border rounded bg-white shadow-sm" style="max-height: 400px;">
+                                <table class="table table-sm table-hover align-middle mb-0">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th>Dispositivo</th>
+                                            <th>Identificadores</th>
+                                            <th>Ubicación</th>
+                                            <th>Estado/Pendientes</th>
+                                            <th class="text-end">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($dispositivos_lista as $dl)
+                                            <tr>
+                                                <td>
+                                                    <span class="fw-bold">{{ $dl->nombre }}</span><br>
+                                                    <small class="text-muted">{{ $dl->marca->nombre ?? 'Sin Marca' }}</small>
+                                                </td>
+                                                <td>
+                                                    <code class="text-primary small">BN: {{ $dl->bien_nacional }}</code><br>
+                                                    <code class="text-secondary small">SN: {{ $dl->serial }}</code>
+                                                </td>
+                                                <td>
+                                                    <small>{{ $dl->departamento->nombre ?? 'Sin Dpto' }}</small><br>
+                                                    <small class="text-muted">{{ $dl->trabajador->nombres ?? '' }} {{ $dl->trabajador->apellidos ?? '' }}</small>
+                                                </td>
+                                                <td>
+                                                    @if($dl->pendientes_count > 0)
+                                                        <span class="badge bg-warning text-dark animate__animated animate__pulse animate__infinite">
+                                                            <i class="bi bi-exclamation-triangle me-1"></i> {{ $dl->pendientes_count }} Pendiente(s)
+                                                        </span>
+                                                    @else
+                                                        <span class="badge bg-success-subtle text-success">Limpio</span>
+                                                    @endif
+                                                </td>
+                                                <td class="text-end">
+                                                    <button wire:click="seleccionarDispositivo({{ $dl->id }})" class="btn btn-sm btn-outline-primary px-3">
+                                                        Seleccionar <i class="bi bi-chevron-right ms-1"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="5" class="text-center py-5 text-muted italic">
+                                                    <i class="bi bi-search d-block fs-3 mb-2"></i>
+                                                    Usa los filtros para encontrar un dispositivo
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    @else
+                        {{-- PASO 2: CONFIGURACIÓN --}}
+                        <div class="p-4 bg-white">
+                            <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+                                <div>
+                                    <h5 class="mb-0 text-dark">{{ $nombre }} - <span class="text-muted small">{{ $bien_nacional }}</span></h5>
+                                    <p class="text-muted small mb-0">Configura los cambios que deseas proponer para este dispositivo.</p>
+                                </div>
+                                <button wire:click="$set('paso_generador', 1)" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-arrow-left me-1"></i> Cambiar Equipo
+                                </button>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-9 border-end">
+                                    {{-- Reutilización del formulario partial --}}
+                                    @include('livewire.inventario.partials._form_fields_dispositivos')
+                                </div>
+                                <div class="col-md-3 bg-light p-3">
+                                    <label class="form-label fw-bold text-danger">Justificación del Cambio <span class="text-danger">*</span></label>
+                                    <textarea wire:model="justificacion" class="form-control mb-3" rows="8" 
+                                        placeholder="Describe el motivo de este movimiento (Reparación, cambio de usuario, actualización, etc.)"></textarea>
+                                    @error('justificacion') <span class="text-danger small d-block mb-3">{{ $message }}</span> @enderror
+                                    
+                                    <div class="alert alert-warning small py-2">
+                                        <i class="bi bi-shield-lock me-1"></i> Este cambio se guardará como <strong>Borrador</strong> y deberá ser enviado a revisión.
+                                    </div>
+                                    
+                                    <button wire:click="guardarBorrador" class="btn btn-success w-100 fw-bold py-2 mt-2">
+                                        <i class="bi bi-save me-2"></i> Crear Borrador
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Trabajador (Creación Rápida) -->
+    <div wire:ignore.self class="modal fade" id="modalTrabajador" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content border-primary shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title font-weight-bold"><i class="bi bi-person-plus-fill me-2"></i>Nuevo Trabajador</h5>
+                    <button type="button" class="btn-close btn-close-white" wire:click="cancelarModalTrabajador"></button>
+                </div>
+                <div class="modal-body p-4" style="max-height: 65vh; overflow-y: auto;">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label font-weight-bold">Nombres <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('nuevo_trab_nombres') is-invalid @enderror" wire:model="nuevo_trab_nombres" placeholder="Ej: Juan">
+                            @error('nuevo_trab_nombres') <span class="text-danger small">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label font-weight-bold">Apellidos <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('nuevo_trab_apellidos') is-invalid @enderror" wire:model="nuevo_trab_apellidos" placeholder="Ej: Pérez">
+                            @error('nuevo_trab_apellidos') <span class="text-danger small">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold">Cédula (Opcional)</label>
+                        <input type="text" class="form-control @error('nuevo_trab_cedula') is-invalid @enderror" wire:model="nuevo_trab_cedula" placeholder="Ej: 12345678">
+                        @error('nuevo_trab_cedula') <span class="text-danger small">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold">Departamento <span class="text-danger">*</span></label>
+                        <select class="form-select @error('nuevo_trab_departamento_id') is-invalid @enderror" wire:model="nuevo_trab_departamento_id">
+                            <option value="">Seleccione...</option>
+                            @foreach(\App\Models\Departamento::orderBy('nombre')->get() as $dep)
+                                <option value="{{ $dep->id }}">{{ $dep->nombre }}</option>
+                            @endforeach
+                        </select>
+                        @error('nuevo_trab_departamento_id') <span class="text-danger small">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="alert alert-info py-2 small mb-0 border-0 shadow-sm">
+                        <i class="bi bi-info-circle-fill me-1"></i> Se creará el registro completo del trabajador en la base de datos.
+                    </div>
+                </div>
+                <div class="modal-footer bg-light px-4 py-3">
+                    <button type="button" class="btn btn-secondary px-4" wire:click="cancelarModalTrabajador">Volver</button>
+                    <button type="button" class="btn btn-primary px-4 fw-bold shadow-sm" wire:click="guardarTrabajadorRapido">
+                        <i class="bi bi-save me-1"></i> Guardar Trabajador
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

@@ -101,17 +101,18 @@ Se implementó un **Panel de Configuración General** unificado que reemplaza aj
 ## 7. Guía de Interfaz (Aesthetics)
 - **Glassmorphism:** Uso de opacidades y desenfoques (backdrop-filter) en modales y tarjetas.
 - **Bootstrap Custom:** Se priorizan paletas de colores armónicas (Azure, Indigo, Teal) sobre los colores primarios base.
-- **Limpieza de Modales:** Livewire requiere un script de limpieza manual para eliminar el `.modal-backdrop` de Bootstrap tras cierres de modales asíncronos para evitar bloqueos de UI.
+- **Limpieza de Modales:** Livewire requiere un script de limpieza manual para eliminar el `.modal-backdrop` de Bootstrap tras cierres asíncronos.
+- **Scroll Fijo en Modales (Obligatorio):** Todo `<div class="modal-body">` debe incorporar estrictamente el CSS en línea `style="max-height: 65vh; overflow-y: auto;"`. Esto garantiza que los botones de acción (`modal-footer`) nunca sean desplazados fuera de la pantalla, evitando el antiestético doble scroll del navegador.
+- **Contención Estricta de Alertas:** Cualquier bloque de advertencia dinámico, alerta de error o cuadro de **"Justificación del Cambio"** debe ir SIEMPRE DENTRO del `modal-body` afectado por el patrón de 65vh. Está estrictamente prohibido ubicar elementos expansivos entre el `modal-body` y el `modal-footer`.
 - **Estándar de Modales de Detalle:** Los modales de "Vista Rápida" deben seguir un layout de 3 columnas (Identificación, Especificaciones, Notas) con etiquetas estandarizadas (ej. *"Ubicación"* para departamentos). El footer solo debe contener el enlace a Asociaciones y el botón de Cerrar.
 - **Estándar de Dashboard de Asociaciones:** La información debe segregarse en pestañas dinámicas protegidas por permisos:
     - *Pestaña 1 (Humano/Espacial):* Trabajador y Departamento (Responsable y Ubicación).
     - *Pestaña 2 (Hardware/Técnico):* Equipos vinculados (Computadores o Dispositivos).
     - *Pestañas Siguientes:* Insumos e Incidencias.
-
 - **Estándar de Botones en Paneles:** Para mantener la consistencia en todos los módulos de movimientos y gestión:
-    - **Orden:** Los botones de exportación (Excel/Reportes) deben ubicarse a la izquierda del botón de acción principal (Nuevo/Registrar/Crear).
-    - **Estilo:** Excel (`btn-outline-success border-2 fw-bold`), Acción Principal (`btn-primary fw-bold`).
-    - **Seguridad:** Los botones de acción principal en paneles de movimientos deben estar estrictamente encapsulados en directivas `@can` con el sufijo `-crear` (ej. `movimientos-[segmento]-crear`).
+    - **Orden e Integración:** Los botones de exportación (Excel/PDF) deben ubicarse a la izquierda del botón de acción principal. Se apoyarán en un filtro global que maneje un estado "todos" (para visualizar un panorama completo en reportes).
+    - **Estilo:** Excel (`btn-outline-success border-2 fw-bold`), PDF (`btn-outline-danger shadow-sm`), Acción Principal (`btn-primary fw-bold`).
+    - **Seguridad:** Los botones de acción principal en paneles de movimientos deben estar estrictamente encapsulados en directivas `@can` con el sufijo `-crear`. Adicionalmente, se debe separar rígidamente la lógica de "Visualización u Operación" (`ver-incidencias`) de la lógica "Administrativa Central" (`admin-incidencias`) para evitar que perfiles híbridos vean configuraciones a las que no conciernen.
 
 ---
 

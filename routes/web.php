@@ -48,6 +48,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/inventario/computadores/excel', [\App\Http\Controllers\ReporteController::class, 'computadoresExcel'])->name('inventario.computadores.excel');
         Route::get('/inventario/dispositivos/excel', [\App\Http\Controllers\ReporteController::class, 'dispositivosExcel'])->name('inventario.dispositivos.excel');
         Route::get('/inventario/insumos/excel', [\App\Http\Controllers\ReporteController::class, 'insumosExcel'])->name('inventario.insumos.excel');
+        Route::get('/inventario/software/excel', [\App\Http\Controllers\ReporteController::class, 'softwareExcel'])->name('inventario.software.excel');
         
         // Excels Operativos y Catálogos
         Route::get('/catalogo/{tipo}/excel', [\App\Http\Controllers\ReporteController::class, 'catalogoExcel'])->name('catalogo.excel');
@@ -77,6 +78,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/computadores', Computadores::class)->name('computadores')->can('ver-computadores');
         Route::get('/dispositivos', Dispositivos::class)->name('dispositivos')->can('ver-dispositivos');
         Route::get('/insumos', \App\Livewire\Inventario\Insumos::class)->name('insumos')->can('ver-insumos');
+        // NUEVA: Ruta para Software
+        Route::get('/software', \App\Livewire\Inventario\Software::class)->name('software')->can('ver-software');
     });
 
     // Módulo de Incidencias (Operativo)

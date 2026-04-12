@@ -62,7 +62,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetCampos"></button>
                 </div>
                 <form wire:submit.prevent="guardar">
-                    <div class="modal-body">
+                    <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                         <div class="mb-3">
                             <label for="name" class="form-label">Identificador del Rol <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" wire:model="name" placeholder="Ej: auditor, recursos-humanos" {{ $name === 'super-admin' ? 'readonly' : '' }}>

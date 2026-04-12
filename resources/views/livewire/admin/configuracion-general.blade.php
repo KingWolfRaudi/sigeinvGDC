@@ -15,6 +15,7 @@
         <div class="col-lg-3">
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
                 <div class="list-group list-group-flush border-0">
+                    @can('admin-incidencias')
                     <button wire:click="setTab('incidencias-ajustes')" 
                         class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center {{ $activeTab === 'incidencias-ajustes' ? 'active fw-bold' : '' }}">
                         <i class="bi bi-tools me-3 fs-5"></i> Ajustes de Incidencias
@@ -23,6 +24,7 @@
                         class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center {{ $activeTab === 'incidencias-catalogo' ? 'active fw-bold' : '' }}">
                         <i class="bi bi-list-check me-3 fs-5"></i> Catálogo de Problemas
                     </button>
+                    @endcan
                     <button wire:click="setTab('perfil-ajustes')" 
                         class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center {{ $activeTab === 'perfil-ajustes' ? 'active fw-bold' : '' }}">
                         <i class="bi bi-person-gear me-3 fs-5"></i> Perfil de Usuario
@@ -37,6 +39,7 @@
                 <div class="card-body p-4">
                     
                     <!-- TAB: AJUSTES DE INCIDENCIAS -->
+                    @can('admin-incidencias')
                     @if($activeTab === 'incidencias-ajustes')
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="fw-bold mb-0">Reglas de Incidencias</h5>
@@ -87,8 +90,10 @@
                             </div>
                         </div>
                     @endif
+                    @endcan
 
                     <!-- TAB: CATÁLOGO DE PROBLEMAS -->
+                    @can('admin-incidencias')
                     @if($activeTab === 'incidencias-catalogo')
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="fw-bold mb-0">Tipos de Incidencias</h5>
@@ -143,6 +148,7 @@
                             {{ $problemas->links() }}
                         </div>
                     @endif
+                    @endcan
 
                     <!-- TAB: PERFIL DE USUARIO -->
                     @if($activeTab === 'perfil-ajustes')
@@ -233,7 +239,7 @@
                     <h5 class="modal-title fw-bold">{{ $problema_id ? 'Editar' : 'Nuevo' }} Tipo de Incidencia</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body p-4" style="max-height: 65vh; overflow-y: auto;">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Nombre del Problema</label>
                         <input type="text" class="form-control" wire:model="nombre_problema" placeholder="Ej: Falla de Software">
