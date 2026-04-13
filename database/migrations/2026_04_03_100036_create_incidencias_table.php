@@ -16,15 +16,16 @@ return new class extends Migration
             $table->foreignId('problema_id')->constrained('problemas');
             $table->foreignId('departamento_id')->constrained('departamentos');
             $table->foreignId('trabajador_id')->nullable()->constrained('trabajadores'); // El solicitante
-            $table->foreignId('user_id')->constrained('users'); // Técnico resolutor
+            $table->foreignId('user_id')->nullable()->constrained('users'); // Técnico resolutor (nullable para auto-asignación)
             
             // Relación Polimórfica para el Activo Fijo (Computador, Dispositivo, Insumo)
             $table->unsignedBigInteger('modelo_id')->nullable();
             $table->string('modelo_type')->nullable();
             
             $table->text('descripcion');
-            $table->text('notas')->nullable();
+            $table->string('nota_resolucion', 500)->nullable();
             
+            $table->boolean('amerita_movimiento')->default(false);
             $table->boolean('solventado')->default(false);
             $table->boolean('cerrado')->default(false);
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');

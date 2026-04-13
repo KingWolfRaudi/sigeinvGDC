@@ -201,7 +201,7 @@
                 @endcanany
 
                 {{-- Sección: Incidencias --}}
-                @can('ver-incidencias')
+                @canany(['ver-incidencias', 'crear-ticket'])
                 <li class="nav-item mb-1 mt-3">
                     <h6 class="sidebar-heading px-3 mt-4 mb-1 text-white-50 text-uppercase" style="font-size: 0.75rem;">
                         <span>Incidencias</span>
@@ -215,6 +215,13 @@
                     </a>
                     <div class="collapse {{ request()->routeIs('incidencias.*') ? 'show' : '' }}" id="collapseIncidencias">
                         <ul class="nav flex-column ms-3 border-start border-secondary ps-2">
+                            @can('crear-ticket')
+                            <li class="nav-item">
+                                <a href="{{ route('incidencias.crear') }}" class="nav-link {{ request()->routeIs('incidencias.crear') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-plus-circle me-2"></i> Reportar
+                                </a>
+                            </li>
+                            @endcan
                             @can('ver-incidencias')
                             <li class="nav-item">
                                 <a href="{{ route('incidencias.gestion') }}" class="nav-link {{ request()->routeIs('incidencias.gestion') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">

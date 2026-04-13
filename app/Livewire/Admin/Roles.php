@@ -39,7 +39,7 @@ class Roles extends Component
             elseif ($name === 'admin-incidencias' || str_contains($name, 'solicitudes-perfil') || str_ends_with($name, '-usuarios') || str_ends_with($name, '-roles')) $macro = 'Administración';
             elseif (str_ends_with($name, '-trabajadores') || str_ends_with($name, '-departamentos')) $macro = 'Asignaciones';
             elseif (str_ends_with($name, '-computadores') || str_ends_with($name, '-dispositivos') || str_ends_with($name, '-insumos')) $macro = 'Inventarios';
-            elseif (str_ends_with($name, '-incidencias')) $macro = 'Incidencias';
+            elseif (str_ends_with($name, '-incidencias') || str_ends_with($name, '-especialidades') || str_ends_with($name, '-problemas') || $name === 'crear-ticket') $macro = 'Incidencias';
             elseif (str_starts_with($name, 'reportes-') || $name === 'admin-auditoria' || str_contains($name, 'auditoria')) $macro = 'Reportes y Auditoría';
             
             // Determinar entidad base
@@ -59,6 +59,7 @@ class Roles extends Component
                 'usuarios'            => 'Usuarios',
                 'roles'               => 'Roles',
                 'problemas'           => 'Tipos de Incidencias',
+                'especialidades'      => 'Especialidades Técnicas',
                 'incidencias'         => 'Gestión de Incidencias',
                 'configuraciones'     => 'Configuraciones',
                 'reportes'            => 'Módulo de Reportes',
@@ -87,10 +88,13 @@ class Roles extends Component
                 } else {
                     $accion = str_replace('reportes-', '', $name);
                 }
-            } elseif ($name === 'admin-solicitudes-perfil' || $name === 'admin-incidencias') {
-                $entidadNombre = 'Configuraciones';
+            } elseif ($name === 'admin-solicitudes-perfil' || $name === 'admin-incidencias' || $name === 'crear-ticket') {
+                $entidadNombre = ($name === 'crear-ticket') ? 'Portal de Usuario' : 'Configuraciones';
                 $accion = $name;
-                $accion_label = ($name === 'admin-solicitudes-perfil') ? 'Solicitudes de Perfil' : 'Configuraciones de Incidencias';
+                
+                if ($name === 'admin-solicitudes-perfil') $accion_label = 'Solicitudes de Perfil';
+                elseif ($name === 'admin-incidencias') $accion_label = 'Configuraciones de Incidencias';
+                else $accion_label = 'Reportar Nueva Incidencia';
             } else {
                  foreach ($entidades as $key => $label) {
                      if (str_ends_with($name, $key)) {
@@ -118,7 +122,8 @@ class Roles extends Component
                 'id' => $permiso->id,
                 'name' => $permiso->name,
                 'accion' => $accion,
-                'label' => $accion_label
+                'label' => $accion_label,
+                'descripcion' => $permiso->descripcion
             ];
         }
 

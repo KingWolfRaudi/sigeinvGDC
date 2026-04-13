@@ -26,6 +26,10 @@
                         class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center {{ $activeTab === 'incidencias-catalogo' ? 'active fw-bold' : '' }}">
                         <i class="bi bi-list-check me-3 fs-5"></i> Catálogo de Problemas
                     </button>
+                    <button wire:click="setTab('incidencias-especialidades')" 
+                        class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center {{ $activeTab === 'incidencias-especialidades' ? 'active fw-bold' : '' }}">
+                        <i class="bi bi-diagram-3 me-3 fs-5"></i> Especialidades Técnicas
+                    </button>
                     @endcan
                     <button wire:click="setTab('perfil-ajustes')" 
                         class="list-group-item list-group-item-action border-0 py-3 d-flex align-items-center {{ $activeTab === 'perfil-ajustes' ? 'active fw-bold' : '' }}">
@@ -51,26 +55,6 @@
                         </div>
 
                         <div class="row g-4">
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold">Roles con permisos de Soporte Técnico</label>
-                                <div class="p-3 bg-light rounded-3 border border-dashed">
-                                    <div class="row g-2">
-                                        @foreach($rolesDisponibles as $rol)
-                                            <div class="col-md-4">
-                                                <div class="form-check form-switch card p-2 border-0 shadow-sm">
-                                                    <input class="form-check-input ms-0 me-2" type="checkbox" 
-                                                           wire:model="roles_tecnicos" value="{{ $rol->name }}" id="rol_{{ $rol->id }}">
-                                                    <label class="form-check-label fw-medium" for="rol_{{ $rol->id }}">
-                                                        {{ ucfirst($rol->name) }}
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                    <div class="form-text mt-2">Los usuarios con estos roles podrán atender y cerrar incidencias.</div>
-                                </div>
-                            </div>
-
                             <div class="col-md-6">
                                 <div class="card border border-light p-3 h-100">
                                     <div class="form-check form-switch mb-2">
@@ -125,7 +109,10 @@
                                 <tbody>
                                     @foreach($problemas as $prob)
                                         <tr>
-                                            <td class="ps-3 fw-medium">{{ $prob->nombre }}</td>
+                                            <td class="ps-3 fw-medium">
+                                                {{ $prob->nombre }}
+                                                <div class="small text-muted">{{ $prob->especialidad->nombre ?? 'Sin Especialidad' }}</div>
+                                            </td>
                                             <td class="text-center">
                                                 <span class="badge bg-{{ $prob->activo ? 'success' : 'danger' }} bg-opacity-10 text-{{ $prob->activo ? 'success' : 'danger' }} rounded-pill px-3">
                                                     {{ $prob->activo ? 'Activo' : 'Inactivo' }}
@@ -148,6 +135,62 @@
                         </div>
                         <div class="mt-3">
                             {{ $problemas->links() }}
+                        </div>
+                    @endif
+
+                    <!-- TAB: ESPECIALIDADES TÉCNICAS -->
+                    @if($activeTab === 'incidencias-especialidades')
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold mb-0">Catálogo de Especialidades</h5>
+                            <button class="btn btn-dark px-4 shadow-sm" wire:click="resetEspecialidad" data-bs-toggle="modal" data-bs-target="#modalEspecialidad">
+                                <i class="bi bi-plus-lg me-2"></i> Nueva Especialidad
+                            </button>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="input-group shadow-sm">
+                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control border-start-0" placeholder="Buscar especialidad..." wire:model.live="searchEspecialidad">
+                            </div>
+                        </div>
+
+                        <div class="table-responsive rounded-3 border">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="ps-3" style="cursor:pointer;" wire:click="sortByEspecialidad('nombre')">
+                                            Nombre @if($sortFieldEspecialidad === 'nombre') <i class="bi bi-sort-{{ $sortAscEspecialidad ? 'alpha-down' : 'alpha-up' }}"></i> @endif
+                                        </th>
+                                        <th class="text-center">Estado</th>
+                                        <th class="text-end pe-3">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($especialidadesList as $esp)
+                                        <tr>
+                                            <td class="ps-3 fw-medium">{{ $esp->nombre }}</td>
+                                            <td class="text-center">
+                                                <span class="badge bg-{{ $esp->activo ? 'success' : 'danger' }} bg-opacity-10 text-{{ $esp->activo ? 'success' : 'danger' }} rounded-pill px-3">
+                                                    {{ $esp->activo ? 'Activo' : 'Inactivo' }}
+                                                </span>
+                                            </td>
+                                            <td class="text-end pe-3">
+                                                <button class="btn btn-sm btn-outline-primary border-0" wire:click="editarEspecialidad({{ $esp->id }})">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger border-0" 
+                                                        wire:click="eliminarEspecialidad({{ $esp->id }})" 
+                                                        wire:confirm="¿Estás seguro de eliminar esta Especialidad?">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-3">
+                            {{ $especialidadesList->links() }}
                         </div>
                     @endif
                     @endcan
@@ -247,6 +290,16 @@
                         <input type="text" class="form-control" wire:model="nombre_problema" placeholder="Ej: Falla de Software">
                         @error('nombre_problema') <span class="text-danger small">{{ $message }}</span> @enderror
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Especialidad Técnica</label>
+                        <select class="form-select" wire:model="problema_especialidad_id">
+                            <option value="">Seleccione una especialidad</option>
+                            @foreach($todasEspecialidades as $esp)
+                                <option value="{{ $esp->id }}">{{ $esp->nombre }}</option>
+                            @endforeach
+                        </select>
+                        @error('problema_especialidad_id') <span class="text-danger small">{{ $message }}</span> @enderror
+                    </div>
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" wire:model="problema_activo" id="p_activo">
                         <label class="form-check-label" for="p_activo">Activo</label>
@@ -256,6 +309,35 @@
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary px-4" wire:click="guardarProblema">
                         {{ $problema_id ? 'Actualizar' : 'Guardar' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ESPECIALIDAD -->
+    <div wire:ignore.self class="modal fade" id="modalEspecialidad" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow rounded-4">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">{{ $especialidad_id ? 'Editar' : 'Nueva' }} Especialidad Técnica</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4" style="max-height: 65vh; overflow-y: auto;">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nombre de la Especialidad</label>
+                        <input type="text" class="form-control" wire:model="nombre_especialidad" placeholder="Ej: Redes e Infraestructura">
+                        @error('nombre_especialidad') <span class="text-danger small">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" wire:model="especialidad_activo" id="e_activo">
+                        <label class="form-check-label" for="e_activo">Activa</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary px-4" wire:click="guardarEspecialidad">
+                        {{ $especialidad_id ? 'Actualizar' : 'Guardar' }}
                     </button>
                 </div>
             </div>

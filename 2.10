@@ -1,5 +1,5 @@
 SISTEMA DE INVENTARIO TECNOLÓGICO
-Documento de Arquitectura y Estándares (Actualización V2.10)
+Documento de Arquitectura y Estándares (Actualización V2.13)
 
 1. Stack Tecnológico Base
     • Core: PHP 8.3+ / Laravel 10+ / Livewire 3.
@@ -16,10 +16,10 @@ Documento de Arquitectura y Estándares (Actualización V2.10)
 
 3. Patrones de Interfaz Premium (UI/UX)
     • Header Premium: Toda vista principal debe iniciar con un Header que contiene un ícono dentro de una caja sombreada (`bg-primary bg-opacity-10`), seguido de título y descripción.
-    • Tarjeta Flotante de Acciones: Las acciones de búsqueda, filtrado y botones globales (Crear/Excel) se agrupan en una tarjeta superior con `rounded-4` y `shadow-sm`, separada del cuerpo de la tabla.
-    • Tarjeta de Tabla: Contenedor minimalista con `card-body p-0` y `overflow-hidden`. Las tablas no deben tener bordes externos para una visión más limpia.
-    • Intercambio de Modales (Modal Switch): Para creaciones "al vuelo" de entidades complejas, se debe cerrar el modal principal antes de abrir el secundario para evitar conflictos de backdrop.
-
+    • Tarjeta Flotante de Acciones: Las acciones de búsqueda, filtrado y botones globales se agrupan en una tarjeta superior con `rounded-4` y `shadow-sm`.
+    • Dimensiones de Modales: Los modales de alta complejidad (Generadores de Movimientos) deben estandarizarse en `modal-xl` con un ancho máximo del `90%` (`style="max-width: 90%;"`) para asegurar consistencia visual y espacio de trabajo.
+    • Intercambio de Modales (Modal Switch): Cerrar el modal principal antes de abrir el secundario para evitar conflictos de backdrop.
+    • Indicadores de Contexto: Los modales generadores deben mostrar alertas persistentes (`bg-primary bg-opacity-10`) si existe un vínculo externo (ej. Incidencia).
 4. Procesamiento y Automatización
     • Accessors de Laravel: Los cálculos de hardware (Total RAM/Almacenamiento) deben realizarse en el modelo, limpiando sufijos mediante Accessors.
     • Validación Condicional de Stock: Forzar tipos según unidad de medida (Entero vs Numeric).
@@ -27,9 +27,9 @@ Documento de Arquitectura y Estándares (Actualización V2.10)
 
 5. Lógica de Búsqueda y Reportes
     • Deep Search: Estructura de búsqueda envuelta en subconsultas `where(function($q) { ... })` para no afectar el scoping de activos.
-    • Exportaciones Excel: Deben ser detalladas y completas. No mostrar llaves foráneas crudas (IDs); se deben mapear los nombres de las relaciones (ej. Nombre del Departamento). Incluir siempre metadatos de auditoría.
-    • Exportaciones PDF: El botón de descarga individual se ubica en las acciones de fila. No debe incluir IDs internos.
-
+    • Exportaciones Excel: Mapear nombres de relaciones (no mostrar IDs crudos). Incluir metadatos de auditoría y, en movimientos, el folio de la incidencia vinculada.
+    • Trazabilidad en PDF: Toda ficha técnica de activo debe listar el folio de incidencia en su historial de movimientos. Inversamente, el reporte de incidencia debe mostrar los detalles del movimiento administrativo generado.
+    • Ubicación de Exportación: Los botones de descarga individual PDF se sitúan en las acciones de fila. No deben incluir IDs internos.
 6. Seguridad y Data Scoping
     • Segregación de Estados: Separar permiso de visualización (`ver-estado-xxxx`) de acción (`cambiar-estatus-xxxx`).
     • Blindaje Super-Admin: Toda consulta de listado de usuarios debe excluir al super-admin y bloquear cualquier acción sobre este vía backend.
@@ -40,5 +40,11 @@ Documento de Arquitectura y Estándares (Actualización V2.10)
     • Seeders en Cadena: Roles -> Configuraciones -> Catálogos -> Transaccionales.
     • Cleanups: Obligatorio limpiar backdrops tras cierres de modales asíncronos.
 
+8. Workflow DUAL y Trazabilidad Operativa
+    • Separación de Interfaces: `CrearTicket` para usuarios y `Gestion` para técnicos (`resolutor-incidencia`).
+    • Puente Incidencia-Movimiento: El sistema debe permitir el salto inteligente entre módulos, inyectando los parámetros de activo y folio de ticket.
+    • Pre-llenado de Justificaciones: Todo movimiento derivado de una incidencia debe automatizar su campo de justificación con el texto: `"Vinculado a la incidencia #XXXXX"`.
+    • Auto-Asignación: Basarse en `disponible_asignacion` y `especialidad_id`.
+
 ---
-V2.10: Actualización de Estándares Visuales Premium y Política de Privacidad de Datos (IDs).
+V2.13: Trazabilidad Total SIGEINV-INCIDENCIAS, Estándares Dimensionales de Modales y Auditoría Cruzada en Reportes PDF.

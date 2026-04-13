@@ -29,76 +29,91 @@ class RolesAndPermissionsSeeder extends Seeder
             ]);
         }
 
-        // 2. CREAR LOS PERMISOS (NUEVO)
-        $permisos = [
-            // Marcas
-            'ver-marcas', 'crear-marcas', 'editar-marcas', 'cambiar-estatus-marcas', 'ver-estado-marcas', 'eliminar-marcas',
-            // Usuarios
-            'ver-usuarios', 'crear-usuarios', 'editar-usuarios', 'cambiar-estatus-usuarios', 'ver-estado-usuarios', 'eliminar-usuarios',
-            // Roles (Generalmente no tienen estatus activo/inactivo)
-            'ver-roles', 'crear-roles', 'editar-roles', 'eliminar-roles',
-            // Tipos de Dispositivo
-            'ver-tipos-dispositivo', 'crear-tipos-dispositivo', 'editar-tipos-dispositivo', 'cambiar-estatus-tipos-dispositivo', 'ver-estado-tipos-dispositivo', 'eliminar-tipos-dispositivo',
-            // Sistemas Operativos
-            'ver-sistemas-operativos', 'crear-sistemas-operativos', 'editar-sistemas-operativos', 'cambiar-estatus-sistemas-operativos', 'ver-estado-sistemas-operativos', 'eliminar-sistemas-operativos',
-            // Puertos
-            'ver-puertos', 'crear-puertos', 'editar-puertos', 'cambiar-estatus-puertos', 'ver-estado-puertos', 'eliminar-puertos',
-            // Departamentos
-            'ver-departamentos', 'crear-departamentos', 'editar-departamentos', 'cambiar-estatus-departamentos', 'ver-estado-departamentos', 'eliminar-departamentos',
-            // Procesadores
-            'ver-procesadores', 'crear-procesadores', 'editar-procesadores', 'cambiar-estatus-procesadores', 'ver-estado-procesadores', 'eliminar-procesadores',
-            // Gpus
-            'ver-gpus', 'crear-gpus', 'editar-gpus', 'cambiar-estatus-gpus', 'ver-estado-gpus', 'eliminar-gpus',
-            // Trabajadores (Faltaban ambos)
-            'ver-trabajadores', 'crear-trabajadores', 'editar-trabajadores', 'cambiar-estatus-trabajadores', 'ver-estado-trabajadores', 'eliminar-trabajadores',
-            // Computadores (Faltaban ambos)
-            'ver-computadores', 'crear-computadores', 'editar-computadores', 'cambiar-estatus-computadores', 'ver-estado-computadores', 'eliminar-computadores',
-            // Dispositivos
-            'ver-dispositivos', 'crear-dispositivos', 'editar-dispositivos', 'cambiar-estatus-dispositivos', 'ver-estado-dispositivos', 'eliminar-dispositivos',
-            // Categoria Insumos
-            'ver-categorias-insumos', 'crear-categorias-insumos', 'editar-categorias-insumos', 'cambiar-estatus-categorias-insumos', 'ver-estado-categorias-insumos', 'eliminar-categorias-insumos',
-            // Insumos
-            'ver-insumos', 'crear-insumos', 'editar-insumos', 'cambiar-estatus-insumos', 'ver-estado-insumos', 'eliminar-insumos',
-            // Software
-            'ver-software', 'crear-software', 'editar-software', 'cambiar-estatus-software', 'ver-estado-software', 'eliminar-software',
-
-            // ── Movimientos Computadores ──────────────────────────────────────
-            'movimientos-computadores-crear',
-            'movimientos-computadores-ver',
-            'movimientos-computadores-enviar',
-            'movimientos-computadores-aprobar',
-            'movimientos-computadores-rechazar',
-            'movimientos-computadores-ejecutar-directo',
-
-            // ── Movimientos Dispositivos ──────────────────────────────────────
-            'movimientos-dispositivos-crear',
-            'movimientos-dispositivos-ver',
-            'movimientos-dispositivos-enviar',
-            'movimientos-dispositivos-aprobar',
-            'movimientos-dispositivos-rechazar',
-            'movimientos-dispositivos-ejecutar-directo',
-
-            // ── Movimientos Insumos ───────────────────────────────────────────
-            'movimientos-insumos-crear',
-            'movimientos-insumos-ver',
-            'movimientos-insumos-enviar',
-            'movimientos-insumos-aprobar',
-            'movimientos-insumos-rechazar',
-            'movimientos-insumos-ejecutar-directo',
-
-            // ── Problemas (Catálogo de Incidencias) ──────────────────────────
-            'ver-problemas', 'crear-problemas', 'editar-problemas', 'cambiar-estatus-problemas', 'ver-estado-problemas', 'eliminar-problemas',
-
-            // ── Incidencias ──────────────────────────────────────────────────
-            'ver-incidencias', 'crear-incidencias', 'editar-incidencias', 'cerrar-incidencias', 'ver-estado-incidencias', 'eliminar-incidencias',
-            'admin-incidencias', 'admin-solicitudes-perfil',
-
-            // ── Reportes y Auditoría ──────────────────────────────────────────
-            'admin-auditoria', 'reportes-excel', 'reportes-pdf', 'reportes-masivos-filtros'
+        // 2. CREAR LOS PERMISOS (CON DESCRIPCIONES)
+        $entidades = [
+            'marcas' => 'Marcas',
+            'usuarios' => 'Usuarios',
+            'roles' => 'Roles',
+            'tipos-dispositivo' => 'Tipos de Dispositivo',
+            'sistemas-operativos' => 'Sistemas Operativos',
+            'puertos' => 'Puertos',
+            'departamentos' => 'Departamentos',
+            'procesadores' => 'Procesadores',
+            'gpus' => 'GPUs',
+            'trabajadores' => 'Trabajadores',
+            'computadores' => 'Computadores',
+            'dispositivos' => 'Dispositivos',
+            'categorias-insumos' => 'Categorías de Insumos',
+            'insumos' => 'Insumos',
+            'software' => 'Software',
+            'problemas' => 'Tipos de Incidencias',
+            'especialidades' => 'Especialidades Técnicas',
         ];
 
-        foreach ($permisos as $permiso) {
-            Permission::firstOrCreate(['name' => $permiso, 'guard_name' => 'web']);
+        $acciones = [
+            'ver' => 'Permite visualizar el listado de ',
+            'crear' => 'Permite registrar nuevos registros de ',
+            'editar' => 'Permite modificar datos de los registros de ',
+            'cambiar-estatus' => 'Permite activar o desactivar registros de ',
+            'ver-estado' => 'Permite ver el estatus (activo/inactivo) de ',
+            'eliminar' => 'Permite borrar registros (borrado lógico) de ',
+        ];
+
+        $permisosFinales = [];
+
+        // Generar permisos CRUD automáticos
+        foreach ($entidades as $slug => $nombre) {
+            foreach ($acciones as $accion => $descBase) {
+                $name = "{$accion}-{$slug}";
+                // Algunos casos especiales de nombres
+                if ($slug === 'roles' && in_array($accion, ['cambiar-estatus', 'ver-estado'])) continue;
+                
+                $permisosFinales[$name] = $descBase . $nombre . '.';
+            }
+        }
+
+        // Permisos Especiales Manuales
+        $especiales = [
+            'movimientos-computadores-crear' => 'Permite crear nuevos movimientos de computadores.',
+            'movimientos-computadores-ver' => 'Permite visualizar el historial de movimientos de computadores.',
+            'movimientos-computadores-enviar' => 'Permite enviar movimientos de computadores para su aprobación.',
+            'movimientos-computadores-aprobar' => 'Permite aprobar movimientos de computadores solicitados.',
+            'movimientos-computadores-rechazar' => 'Permite rechazar movimientos de computadores solicitados.',
+            'movimientos-computadores-ejecutar-directo' => 'Permite ejecutar movimientos de computadores sin pasar por aprobación (Admin).',
+
+            'movimientos-dispositivos-crear' => 'Permite crear nuevos movimientos de dispositivos.',
+            'movimientos-dispositivos-ver' => 'Permite visualizar el historial de movimientos de dispositivos.',
+            'movimientos-dispositivos-enviar' => 'Permite enviar movimientos de dispositivos para su aprobación.',
+            'movimientos-dispositivos-aprobar' => 'Permite aprobar movimientos de dispositivos solicitados.',
+            'movimientos-dispositivos-rechazar' => 'Permite rechazar movimientos de dispositivos solicitados.',
+            'movimientos-dispositivos-ejecutar-directo' => 'Permite ejecutar movimientos de dispositivos sin pasar por aprobación (Admin).',
+
+            'movimientos-insumos-crear' => 'Permite crear nuevos movimientos de insumos.',
+            'movimientos-insumos-ver' => 'Permite visualizar el historial de movimientos de insumos.',
+            'movimientos-insumos-enviar' => 'Permite enviar movimientos de insumos para su aprobación.',
+            'movimientos-insumos-aprobar' => 'Permite aprobar movimientos de insumos solicitados.',
+            'movimientos-insumos-rechazar' => 'Permite rechazar movimientos de insumos solicitados.',
+            'movimientos-insumos-ejecutar-directo' => 'Permite ejecutar movimientos de insumos sin pasar por aprobación (Admin).',
+
+            'crear-ticket' => 'Permite reportar una nueva incidencia desde el portal de usuario.',
+            'gestionar-incidencias' => 'Acceso a la mesa de soporte para atender, asignar y resolver tickets.',
+            'admin-incidencias' => 'Configuraciones globales y administración avanzada del módulo de incidencias.',
+            'ver-incidencias' => 'Permite visualizar el histórico detallado de incidencias.',
+            'admin-solicitudes-perfil' => 'Gestionar y aprobar solicitudes de cambio de perfil técnico de usuarios.',
+            
+            'admin-auditoria' => 'Acceso total a los registros de auditoría y logs detallados del sistema.',
+            'reportes-excel' => 'Permite exportar datos y listados a formato Microsoft Excel.',
+            'reportes-pdf' => 'Permite generar y descargar reportes en formato PDF.',
+            'reportes-masivos-filtros' => 'Acceso a herramientas de filtrado avanzado para reportes masivos personalizados.'
+        ];
+
+        $permisosFinales = array_merge($permisosFinales, $especiales);
+
+        foreach ($permisosFinales as $name => $desc) {
+            Permission::updateOrCreate(
+                ['name' => $name, 'guard_name' => 'web'],
+                ['descripcion' => $desc]
+            );
         }
 
         // 2. CREAR LOS ROLES (Tu código original)
@@ -107,6 +122,7 @@ class RolesAndPermissionsSeeder extends Seeder
             ['name' => 'administrador', 'descripcion' => 'Gestión completa de inventario y personal'],
             ['name' => 'coordinador', 'descripcion' => 'Supervisión de equipos y movimientos'],
             ['name' => 'personal-ti', 'descripcion' => 'Gestión operativa de equipos técnicos'],
+            ['name' => 'resolutor-incidencia', 'descripcion' => 'Especialista en resolución de fallas asignadas'],
             ['name' => 'trabajador', 'descripcion' => 'Usuario estándar para asignación de equipos'],
         ];
 
@@ -125,6 +141,29 @@ class RolesAndPermissionsSeeder extends Seeder
         $superAdminRole = Role::where('name', 'super-admin')->first();
         if ($superAdminRole) {
             $superAdminRole->syncPermissions($todosLosPermisos);
+        }
+
+        $coordinadorRole = Role::where('name', 'coordinador')->first();
+        if ($coordinadorRole) {
+            $coordinadorRole->syncPermissions([
+                'ver-incidencias', 'gestionar-incidencias',
+                'ver-departamentos', 'ver-trabajadores', 'ver-computadores', 'ver-dispositivos', 'ver-insumos'
+            ]);
+        }
+
+        $personalTiRole = Role::where('name', 'personal-ti')->first();
+        if ($personalTiRole) {
+            $personalTiRole->syncPermissions(['ver-incidencias', 'gestionar-incidencias']);
+        }
+
+        $resolutorRole = Role::where('name', 'resolutor-incidencia')->first();
+        if ($resolutorRole) {
+            $resolutorRole->syncPermissions(['ver-incidencias', 'gestionar-incidencias']);
+        }
+
+        $trabajadorRole = Role::where('name', 'trabajador')->first();
+        if ($trabajadorRole) {
+            $trabajadorRole->syncPermissions(['crear-ticket']);
         }
 
         // 4. CREAR EL USUARIO SUPERADMIN (Tu código original mejorado)

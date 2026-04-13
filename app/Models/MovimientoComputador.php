@@ -35,6 +35,7 @@ class MovimientoComputador extends Model
         'solicitante_id',
         'aprobador_id',
         'aprobado_at',
+        'incidencia_id',
     ];
 
     protected $casts = [
@@ -58,6 +59,11 @@ class MovimientoComputador extends Model
     public function aprobador()
     {
         return $this->belongsTo(User::class, 'aprobador_id');
+    }
+
+    public function incidencia()
+    {
+        return $this->belongsTo(Incidencia::class);
     }
 
     // ── Scopes útiles ────────────────────────────────────────

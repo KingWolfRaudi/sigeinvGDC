@@ -21,7 +21,13 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('avatar')->nullable();
-            $table->boolean('activo')->default(false); // Por defecto deshabilitado según specs
+            $table->boolean('activo')->default(true);
+            $table->unsignedBigInteger('trabajador_id')->nullable(); // nullable para superadmins
+            
+            // Refactorizacion Incidencias V2
+            $table->boolean('disponible_asignacion')->default(false);
+            $table->foreignId('especialidad_id')->nullable()->constrained('especialidades_tecnicas')->onDelete('set null');
+
             $table->rememberToken();
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');

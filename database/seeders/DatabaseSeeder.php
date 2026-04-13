@@ -20,6 +20,9 @@ class DatabaseSeeder extends Seeder
             
             // Agregamos el seeder de Incidencias y Perfil
             IncidenciasSeeder::class,
+            
+            // Agregamos Demo Data para Incidentes
+            DemoTicketsSeeder::class,
         ]);
     }
 }

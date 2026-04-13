@@ -25,16 +25,37 @@ class MiPerfil extends Component
     // Campos de Solicitud
     public $nuevo_nombre, $nuevo_username, $nuevo_email, $nuevo_password, $confirmar_password;
 
+    // Disponibilidad Técnica
+    public $disponible_asignacion = false;
+    public $es_tecnico = false;
+
     // Configuración
     public $config = [];
 
     public function mount()
     {
         $this->loadConfig();
+        
+        /** @var \App\Models\User $user */
         $user = Auth::user();
+        
         $this->nuevo_nombre = $user->name;
         $this->nuevo_username = $user->username;
         $this->nuevo_email = $user->email;
+        
+        $this->es_tecnico = $user->hasRole(['personal-ti', 'resolutor-incidencia']);
+        $this->disponible_asignacion = (bool) $user->disponible_asignacion;
+    }
+
+    public function toggleDisponibilidad()
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if ($this->es_tecnico) {
+            $user->disponible_asignacion = $this->disponible_asignacion;
+            $user->save();
+            $this->dispatch('mostrar-toast', mensaje: $this->disponible_asignacion ? 'Ahora estás disponible para asignaciones.' : 'Ya no recibirás asignaciones automáticas.', tipo: 'success');
+        }
     }
 
     public function loadConfig()

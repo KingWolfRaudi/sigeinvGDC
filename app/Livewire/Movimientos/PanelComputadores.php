@@ -24,9 +24,29 @@ class PanelComputadores extends Component
     use WithPagination;
     protected $paginationTheme = 'bootstrap';
 
+    public function mount()
+    {
+        $modelo_id = request()->query('modelo_id');
+        $auto_open = request()->query('auto_open');
+        $this->incidencia_id = request()->query('incidencia_id');
+
+        if ($auto_open && $modelo_id && Gate::allows('movimientos-computadores-crear')) {
+            $this->mostrando_generador = true;
+            $this->paso_generador = 1;
+            $this->seleccionarEquipo((int)$modelo_id);
+            $this->dispatch('abrir-modal', id: 'modalGenerador');
+
+            if ($this->incidencia_id) {
+                $this->justificacion = "Vinculado a la incidencia #" . str_pad($this->incidencia_id, 5, '0', STR_PAD_LEFT);
+            }
+        }
+    }
+
+
     public string $pestana = 'borradores'; // borradores | pendientes | historico
     public string $search = '';
     public string $filtro_tipo = '';
+    public ?int $incidencia_id = null;
 
     // Modal de rechazo
     public ?int $rechazando_id = null;
@@ -304,6 +324,7 @@ class PanelComputadores extends Component
                     'solicitante_id'  => Auth::id(),
                     'aprobador_id'    => Auth::id(),
                     'aprobado_at'     => now(),
+                    'incidencia_id'   => $this->incidencia_id,
                 ]);
 
                 $this->dispatch('mostrar-toast', mensaje: 'Movimiento ejecutado directamente.', tipo: 'success');

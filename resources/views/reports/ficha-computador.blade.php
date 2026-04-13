@@ -78,6 +78,7 @@
                 <th>Tipo</th>
                 <th>Aprobador</th>
                 <th>Estado</th>
+                <th>Incidencia</th>
             </tr>
         </thead>
         <tbody>
@@ -87,6 +88,7 @@
                     <td>{{ str_replace('_', ' ', strtoupper($mov->tipo_operacion)) }}</td>
                     <td>{{ $mov->aprobador->name ?? 'Sistema' }}</td>
                     <td>{{ ucfirst($mov->estado_workflow) }}</td>
+                    <td>{{ $mov->incidencia_id ? '#' . str_pad($mov->incidencia_id, 5, '0', STR_PAD_LEFT) : 'N/A' }}</td>
                 </tr>
             @endforeach
         </tbody>

@@ -479,9 +479,16 @@
                                         </div>
                                         <div>
                                             <h6 class="mb-0 fw-bold">{{ $selected_insumo->nombre }}</h6>
-                                            <small class="text-muted">
-                                                BN: {{ $selected_insumo->bien_nacional }} · Serial: {{ $selected_insumo->serial }}
-                                            </small>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <small class="text-muted">
+                                                    BN: {{ $selected_insumo->bien_nacional }} · Serial: {{ $selected_insumo->serial }}
+                                                </small>
+                                                @if($incidencia_id)
+                                                    <span class="badge bg-primary bg-opacity-75 animate__animated animate__fadeIn">
+                                                        <i class="bi bi-link-45deg me-1"></i>Incidencia #{{ str_pad($incidencia_id, 5, '0', STR_PAD_LEFT) }}
+                                                    </span>
+                                                @endif
+                                            </div>
                                         </div>
                                     </div>
 

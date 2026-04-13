@@ -6,6 +6,7 @@ use App\Models\Computador;
 use App\Models\Dispositivo;
 use App\Models\Insumo;
 use App\Models\Gpu;
+use App\Models\Incidencia;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
@@ -26,7 +27,7 @@ class ReporteController extends Controller
      */
     public function computadorFicha($id)
     {
-        $pc = Computador::with(['marca', 'sistemaOperativo', 'procesador.marca', 'gpu.marca', 'trabajador', 'departamento', 'movimientos.aprobador', 'discos', 'rams', 'puertos'])
+        $pc = Computador::with(['marca', 'sistemaOperativo', 'procesador.marca', 'gpu.marca', 'trabajador', 'departamento', 'movimientos.aprobador', 'movimientos.incidencia', 'discos', 'rams', 'puertos'])
             ->findOrFail($id);
             
         $pdf = Pdf::loadView('reports.ficha-computador', compact('pc'));
@@ -43,7 +44,7 @@ class ReporteController extends Controller
      */
     public function dispositivoFicha($id)
     {
-        $disp = Dispositivo::with(['marca', 'tipoDispositivo', 'trabajador', 'departamento', 'computador', 'puertos', 'movimientos.aprobador'])
+        $disp = Dispositivo::with(['marca', 'tipoDispositivo', 'trabajador', 'departamento', 'computador', 'puertos', 'movimientos.aprobador', 'movimientos.incidencia'])
             ->findOrFail($id);
             
         $pdf = Pdf::loadView('reports.ficha-dispositivo', compact('disp'));
@@ -60,7 +61,7 @@ class ReporteController extends Controller
      */
     public function insumoFicha($id)
     {
-        $insumo = Insumo::with(['marca', 'categoriaInsumo', 'movimientos.aprobador'])
+        $insumo = Insumo::with(['marca', 'categoriaInsumo', 'movimientos.aprobador', 'movimientos.incidencia'])
             ->findOrFail($id);
             
         $pdf = Pdf::loadView('reports.ficha-insumo', compact('insumo'));
@@ -86,6 +87,23 @@ class ReporteController extends Controller
             ->log("Generó ficha técnica PDF de la GPU: {$gpu->modelo} ({$gpu->marca->nombre})");
 
         return $pdf->stream("Ficha_GPU_{$gpu->modelo}.pdf");
+    }
+
+    /**
+     * Genera la ficha de una incidencia en PDF.
+     */
+    public function incidenciaFicha($id)
+    {
+        $incidencia = Incidencia::with(['problema.especialidad', 'departamento', 'trabajador', 'tecnico', 'creator', 'movimientoComputador', 'movimientoDispositivo', 'movimientoInsumo'])
+            ->findOrFail($id);
+            
+        $pdf = Pdf::loadView('reports.ficha-incidencia', compact('incidencia'));
+
+        activity()
+            ->performedOn($incidencia)
+            ->log("Generó reporte de incidencia PDF: Folio #{$incidencia->id}");
+
+        return $pdf->stream("Reporte_Incidencia_{$incidencia->id}.pdf");
     }
 
     /**

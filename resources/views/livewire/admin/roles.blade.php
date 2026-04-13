@@ -131,7 +131,10 @@
                                                                            value="{{ $perm['name'] }}" 
                                                                            id="permiso_{{ $perm['id'] }}" 
                                                                            wire:model="permisos_seleccionados">
-                                                                    <label class="form-check-label ms-2 text-wrap" style="font-size: 0.85rem; cursor:pointer;" for="permiso_{{ $perm['id'] }}">
+                                                                    <label class="form-check-label ms-2 text-wrap" 
+                                                                           style="font-size: 0.85rem; cursor:help; border-bottom: 1px dotted #dee2e6;" 
+                                                                           for="permiso_{{ $perm['id'] }}"
+                                                                           title="{{ $perm['descripcion'] }}">
                                                                         {{ $perm['label'] }}
                                                                     </label>
                                                                 </div>

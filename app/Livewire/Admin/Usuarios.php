@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use Livewire\Component;
+use App\Models\EspecialidadTecnica;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Gate;
@@ -22,8 +23,9 @@ class Usuarios extends Component
     public $filtro_estado = 'todos';
 
     // Variables del formulario
-    public $user_id, $name, $username, $email, $password;
+    public $user_id, $name, $username, $email, $password, $especialidad_id;
     public bool $activo = true;
+    public bool $disponible_asignacion = true;
     public $roles_seleccionados = []; 
     public $tituloModal = 'Nuevo Usuario';
     
@@ -50,7 +52,7 @@ class Usuarios extends Component
     public function render()
     {
         // 1. Iniciamos la consulta excluyendo al super-admin
-        $query = User::with('roles')->whereDoesntHave('roles', function ($q) {
+        $query = User::with(['roles', 'especialidad'])->whereDoesntHave('roles', function ($q) {
             $q->where('name', 'super-admin');
         });
 
@@ -77,9 +79,12 @@ class Usuarios extends Component
                           ->paginate(10);
         
         // 4. Cargamos roles excluyendo el super-admin para que no pueda ser asignado
+        // 4. Cargamos roles excluyendo el super-admin para que no pueda ser asignado
         $roles = Role::where('name', '!=', 'super-admin')->orderBy('name', 'asc')->get();
         
-        return view('livewire.admin.usuarios', compact('usuarios', 'roles'));
+        $especialidades = EspecialidadTecnica::where('activo', true)->orderBy('nombre')->get();
+        
+        return view('livewire.admin.usuarios', compact('usuarios', 'roles', 'especialidades'));
     }
 
     public function ver($id)
@@ -122,8 +127,20 @@ class Usuarios extends Component
             'name' => $this->name,
             'username' => strtolower($this->username),
             'email' => strtolower($this->email),
-            'activo' => $this->activo ? 1 : 0
+            'activo' => $this->activo ? 1 : 0,
+            'disponible_asignacion' => $this->disponible_asignacion ? 1 : 0
         ];
+
+        // Validar que se guarde la especialidad sólo si tiene rol de técnico/resolutor
+        $reqTechRoles = ['personal-ti', 'resolutor-incidencia'];
+        $hasTechRole = count(array_intersect($reqTechRoles, $this->roles_seleccionados)) > 0;
+        
+        $datos['especialidad_id'] = ($hasTechRole && !empty($this->especialidad_id)) ? $this->especialidad_id : null;
+        
+        // Si no es técnico, también apagamos su disponibilidad por seguridad
+        if (!$hasTechRole && $this->user_id) {
+            $datos['disponible_asignacion'] = false;
+        }
 
         if (!empty($this->password)) {
             $datos['password'] = Hash::make($this->password);
@@ -162,6 +179,8 @@ class Usuarios extends Component
         $this->email = $usuario->email;
         $this->activo = (bool) $usuario->activo;
         $this->password = ''; 
+        $this->especialidad_id = $usuario->especialidad_id;
+        $this->disponible_asignacion = (bool) $usuario->disponible_asignacion;
         
         $this->roles_seleccionados = $usuario->roles->pluck('name')->toArray();
         
@@ -214,8 +233,9 @@ class Usuarios extends Component
 
     public function resetCampos()
     {
-        $this->reset(['user_id', 'name', 'username', 'email', 'password', 'roles_seleccionados', 'usuario_detalle']);
+        $this->reset(['user_id', 'name', 'username', 'email', 'password', 'roles_seleccionados', 'usuario_detalle', 'especialidad_id']);
         $this->activo = true;
+        $this->disponible_asignacion = true;
         $this->resetValidation();
     }
 }

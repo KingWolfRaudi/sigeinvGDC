@@ -42,8 +42,18 @@ El sistema está construido sobre una arquitectura moderna y escalable:
     - **Nivel de Detalle Completo:** Los registros de insumos deben rastrear su ubicación física (Departamento) y su asignatario (Trabajador/Equipo).
 - **Software:** Control de licencias y arquitecturas. Incluye trazabilidad de quién registró el programa.
 
-### 3.2. Gestión de Movimientos y Ciclo de Vida
+### 3.2. Gestión de Incidencias (Workflow de Trazabilidad Total V2)
+- **Interfaz DUAL:** El módulo de incidencias opera con dos enfoques separados e integrados:
+    1. **Frontend Usuario (`CrearTicket`):** Interfaz simplificada para reportar fallas, atada automáticamente al Trabajador y Departamento. 
+    2. **Backend Técnico (`Gestion`):** Gestión centralizada para el rol `resolutor-incidencia`.
+- **Integración Operativa-Administrativa:** Si una incidencia requiere un cambio físico de activos, el sistema habilita el flag "¿Amerita Movimiento?". Al activarse, permite un salto inteligente hacia los paneles de movimientos, arrastrando el ID del activo y el Folio de la incidencia para asegurar la trazabilidad.
+- **Asignación de Técnicos:** Basada estrictamente en el rol `resolutor-incidencia` y validación de especialidades técnicas. Se eliminaron configuraciones de roles manuales (vestigios) en favor del sistema de permisos de Spatie.
+- **Visibilidad en Tabla:** La tabla de gestión debe mostrar siempre el **Tipo de Activo** y el **Nombre/BN del Activo** relacionado, junto con un indicador visual (badge) si el registro tiene un movimiento pendiente.
+
+### 3.3. Gestión de Movimientos y Ciclo de Vida
 - **Borradores e Historial:** Rastreo total de cambios de custodia (`Movimientos`).
+- **Trazabilidad de Origen:** Todo movimiento generado desde una incidencia debe capturar obligatoriamente el `incidencia_id` en la base de datos.
+- **Automatización de Justificación:** Al ser derivado de una incidencia, el sistema debe precargar el campo de justificación con: `"Vinculado a la incidencia #XXXXX"`.
 - **Diff Engine:** Almacenamiento JSON solo de campos modificados para optimizar espacio y auditoría.
 
 ---
@@ -62,10 +72,12 @@ El sistema está construido sobre una arquitectura moderna y escalable:
 - **Auditoría:** Incluir siempre columnas: `Creado Por`, `Modificado Por`, `Fecha Registro`, `Última Modificación`.
 - **ID Técnica:** La columna ID se mantiene en Excel por utilidad administrativa.
 
-### 5.2. Reportes PDF (Fichas Técnicas)
-- **Privacidad:** Prohibido el uso de IDs de sistema. Usar Bien Nacional o Folio como referencia.
-- **Ubicación de Acciones:** El botón de exportación PDF debe situarse en las acciones de cada registro individual y no en la cabecera del módulo para evitar confusión con reportes masivos.
-
+### 5.2. Reportes PDF (Fichas Técnicas y Trazabilidad)
+- **Trazabilidad Cruzada:** 
+    - Toda ficha de activo (Computador, Dispositivo o Insumo) DEBE incluir en su historial de movimientos una columna que referencie el **Folio de Incidencia** asociado.
+    - Todo reporte de incidencia DEBE incluir una sección de **Resolución Administrativa** si esta generó un movimiento de inventario.
+- **Privacidad:** Prohibido el uso de IDs de sistema (autoincrementales puros) en textos descriptivos. Usar Bien Nacional o el Folio Formateado como referencia.
+- **Ubicación de Acciones:** El botón de exportación PDF debe situarse en las acciones de cada registro individual.
 ---
 
 ## 6. Guía de Interfaz (Premium UI)
@@ -83,9 +95,11 @@ Todas las vistas principales deben seguir esta estructura:
 - **Acciones de Tabla**: Botones pequeños (`btn-sm`) con iconos limpios.
 
 ### 6.3. Modales y Experiencia de Usuario
+- **Dimensiones Estándar:** Los modales generadores de alta complejidad (Movimientos) deben usar la clase `.modal-xl` con un ancho máximo del `90%` vía CSS inline (`style="max-width: 90%;"`) para asegurar paridad visual entre módulos.
 - **Scroll Limitado**: `modal-body` con `max-height: 65vh; overflow-y: auto;`.
+- **Auto-Apertura**: El sistema permite la apertura programática de modales mediante eventos Livewire (`dispatch('abrir-modal')`) al detectar parámetros de redirección (`auto_open`).
 - **Limpieza de Backdrops**: Script manual obligatorio tras cierres de Livewire para evitar bloqueos de UI.
-- **Alertas**: Deben estar contenidas dentro del `modal-body`.
+- **Alertas y Contexto**: Deben estar contenidas dentro del `modal-body`. Si existe una incidencia vinculada, se debe mostrar una alerta persistente de contexto (`bg-primary bg-opacity-10`) en la cabecera del modal.
 
 ---
 
@@ -94,4 +108,4 @@ Todas las vistas principales deben seguir esta estructura:
 - **Seeders:** Seguir el orden `Roles` -> `Configuraciones` -> `Datos Maestros`.
 
 ---
-*Este instructivo se actualiza a la V5.0 para reflejar la estandarización Premium de SIGEINV.*
+*Este instructivo se actualiza a la V6.0 para reflejar la Trazabilidad Total SIGEINV-INCIDENCIAS.*

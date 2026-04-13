@@ -1,3 +1,6 @@
+@php
+    /** @var \Illuminate\Pagination\LengthAwarePaginator $usuarios */
+@endphp
 <div>
     <!-- Header Especial -->
     <div class="row mb-4 align-items-center">
@@ -68,6 +71,7 @@
                                 Usuario / Correo @if($sortField === 'username') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
                             </th>
                             <th>Roles</th>
+                            <th>Perfil Técnico</th>
                             @can('ver-estado-usuarios')
                             <th class="th-estado" wire:click="sortBy('activo')" style="cursor: pointer;">
                                 Estado @if($sortField === 'activo') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
@@ -92,10 +96,30 @@
                                 </td>
                                 <td>
                                     @forelse($user->roles as $rol)
-                                        <span class="badge bg-dark">{{ $rol->name }}</span>
+                                        <span class="badge bg-dark" title="{{ $rol->descripcion ?? 'Sin descripción' }}" style="cursor:help;">{{ str_replace('-', ' ', $rol->name) }}</span>
                                     @empty
                                         <span class="text-muted small">Sin rol</span>
                                     @endforelse
+                                </td>
+                                <td>
+                                    @if($user->especialidad)
+                                        <div class="d-flex flex-column">
+                                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 mb-1" style="font-size: 0.75rem;">
+                                                <i class="bi bi-diagram-3 me-1"></i> {{ $user->especialidad->nombre }}
+                                            </span>
+                                            @if($user->disponible_asignacion)
+                                                <span class="text-success fw-bold" style="font-size: 0.7rem;">
+                                                    <i class="bi bi-check-circle-fill me-1"></i> Disponible
+                                                </span>
+                                            @else
+                                                <span class="text-muted fw-bold" style="font-size: 0.7rem;">
+                                                    <i class="bi bi-x-circle-fill me-1"></i> No Disponible
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="text-muted small fst-italic">N/A</span>
+                                    @endif
                                 </td>
                                 @can('ver-estado-usuarios')
                                     <td>
@@ -201,13 +225,42 @@
                                                    value="{{ $rol->name }}" 
                                                    id="rol_{{ $rol->id }}" 
                                                    wire:model="roles_seleccionados">
-                                            <label class="form-check-label text-capitalize" for="rol_{{ $rol->id }}">
+                                            <label class="form-check-label text-capitalize cursor-help" 
+                                                   for="rol_{{ $rol->id }}" 
+                                                   title="{{ $rol->descripcion ?? 'Sin descripción disponible' }}"
+                                                   style="cursor: help; border-bottom: 1px dashed #ccc;">
                                                 {{ str_replace('-', ' ', $rol->name) }}
                                             </label>
                                         </div>
                                     @empty
                                         <div class="text-muted small">No hay roles disponibles.</div>
                                     @endforelse
+                                </div>
+                                
+                                <div x-data="{
+                                        roles: @entangle('roles_seleccionados'),
+                                        get requiresSpecialty() {
+                                            return this.roles.includes('personal-ti') || this.roles.includes('resolutor-incidencia');
+                                        }
+                                    }">
+                                    <template x-if="requiresSpecialty">
+                                        <div class="mt-4 p-3 bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded-3">
+                                            <h6 class="text-primary fw-bold mb-2"><i class="bi bi-diagram-3 me-2"></i>Especialidad Técnica</h6>
+                                            <p class="small text-muted mb-2">Para asignar casos, el usuario debe tener una especialidad.</p>
+                                            <select class="form-select @error('especialidad_id') is-invalid @enderror" wire:model="especialidad_id">
+                                                <option value="">-- Seleccionar Especialidad --</option>
+                                                @foreach($especialidades as $esp)
+                                                    <option value="{{ $esp->id }}">{{ $esp->nombre }}</option>
+                                                @endforeach
+                                            </select>
+                                            @error('especialidad_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+
+                                            <div class="form-check form-switch mt-3">
+                                                <input class="form-check-input" type="checkbox" id="adminToggleDisp" wire:model="disponible_asignacion">
+                                                <label class="form-check-label fw-bold small" for="adminToggleDisp">Disponible para recibir casos</label>
+                                            </div>
+                                        </div>
+                                    </template>
                                 </div>
                             </div>
                         </div>
@@ -258,11 +311,26 @@
                             <li class="list-group-item bg-light">
                                 <strong><i class="bi bi-shield-lock me-1"></i> Roles Asignados:</strong><br>
                                 @forelse($usuario_detalle->roles as $rol)
-                                    <span class="badge bg-dark mt-1">{{ str_replace('-', ' ', $rol->name) }}</span>
+                                    <span class="badge bg-dark mt-1" title="{{ $rol->descripcion ?? 'Sin descripción' }}" style="cursor: help;">{{ str_replace('-', ' ', $rol->name) }}</span>
                                 @empty
                                     <span class="text-muted fst-italic small">No tiene roles asignados</span>
                                 @endforelse
                             </li>
+                            
+                            @if(count(array_intersect(['personal-ti', 'resolutor-incidencia'], $usuario_detalle->roles->pluck('name')->toArray())) > 0)
+                            <li class="list-group-item bg-light">
+                                <strong><i class="bi bi-diagram-3 me-1"></i> Especialidad:</strong><br>
+                                @if($usuario_detalle->especialidad)
+                                    <span class="badge bg-primary mt-1">{{ $usuario_detalle->especialidad->nombre }}</span>
+                                @else
+                                    <span class="text-danger small fst-italic"><i class="bi bi-exclamation-triangle"></i> Sin especialidad asignada</span>
+                                @endif
+                                
+                                <div class="mt-2 text-muted small">
+                                    Disponibilidad: {!! $usuario_detalle->disponible_asignacion ? '<span class="text-success fw-bold">Disponible</span>' : '<span class="text-danger fw-bold">No Disponible</span>' !!}
+                                </div>
+                            </li>
+                            @endif
                         </ul>
                     @endif
                 </div>

@@ -17,17 +17,41 @@
     <!-- Card de Búsqueda y Acciones -->
     <div class="card border-0 shadow-sm rounded-4 mb-4">
         <div class="card-body p-4">
-            <div class="row g-3 justify-content-between align-items-center">
+            <!-- Botones de Acción (Arriba) -->
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                <div class="text-muted small">
+                    <i class="bi bi-filter-circle me-1"></i> Use los filtros para segmentar la vista
+                </div>
+                <div class="d-flex gap-2">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-success border-2 fw-bold dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-file-earmark-excel me-1"></i> Exportar
+                        </button>
+                        <ul class="dropdown-menu shadow border-0">
+                            <li><a class="dropdown-item py-2" href="{{ route('reportes.incidencias.excel', ['search' => $search, 'departamento_id' => $filtro_departamento, 'estado' => $filtro_estado]) }}"><i class="bi bi-filter me-2 text-success"></i> Vista Actual (Excel)</a></li>
+                            <li><a class="dropdown-item py-2" href="{{ route('reportes.incidencias.excel') }}"><i class="bi bi-list-check me-2 text-primary"></i> Todo el Historial (Excel)</a></li>
+                        </ul>
+                    </div>
+                    @can('crear-ticket')
+                    <button type="button" class="btn btn-primary shadow-sm fw-bold px-4" wire:click="resetForm" data-bs-toggle="modal" data-bs-target="#modalIncidencia">
+                        <i class="bi bi-plus-lg me-1"></i> Nueva Incidencia
+                    </button>
+                    @endcan
+                </div>
+            </div>
+
+            <!-- Fila de Filtros -->
+            <div class="row g-2 align-items-center">
                 <div class="col-md-4">
                     <div class="input-group shadow-sm">
                         <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control border-start-0 ps-0" placeholder="Buscar por descripción o trabajador..." wire:model.live.debounce.300ms="search">
+                        <input type="text" class="form-control border-start-0 ps-0" placeholder="Buscar por folio, descripción o nombres..." wire:model.live.debounce.300ms="search">
                     </div>
                 </div>
                 
                 <div class="col-md-2">
-                    <select class="form-select shadow-sm" wire:model.live="filtro_departamento">
-                        <option value="">Departamentos</option>
+                    <select class="form-select shadow-sm border-2" wire:model.live="filtro_departamento">
+                        <option value="">Todos los Departamentos</option>
                         @foreach($departamentos as $depto)
                             <option value="{{ $depto->id }}">{{ $depto->nombre }}</option>
                         @endforeach
@@ -35,29 +59,32 @@
                 </div>
 
                 <div class="col-md-2">
-                    <select class="form-select shadow-sm" wire:model.live="filtro_estado">
-                        <option value="">Todos los Estados</option>
-                        <option value="abierto">Abiertos</option>
-                        <option value="solventado">Solventados</option>
-                        <option value="cerrado">Cerrados</option>
+                    <select class="form-select shadow-sm border-2" wire:model.live="filtro_problema">
+                        <option value="">Todas las Categorías</option>
+                        @foreach($problemas_dropdown as $prob)
+                            <option value="{{ $prob->id }}">{{ $prob->nombre }}</option>
+                        @endforeach
                     </select>
                 </div>
 
-                <div class="col-md-4 text-end d-flex gap-2 justify-content-end">
-                    <div class="dropdown">
-                        <button class="btn btn-outline-success border-2 fw-bold dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-file-earmark-excel me-1"></i> Excel
-                        </button>
-                        <ul class="dropdown-menu shadow border-0">
-                            <li><a class="dropdown-item py-2" href="{{ route('reportes.incidencias.excel', ['search' => $search, 'departamento_id' => $filtro_departamento, 'estado' => $filtro_estado]) }}"><i class="bi bi-filter me-2 text-success"></i> Vista Actual</a></li>
-                            <li><a class="dropdown-item py-2" href="{{ route('reportes.incidencias.excel') }}"><i class="bi bi-list-check me-2 text-primary"></i> Todo el Historial</a></li>
-                        </ul>
-                    </div>
-                    @can('crear-incidencias') {{-- Assuming this permission exists based on context --}}
-                    <button type="button" class="btn btn-primary shadow-sm fw-bold px-4" wire:click="resetForm" data-bs-toggle="modal" data-bs-target="#modalIncidencia">
-                        <i class="bi bi-plus-lg me-1"></i> Nueva
-                    </button>
-                    @endcan
+                @if(Auth::user()->hasRole(['super-admin', 'administrador', 'coordinador']))
+                <div class="col-md-2">
+                    <select class="form-select shadow-sm border-2" wire:model.live="filtro_tecnico">
+                        <option value="">Todos los Técnicos</option>
+                        @foreach($tecnicos_dropdown as $tec)
+                            <option value="{{ $tec->id }}">{{ $tec->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
+
+                <div class="col-md-2">
+                    <select class="form-select shadow-sm border-2" wire:model.live="filtro_estado">
+                        <option value="">Todos los Estados</option>
+                        <option value="abierto">Abiertos</option>
+                        <option value="solventado">Solventados</option>
+                        <option value="cerrados">Cerrados</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -70,14 +97,25 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light py-3">
                         <tr>
-                            <th class="ps-4">Folio</th>
+                            <th class="ps-4" wire:click="sortBy('id')" style="cursor: pointer;">
+                                Folio @if($sortField === 'id') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            </th>
                             <th wire:click="sortBy('created_at')" style="cursor: pointer;">
                                 Fecha @if($sortField === 'created_at') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
                             </th>
-                            <th>Trabajador / Depto</th>
-                            <th>Problema</th>
-                            <th>Técnico</th>
-                            <th class="text-center">Estado</th>
+                            <th wire:click="sortBy('trabajador_id')" style="cursor: pointer;">
+                                Trabajador / Depto @if($sortField === 'trabajador_id') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            </th>
+                            <th wire:click="sortBy('problema_id')" style="cursor: pointer;">
+                                Problema @if($sortField === 'problema_id') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            </th>
+                            <th wire:click="sortBy('user_id')" style="cursor: pointer;">
+                                Técnico @if($sortField === 'user_id') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            </th>
+                            <th>Activo Relacionado</th>
+                            <th class="text-center" wire:click="sortBy('cerrado')" style="cursor: pointer;">
+                                Estado @if($sortField === 'cerrado') <i class="bi bi-sort-alpha-{{ $sortAsc ? 'down' : 'up' }} ms-1"></i> @endif
+                            </th>
                             <th class="text-end pe-4">Acciones</th>
                         </tr>
                     </thead>
@@ -90,14 +128,45 @@
                                 <td>{{ $inc->created_at->format('d/m/Y H:i') }}</td>
                                 <td>
                                     <div class="d-flex flex-column">
-                                        <span class="fw-bold text-dark">{{ $inc->trabajador->nombres ?? 'No asignado' }} {{ $inc->trabajador->apellidos ?? '' }}</span>
-                                        <small class="text-muted">{{ $inc->departamento->nombre }}</small>
+                                        @if($inc->trabajador)
+                                            <span class="fw-bold text-dark">{{ $inc->trabajador->nombres }} {{ $inc->trabajador->apellidos }}</span>
+                                        @else
+                                            <span class="fw-bold text-dark">{{ $inc->creator->name ?? 'Usuario Sistema' }} <span class="badge bg-secondary ms-1 py-0 px-1" style="font-size: 0.65rem;">Externo</span></span>
+                                        @endif
+                                        <small class="text-muted">{{ $inc->departamento->nombre ?? 'Sin Departamento' }}</small>
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="badge bg-light text-dark border">{{ $inc->problema->nombre }}</span>
+                                    <span class="badge bg-light text-dark border d-block mb-1">{{ $inc->formato_problema ?? $inc->problema->nombre }}</span>
+                                    <small class="text-primary"><i class="bi bi-diagram-3"></i> {{ $inc->problema->especialidad->nombre ?? 'N/A' }}</small>
                                 </td>
-                                <td>{{ $inc->tecnico->name }}</td>
+                                <td>
+                                    @if($inc->tecnico)
+                                        <span class="text-dark">{{ $inc->tecnico->name }}</span>
+                                    @else
+                                        <span class="text-danger small fst-italic"><i class="bi bi-hourglass-split"></i> Pendiente</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($inc->modelo)
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-bold small text-truncate" style="max-width: 150px;">
+                                                <i class="bi bi-box me-1"></i>
+                                                {{ class_basename($inc->modelo_type) }}
+                                            </span>
+                                            <small class="text-muted">
+                                                {{ $inc->modelo->bien_nacional ?? $inc->modelo->serial ?? $inc->modelo->nombre }}
+                                            </small>
+                                            @if($inc->amerita_movimiento)
+                                                <span class="badge bg-warning text-dark mt-1" style="font-size: 0.6rem; width: fit-content;">
+                                                    <i class="bi bi-arrow-left-right me-1"></i> Movimiento
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="text-muted small">N/A</span>
+                                    @endif
+                                </td>
                                 <td class="text-center">
                                     @if($inc->cerrado)
                                         <span class="badge bg-dark rounded-pill px-3">Cerrado</span>
@@ -108,9 +177,20 @@
                                     @endif
                                 </td>
                                 <td class="text-end pe-4">
-                                    <button wire:click="editar({{ $inc->id }})" class="btn btn-sm btn-outline-primary" title="Ver / Editar">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
+                                    <div class="btn-group shadow-sm">
+                                        <a href="{{ route('reportes.incidencia.ficha', $inc->id) }}" target="_blank" class="btn btn-sm btn-outline-danger" title="Descargar PDF">
+                                            <i class="bi bi-file-pdf"></i>
+                                        </a>
+                                        @if($inc->cerrado)
+                                            <button wire:click="editar({{ $inc->id }})" class="btn btn-sm btn-outline-secondary" title="Ver Historial">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        @else
+                                            <button wire:click="editar({{ $inc->id }})" class="btn btn-sm btn-outline-primary" title="Editar">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </button>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -137,22 +217,48 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-primary text-white border-bottom-0">
-                    <h5 class="modal-title">
-                        <i class="bi bi-clipboard-plus me-2"></i>
-                        {{ $incidencia_id ? 'Detalles de Incidencia' : 'Nueva Incidencia' }}
+                    <h5 class="modal-title h6">
+                        <i class="bi bi-{{ $incidencia_id ? ($es_lectura ? 'eye' : 'pencil-square') : 'plus-circle' }} me-2"></i>
+                        {{ $incidencia_id ? ($es_lectura ? 'Detalles de Incidencia (Solo Lectura)' : 'Gestionar Incidencia') : 'Reportar Nueva Incidencia' }}
                     </h5>
+                    @if($incidencia_id)
+                        <span class="badge bg-white text-primary ms-3">#{{ str_pad($incidencia_id, 5, '0', STR_PAD_LEFT) }}</span>
+                    @endif
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" wire:click="resetForm"></button>
                 </div>
                 <form wire:submit.prevent="guardar">
-                    <div class="modal-body p-4 bg-light" style="max-height: 65vh; overflow-y: auto;">
-                        
+                    <div class="modal-body p-4 bg-light" style="max-height: 75vh; overflow-y: auto;">
+                        @if($incidencia_id && $cerrado)
+                            @if($cierre_irreversible)
+                                <div class="alert alert-danger d-flex align-items-center py-2 mb-3 border-0 shadow-sm" style="font-size: 0.85rem;">
+                                    <i class="bi bi-shield-lock-fill me-2 fs-5"></i>
+                                    <div>
+                                        <strong>Cierre Irreversible:</strong> Esta incidencia ha sido finalizada y no permite cambios adicionales según las reglas del sistema.
+                                    </div>
+                                </div>
+                            @elseif(Auth::user()->can('admin-incidencias') && !$es_lectura)
+                                <div class="alert alert-warning d-flex align-items-center py-2 mb-3 border-0 shadow-sm" style="font-size: 0.85rem;">
+                                    <i class="bi bi-unlock-fill me-2 fs-5"></i>
+                                    <div>
+                                        <strong>Modo Administrador:</strong> Esta incidencia está cerrada, pero usted tiene permisos para reabrirla o editar sus detalles.
+                                    </div>
+                                </div>
+                            @else
+                                <div class="alert alert-dark d-flex align-items-center py-2 mb-3 border-0 shadow-sm" style="font-size: 0.85rem;">
+                                    <i class="bi bi-lock-fill me-2 fs-5"></i>
+                                    <div>
+                                        <strong>Ticket Cerrado:</strong> Usted está viendo esta incidencia en modo de solo lectura.
+                                    </div>
+                                </div>
+                            @endif
+                        @endif
                         <div class="row g-3">
                             <!-- Sección 1: Responsable y Ubicación -->
                             <div class="col-12"><h6 class="text-uppercase text-muted fw-bold small border-bottom pb-2">1. Ubicación y Solicitante</h6></div>
                             
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Departamento <span class="text-danger">*</span></label>
-                                <select class="form-select @error('departamento_id') is-invalid @enderror" wire:model.live="departamento_id">
+                                <select class="form-select @error('departamento_id') is-invalid @enderror" wire:model.live="departamento_id" @disabled($es_lectura)>
                                     <option value="">Seleccione...</option>
                                     @foreach($departamentos as $depto)
                                         <option value="{{ $depto->id }}">{{ $depto->nombre }}</option>
@@ -163,7 +269,7 @@
 
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Solicitado por (Trabajador)</label>
-                                <select class="form-select" wire:model.live="trabajador_id" @disabled(!$departamento_id)>
+                                <select class="form-select" wire:model.live="trabajador_id" @disabled(!$departamento_id || $es_lectura)>
                                     <option value="">Seleccione...</option>
                                     @foreach($trabajadores as $trab)
                                         <option value="{{ $trab->id }}">{{ $trab->nombres }} {{ $trab->apellidos }}</option>
@@ -177,7 +283,7 @@
                             
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Tipo de Activo @if($activo_obligatorio) <span class="text-danger">*</span> @endif</label>
-                                <select class="form-select @error('modelo_type') is-invalid @enderror" wire:model.live="modelo_type" @disabled(!$departamento_id)>
+                                <select class="form-select @error('modelo_type') is-invalid @enderror" wire:model.live="modelo_type" @disabled(!$departamento_id || $es_lectura)>
                                     <option value="">Ninguno / No Aplica</option>
                                     <option value="App\Models\Computador">Computador</option>
                                     <option value="App\Models\Dispositivo">Dispositivo Especial</option>
@@ -188,7 +294,7 @@
 
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Elegir Activo @if($activo_obligatorio) <span class="text-danger">*</span> @endif</label>
-                                <select class="form-select @error('modelo_id') is-invalid @enderror" wire:model="modelo_id" @disabled(count($activos) == 0)>
+                                <select class="form-select @error('modelo_id') is-invalid @enderror" wire:model.live="modelo_id" @disabled(count($activos) == 0 || $es_lectura)>
                                     <option value="">Seleccione...</option>
                                     @foreach($activos as $act)
                                         <option value="{{ $act->id }}">
@@ -208,9 +314,9 @@
 
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Tipo de Problema <span class="text-danger">*</span></label>
-                                <select class="form-select @error('problema_id') is-invalid @enderror" wire:model="problema_id">
+                                <select class="form-select @error('problema_id') is-invalid @enderror" wire:model="problema_id" @disabled($es_lectura)>
                                     <option value="">Seleccione...</option>
-                                    @foreach($problemas as $prob)
+                                    @foreach($problemas_dropdown as $prob)
                                         <option value="{{ $prob->id }}">{{ $prob->nombre }}</option>
                                     @endforeach
                                 </select>
@@ -218,11 +324,11 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">Técnico Resolutor <span class="text-danger">*</span></label>
-                                <select class="form-select @error('user_id') is-invalid @enderror" wire:model="user_id">
-                                    <option value="">Asignar a...</option>
-                                    @foreach($tecnicos as $tec)
-                                        <option value="{{ $tec->id }}">{{ $tec->name }}</option>
+                                <label class="form-label fw-bold">Técnico Resolutor (Asignación)</label>
+                                <select class="form-select @error('user_id') is-invalid @enderror" wire:model="user_id" @disabled($es_lectura)>
+                                    <option value="">Pendiente por Asignar...</option>
+                                    @foreach($tecnicos_dropdown as $tec)
+                                        <option value="{{ $tec->id }}">{{ $tec->name }} ({{ $tec->especialidad->nombre ?? 'Sin Especialidad' }})</option>
                                     @endforeach
                                 </select>
                                 @error('user_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -230,13 +336,13 @@
 
                             <div class="col-12">
                                 <label class="form-label fw-bold">Descripción del Reporte <span class="text-danger">*</span></label>
-                                <textarea class="form-control @error('descripcion') is-invalid @enderror" rows="3" wire:model="descripcion" placeholder="Detalle la falla reportada por el usuario..."></textarea>
+                                <textarea class="form-control @error('descripcion') is-invalid @enderror" rows="3" wire:model="descripcion" placeholder="Detalle la falla reportada por el usuario..." @disabled($es_lectura)></textarea>
                                 @error('descripcion') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
 
                             <div class="col-12">
                                 <label class="form-label fw-bold">Notas de Resolución / Seguimiento</label>
-                                <textarea class="form-control" rows="3" wire:model="notas" placeholder="Acciones tomadas para resolver la falla..."></textarea>
+                                <textarea class="form-control" rows="3" wire:model="nota_resolucion" placeholder="Acciones tomadas para resolver la falla..." @disabled($es_lectura)></textarea>
                             </div>
 
                             <!-- Sección 4: Estatus Final -->
@@ -244,16 +350,24 @@
 
                             <div class="col-6">
                                 <div class="form-check form-switch p-3 border rounded bg-white">
-                                    <input class="form-check-input ms-0 me-3" type="checkbox" id="solventCheck" wire:model="solventado">
+                                    <input class="form-check-input ms-0 me-3" type="checkbox" id="solventCheck" wire:model.live="solventado" @disabled($es_lectura)>
                                     <label class="form-check-label fw-bold" for="solventCheck">¿Caso Solventado?</label>
+                                </div>
+                            </div>
+
+                             <div class="col-6">
+                                <div class="form-check form-switch p-3 border rounded bg-white">
+                                    <input class="form-check-input ms-0 me-3" type="checkbox" id="movimientoCheck" wire:model.live="amerita_movimiento" @disabled($es_lectura)>
+                                    <label class="form-check-label fw-bold" for="movimientoCheck">¿Amerita Movimiento?</label>
+                                    <div class="small text-muted" style="font-size: 0.7rem;">Traslado o retiro de equipo.</div>
                                 </div>
                             </div>
 
                             <div class="col-6">
                                 <div class="form-check form-switch p-3 border rounded bg-white border-danger shadow-sm">
-                                    <input class="form-check-input ms-0 me-3" type="checkbox" id="cerrarCheck" wire:model="cerrado" @disabled(!$solventado)>
+                                    <input class="form-check-input ms-0 me-3" type="checkbox" id="cerrarCheck" wire:model="cerrado" @disabled(!$solventado || $es_lectura)>
                                     <label class="form-check-label fw-bold text-danger" for="cerrarCheck text-danger">¿CERRAR INCIDENCIA?</label>
-                                    <div class="small text-muted mt-1">Una vez cerrada, no podrá editarse.</div>
+                                    <div class="small text-muted mt-1">Bloqueo de edición.</div>
                                 </div>
                             </div>
 
@@ -261,10 +375,24 @@
 
                     </div>
                     <div class="modal-footer bg-white border-top-0 p-4">
+                        @if($incidencia_id)
+                            <a href="{{ route('reportes.incidencia.ficha', $incidencia_id) }}" target="_blank" class="btn btn-danger px-4 me-auto">
+                                <i class="bi bi-file-pdf me-1"></i> Ficha PDF
+                            </a>
+                        @endif
+
+                        @if($amerita_movimiento && $modelo_id && !$es_lectura)
+                            <button type="button" wire:click="crearMovimiento" class="btn btn-warning px-4 shadow-sm fw-bold">
+                                <i class="bi bi-arrow-left-right me-1"></i> Generar Movimiento
+                            </button>
+                        @endif
+
                         <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary px-5">
-                            <i class="bi bi-save me-1"></i> {{ $incidencia_id ? 'Actualizar' : 'Registrar Incidencia' }}
-                        </button>
+                        @if(!$es_lectura)
+                            <button type="submit" class="btn btn-primary px-5">
+                                <i class="bi bi-save me-1"></i> {{ $incidencia_id ? 'Actualizar' : 'Registrar Incidencia' }}
+                            </button>
+                        @endif
                     </div>
                 </form>
             </div>

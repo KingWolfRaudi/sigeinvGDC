@@ -8,23 +8,25 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 use App\Traits\RecordSignature;
 
-class Problema extends Model
+class EspecialidadTecnica extends Model
 {
     use HasFactory, SoftDeletes, RecordSignature;
 
-    protected $fillable = ['nombre', 'activo', 'especialidad_id'];
+    protected $table = 'especialidades_tecnicas';
+
+    protected $fillable = ['nombre', 'activo'];
 
     protected $casts = [
         'activo' => 'boolean',
     ];
 
-    public function incidencias()
+    public function problemas()
     {
-        return $this->hasMany(Incidencia::class);
+        return $this->hasMany(Problema::class, 'especialidad_id');
     }
-    
-    public function especialidad()
+
+    public function usuarios()
     {
-        return $this->belongsTo(EspecialidadTecnica::class, 'especialidad_id');
+        return $this->hasMany(User::class, 'especialidad_id');
     }
 }

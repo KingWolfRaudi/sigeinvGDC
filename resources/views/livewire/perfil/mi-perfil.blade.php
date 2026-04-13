@@ -40,6 +40,30 @@
                                 {{ Auth::user()->activo ? 'Activo' : 'Inactivo' }}
                             </span>
                         </div>
+                        
+                        @if($es_tecnico)
+                        <hr class="my-3 text-muted opacity-25">
+                        <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded-4 border border-light shadow-sm">
+                            <label class="fw-bold text-dark mb-0 cursor-pointer fs-6" for="toggleAsignacion">
+                                <i class="bi bi-person-workspace text-primary me-2"></i> Recibir Casos
+                            </label>
+                            <div class="form-check form-switch m-0 pt-1">
+                                <input class="form-check-input shadow-none cursor-pointer" style="width: 2.8em; height: 1.4em;" type="checkbox" id="toggleAsignacion" 
+                                       wire:model.live="disponible_asignacion" wire:change="toggleDisponibilidad">
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            @if($disponible_asignacion)
+                                <span class="badge bg-success text-success bg-opacity-10 rounded-pill px-4 py-2 fs-6 border border-success border-opacity-25 w-100">
+                                    <i class="bi bi-check-circle-fill me-2"></i> Disponible para Asignación
+                                </span>
+                            @else
+                                <span class="badge bg-secondary text-secondary bg-opacity-10 rounded-pill px-4 py-2 fs-6 border border-secondary border-opacity-25 w-100">
+                                    <i class="bi bi-dash-circle-fill me-2"></i> No Disponible
+                                </span>
+                            @endif
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>

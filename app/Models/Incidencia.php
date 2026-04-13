@@ -30,7 +30,8 @@ class Incidencia extends Model
         'modelo_id',
         'modelo_type',
         'descripcion',
-        'notas',
+        'nota_resolucion',
+        'amerita_movimiento',
         'solventado',
         'cerrado'
     ];
@@ -38,6 +39,7 @@ class Incidencia extends Model
     protected $casts = [
         'solventado' => 'boolean',
         'cerrado' => 'boolean',
+        'amerita_movimiento' => 'boolean',
     ];
 
     // Relaciones
@@ -65,5 +67,21 @@ class Incidencia extends Model
     public function modelo()
     {
         return $this->morphTo();
+    }
+
+    // Relaciones con movimientos generados
+    public function movimientoComputador()
+    {
+        return $this->hasOne(MovimientoComputador::class, 'incidencia_id');
+    }
+
+    public function movimientoDispositivo()
+    {
+        return $this->hasOne(MovimientoDispositivo::class, 'incidencia_id');
+    }
+
+    public function movimientoInsumo()
+    {
+        return $this->hasOne(MovimientoInsumo::class, 'incidencia_id');
     }
 }

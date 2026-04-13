@@ -32,6 +32,9 @@ class User extends Authenticatable
         'password',
         'avatar',   // <-- Agregado
         'activo',   // <-- Agregado
+        'trabajador_id',
+        'disponible_asignacion',
+        'especialidad_id',
     ];
 
     public function trabajador()
@@ -44,6 +47,11 @@ class User extends Authenticatable
         return $this->hasMany(SolicitudPerfil::class);
     }
 
+    public function especialidad()
+    {
+        return $this->belongsTo(EspecialidadTecnica::class, 'especialidad_id');
+    }
+
     protected $hidden = [
         'password',
         'remember_token',
@@ -53,5 +61,6 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'activo' => 'boolean', // <-- Casteo a booleano
+        'disponible_asignacion' => 'boolean',
     ];
 }

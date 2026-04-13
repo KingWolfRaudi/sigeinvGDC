@@ -21,9 +21,29 @@ class PanelDispositivos extends Component
     use WithPagination;
     protected $paginationTheme = 'bootstrap';
 
+    public function mount()
+    {
+        $modelo_id = request()->query('modelo_id');
+        $auto_open = request()->query('auto_open');
+        $this->incidencia_id = request()->query('incidencia_id');
+
+        if ($auto_open && $modelo_id && Gate::allows('movimientos-dispositivos-crear')) {
+            $this->mostrando_generador = true;
+            $this->paso_generador = 1;
+            $this->seleccionarDispositivo((int)$modelo_id);
+            $this->dispatch('abrir-modal', id: 'modalGeneradorDispositivos');
+
+            if ($this->incidencia_id) {
+                $this->justificacion = "Vinculado a la incidencia #" . str_pad($this->incidencia_id, 5, '0', STR_PAD_LEFT);
+            }
+        }
+    }
+
+
     public string $pestana = 'borradores';
     public string $search = '';
     public string $filtro_tipo = '';
+    public ?int $incidencia_id = null;
 
     public ?int $rechazando_id = null;
     public string $motivo_rechazo = '';
@@ -278,6 +298,7 @@ class PanelDispositivos extends Component
                     'solicitante_id'  => Auth::id(),
                     'aprobador_id'    => Auth::id(),
                     'aprobado_at'     => now(),
+                    'incidencia_id'   => $this->incidencia_id,
                 ]);
 
                 $this->dispatch('mostrar-toast', mensaje: 'Movimiento ejecutado directamente.', tipo: 'success');

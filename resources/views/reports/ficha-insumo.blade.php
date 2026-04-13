@@ -68,6 +68,7 @@
                 <th>Tipo</th>
                 <th>Cantidad</th>
                 <th>Aprobado por</th>
+                <th>Incidencia</th>
                 <th>Justificación</th>
             </tr>
         </thead>
@@ -78,6 +79,7 @@
                     <td>{{ str_replace('_', ' ', strtoupper($mov->tipo_operacion)) }}</td>
                     <td>{{ $mov->cantidad_movida ?? '—' }}</td>
                     <td>{{ $mov->aprobador->name ?? 'Sistema' }}</td>
+                    <td>{{ $mov->incidencia_id ? '#' . str_pad($mov->incidencia_id, 5, '0', STR_PAD_LEFT) : 'N/A' }}</td>
                     <td>{{ \Str::limit($mov->justificacion, 40) }}</td>
                 </tr>
             @endforeach

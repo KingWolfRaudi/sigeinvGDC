@@ -330,7 +330,7 @@
 
     {{-- ── MODAL GENERADOR DE MOVIMIENTOS (STANDARDIZED) ────────────────── --}}
     <div wire:ignore.self class="modal fade" id="modalGeneradorDispositivos" tabindex="-1" data-bs-backdrop="static">
-        <div class="modal-dialog {{ $paso_generador == 2 ? 'modal-xl' : 'modal-lg' }} modal-dialog-scrollable">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 90%;">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-dark text-white py-3">
                     <h5 class="modal-title d-flex align-items-center">
@@ -447,6 +447,12 @@
                                     <h5 class="mb-0 text-dark">{{ $nombre }} - <span class="text-muted small">{{ $bien_nacional }}</span></h5>
                                     <p class="text-muted small mb-0">Configura los cambios que deseas proponer para este dispositivo.</p>
                                 </div>
+                                @if($incidencia_id)
+                                    <div class="alert alert-primary py-1 px-3 mb-0 me-3 shadow-sm border-0 animate__animated animate__fadeIn">
+                                        <i class="bi bi-link-45deg me-1"></i>
+                                        <span class="small fw-bold">Vinculado a Incidencia #{{ str_pad($incidencia_id, 5, '0', STR_PAD_LEFT) }}</span>
+                                    </div>
+                                @endif
                                 <button wire:click="$set('paso_generador', 1)" class="btn btn-sm btn-outline-secondary">
                                     <i class="bi bi-arrow-left me-1"></i> Cambiar Equipo
                                 </button>

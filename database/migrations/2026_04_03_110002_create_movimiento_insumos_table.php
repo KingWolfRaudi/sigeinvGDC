@@ -11,19 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('movimientos_dispositivo', function (Blueprint $table) {
+        Schema::create('movimientos_insumo', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('dispositivo_id')->constrained('dispositivos')->onDelete('restrict');
+            $table->foreignId('insumo_id')->constrained('insumos')->onDelete('restrict');
 
             $table->enum('tipo_operacion', [
-                'cambio_departamento',
-                'reasignacion_trabajador',
-                'cambio_estado',
+                'salida_consumo',
+                'entrada_stock',
+                'prestamo',
+                'devolucion',
                 'actualizacion_datos',
                 'baja',
                 'toggle_activo',
             ]);
+
+            // Para stock: cuánto entra/sale/se presta
+            $table->decimal('cantidad_movida', 8, 2)->nullable();
 
             $table->json('payload_anterior')->nullable();
             $table->json('payload_nuevo');
@@ -38,6 +42,10 @@ return new class extends Migration
 
             $table->text('justificacion');
             $table->text('motivo_rechazo')->nullable();
+            
+            // Refactorizacion Incidencias V2
+            $table->foreignId('incidencia_id')->nullable()->constrained('incidencias')->onDelete('set null');
+
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('solicitante_id')->constrained('users')->onDelete('restrict');
@@ -54,6 +62,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('movimiento_dispositivos');
+        Schema::dropIfExists('movimiento_insumos');
     }
 };
