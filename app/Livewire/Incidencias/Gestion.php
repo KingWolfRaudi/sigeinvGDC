@@ -160,8 +160,8 @@ class Gestion extends Component
             [
                 'problema_id' => $this->problema_id,
                 'departamento_id' => $this->departamento_id,
-                'trabajador_id' => $this->trabajador_id,
-                'user_id' => $this->user_id,
+                'trabajador_id' => $this->trabajador_id ?: null,
+                'user_id' => $this->user_id ?: null,
                 'modelo_type' => $this->modelo_type ?: null,
                 'modelo_id' => $this->modelo_id ?: null,
                 'descripcion' => $this->descripcion,
@@ -177,14 +177,16 @@ class Gestion extends Component
         $this->dispatch('cerrar-modal', id: 'modalIncidencia');
     }
 
-    public function crearMovimiento()
+    public function crearMovimiento($id)
     {
-        if (!$this->modelo_type || !$this->modelo_id) {
-            $this->dispatch('mostrar-toast', mensaje: 'Debe seleccionar un activo para generar un movimiento.', tipo: 'warning');
+        $inc = Incidencia::findOrFail($id);
+
+        if (!$inc->modelo_type || !$inc->modelo_id) {
+            $this->dispatch('mostrar-toast', mensaje: 'Esta incidencia no tiene un activo vinculado para generar un movimiento.', tipo: 'warning');
             return;
         }
 
-        $route = match ($this->modelo_type) {
+        $route = match ($inc->modelo_type) {
             Computador::class => 'movimientos.computadores',
             Dispositivo::class => 'movimientos.dispositivos',
             Insumo::class => 'movimientos.insumos',
@@ -194,8 +196,8 @@ class Gestion extends Component
         if ($route) {
             return redirect()->route($route, [
                 'auto_open' => 1,
-                'modelo_id' => $this->modelo_id,
-                'incidencia_id' => $this->incidencia_id
+                'modelo_id' => $inc->modelo_id,
+                'incidencia_id' => $inc->id
             ]);
         }
     }

@@ -181,6 +181,11 @@
                                         <a href="{{ route('reportes.incidencia.ficha', $inc->id) }}" target="_blank" class="btn btn-sm btn-outline-danger" title="Descargar PDF">
                                             <i class="bi bi-file-pdf"></i>
                                         </a>
+                                        @if($inc->amerita_movimiento && $inc->modelo_id)
+                                            <button wire:click="crearMovimiento({{ $inc->id }})" class="btn btn-sm btn-outline-warning" title="Generar Movimiento">
+                                                <i class="bi bi-arrow-left-right"></i>
+                                            </button>
+                                        @endif
                                         @if($inc->cerrado)
                                             <button wire:click="editar({{ $inc->id }})" class="btn btn-sm btn-outline-secondary" title="Ver Historial">
                                                 <i class="bi bi-eye"></i>
@@ -381,11 +386,6 @@
                             </a>
                         @endif
 
-                        @if($amerita_movimiento && $modelo_id && !$es_lectura)
-                            <button type="button" wire:click="crearMovimiento" class="btn btn-warning px-4 shadow-sm fw-bold">
-                                <i class="bi bi-arrow-left-right me-1"></i> Generar Movimiento
-                            </button>
-                        @endif
 
                         <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancelar</button>
                         @if(!$es_lectura)
