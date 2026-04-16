@@ -110,8 +110,8 @@ class Software extends Component
         abort_if(Gate::denies($esEdicion ? 'editar-software' : 'crear-software'), 403);
 
         $this->validate([
-            'nombre_programa' => 'required|string|max:35',
-            'arquitectura_programa' => 'nullable|in:32bits,64bits',
+            'nombre_programa' => 'required|string|max:100',
+            'arquitectura_programa' => 'nullable|in:32bits,64bits,Universal',
             'tipo_licencia' => 'required|in:Libre,Privativo',
             'serial' => 'nullable|required_if:tipo_licencia,Privativo|string|max:50',
             'descripcion_programa' => 'nullable|string|max:250',

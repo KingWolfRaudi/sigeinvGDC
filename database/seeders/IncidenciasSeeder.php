@@ -15,6 +15,14 @@ class IncidenciasSeeder extends Seeder
         $espSoporte = \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Soporte Técnico Hardware/Software']);
         $espRedes = \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Redes e Infraestructura']);
         $espMantenimiento = \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Mantenimiento General']);
+        \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Sistemas y Desarrollo']);
+        \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Seguridad Informática']);
+        \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Telecomunicaciones']);
+        \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Base de Datos']);
+        \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Servidores y Nube']);
+        \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Audiovisuales y Multimedia']);
+        \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Energía y Climatización']);
+        \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Gestión de Proyectos TI']);
 
         // 1. Tipos de Problemas Iniciales con su Especialidad
         $problemas = [
@@ -24,6 +32,12 @@ class IncidenciasSeeder extends Seeder
             ['nombre' => 'Mantenimiento Preventivo', 'especialidad_id' => $espMantenimiento->id],
             ['nombre' => 'Reclamo de Garantía', 'especialidad_id' => $espSoporte->id],
             ['nombre' => 'Cableado Estructurado', 'especialidad_id' => $espRedes->id],
+            ['nombre' => 'Recuperación de Datos', 'especialidad_id' => $espSoporte->id],
+            ['nombre' => 'Configuración de Periféricos', 'especialidad_id' => $espSoporte->id],
+            ['nombre' => 'Ciberataque / Virus', 'especialidad_id' => $espSoporte->id], // Could be security, but keeping it simple
+            ['nombre' => 'Falla de Impresión', 'especialidad_id' => $espSoporte->id],
+            ['nombre' => 'Backup y Respaldo', 'especialidad_id' => $espSoporte->id],
+            ['nombre' => 'Instalación de Software', 'especialidad_id' => $espSoporte->id],
         ];
 
         foreach ($problemas as $p) {

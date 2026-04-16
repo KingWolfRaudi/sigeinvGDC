@@ -47,167 +47,85 @@ class InventarioSeeder extends Seeder
         $puertoRJ45 = Puerto::where('nombre', 'Ethernet (RJ45)')->first()->id ?? null;
         $puertoHDMI = Puerto::where('nombre', 'HDMI')->first()->id ?? null;
 
-        // 1. Crear Computadores Semilla
-        $comp1 = Computador::create([
-            'nombre_equipo' => 'PC-ADMIN-01',
-            'bien_nacional' => 'BN-2026-0001',
-            'serial' => 'DELL-OPT-90204',
-            'marca_id' => $marcaDell,
-            'tipo_computador' => 'Computador de escritorio',
-            'sistema_operativo_id' => $osWindows10,
-            'procesador_id' => $procI5,
-            'gpu_id' => $gpuDedicada,
-            'departamento_id' => $deptoAdmin,
-            'tipo_ram' => 'DDR4',
-            'mac' => '00:1B:44:11:3A:B7',
-            'ip' => '192.168.1.50',
-            'tipo_conexion' => 'Ethernet',
-            'unidad_dvd' => false,
-            'fuente_poder' => true,
-            'estado_fisico' => 'operativo',
-            'observaciones' => 'Equipo principal de administración',
-            'activo' => true
-        ]);
+        // 1. Crear 11 Computadores
+        for ($i = 1; $i <= 11; $i++) {
+            $comp = Computador::create([
+                'nombre_equipo' => 'PC-EQUIPO-' . str_pad($i, 2, '0', STR_PAD_LEFT),
+                'bien_nacional' => 'BN-2026-' . str_pad($i, 4, '0', STR_PAD_LEFT),
+                'serial' => strtoupper(substr(md5(uniqid()), 0, 12)),
+                'marca_id' => ($i % 2 == 0) ? $marcaDell : $marcaHP,
+                'tipo_computador' => ($i % 3 == 0) ? 'Laptop' : 'Computadora de escritorio',
+                'sistema_operativo_id' => ($i % 2 == 0) ? $osWindows10 : $osWindows11,
+                'procesador_id' => ($i % 2 == 0) ? $procI5 : $procRyzen5,
+                'gpu_id' => ($i % 4 == 0) ? $gpuDedicada : $gpuBasica,
+                'departamento_id' => ($i % 3 == 0) ? $deptoTI : $deptoAdmin,
+                'tipo_ram' => ($i % 2 == 0) ? 'DDR4' : 'DDR5',
+                'mac' => implode(':', str_split(strtoupper(substr(md5(uniqid()), 0, 12)), 2)),
+                'ip' => '192.168.1.' . (50 + $i),
+                'tipo_conexion' => ($i % 3 == 0) ? 'Wi-Fi' : 'Ethernet',
+                'unidad_dvd' => false,
+                'fuente_poder' => true,
+                'estado_fisico' => 'operativo',
+                'observaciones' => 'Equipo de prueba #' . $i,
+                'activo' => true
+            ]);
 
-        if ($puertoUSB && $puertoRJ45) {
-            $comp1->puertos()->sync([$puertoUSB, $puertoRJ45]);
+            if ($puertoUSB && $puertoRJ45) {
+                $comp->puertos()->sync([$puertoUSB, $puertoRJ45]);
+            }
         }
 
-        $comp2 = Computador::create([
-            'nombre_equipo' => 'LAP-TI-01',
-            'bien_nacional' => 'BN-2026-0002',
-            'serial' => 'HP-PAV-LT87',
-            'marca_id' => $marcaHP,
-            'tipo_computador' => 'Laptop',
-            'sistema_operativo_id' => $osWindows11,
-            'procesador_id' => $procRyzen5,
-            'gpu_id' => $gpuBasica,
-            'departamento_id' => $deptoTI,
-            'tipo_ram' => 'DDR5',
-            'mac' => '00:1A:2B:3C:4D:5E',
-            'ip' => '192.168.1.100',
-            'tipo_conexion' => 'Wi-Fi',
-            'unidad_dvd' => false,
-            'fuente_poder' => false,
-            'estado_fisico' => 'operativo',
-            'observaciones' => 'Laptop asignada al departamento de TI',
-            'activo' => true
-        ]);
-
-        if ($puertoUSB && $puertoHDMI) {
-            $comp2->puertos()->sync([$puertoUSB, $puertoHDMI]);
+        // 2. Crear 11 Dispositivos
+        for ($i = 1; $i <= 11; $i++) {
+            Dispositivo::create([
+                'bien_nacional' => 'BN-DISP-' . str_pad($i, 4, '0', STR_PAD_LEFT),
+                'serial' => strtoupper(substr(md5(uniqid()), 0, 10)),
+                'tipo_dispositivo_id' => ($i % 2 == 0) ? $tipoImpresora : $tipoRouter,
+                'marca_id' => ($i % 2 == 0) ? $marcaEpson : $marcaCisco,
+                'nombre' => (($i % 2 == 0) ? 'Impresora L-Series ' : 'Router Multi-Port ') . $i,
+                'ip' => '192.168.1.' . (200 + $i),
+                'estado' => 'operativo',
+                'departamento_id' => ($i % 2 == 0) ? $deptoAdmin : $deptoTI,
+                'computador_id' => null,
+                'notas' => 'Dispositivo de prueba #' . $i,
+                'activo' => true
+            ]);
         }
 
-        // 2. Crear Dispositivos Semilla
-        $disp1 = Dispositivo::create([
-            'bien_nacional' => 'BN-DISP-0001',
-            'serial' => 'EPS-L4260-X1',
-            'tipo_dispositivo_id' => $tipoImpresora,
-            'marca_id' => $marcaEpson,
-            'nombre' => 'EcoTank L4260',
-            'ip' => '192.168.1.200',
-            'estado' => 'operativo',
-            'departamento_id' => $deptoAdmin,
-            'computador_id' => null, // Impresora de red compartida
-            'notas' => 'Cargada con tinta original',
-            'activo' => true
-        ]);
-
-        // Sincronizar puerto para el dispositivo
-        if ($puertoRJ45) {
-            $disp1->puertos()->sync([$puertoRJ45]);
-        }
-
-        $disp2 = Dispositivo::create([
-            'bien_nacional' => 'BN-DISP-0002',
-            'serial' => 'CISCO-RV340',
-            'tipo_dispositivo_id' => $tipoRouter,
-            'marca_id' => $marcaCisco,
-            'nombre' => 'RV340 Dual WAN',
-            'ip' => '192.168.1.1',
-            'estado' => 'operativo',
-            'departamento_id' => $deptoTI,
-            'computador_id' => $comp2->id, // Conectado para monitoreo
-            'notas' => 'Router principal del edificio',
-            'activo' => true
-        ]);
-
-        if ($puertoRJ45) {
-            $disp2->puertos()->sync([$puertoRJ45]);
-        }
-
-        // 3. Crear Insumos / Herramientas Semilla
+        // 3. Crear 11 Insumos / Herramientas
         $catToner = CategoriaInsumo::where('nombre', 'Suministro/Impresión (Tóner, Tinta)')->first()->id ?? 1;
         $catCable = CategoriaInsumo::where('nombre', 'Cableado y Conectividad (Bobinas, Plugs RJ45)')->first()->id ?? 1;
         $catHerramienta = CategoriaInsumo::where('nombre', 'Herramienta Fija (Crimpadora, Tester, Pinzas)')->first()->id ?? 1;
         $catRepuesto = CategoriaInsumo::where('nombre', 'Repuesto Computacional (RAM, SSD, Placa)')->first()->id ?? 1;
         
-        $marcaKingston = Marca::firstOrCreate(['nombre' => 'Kingston'], ['activo' => true])->id;
-        $marcaTruper = Marca::firstOrCreate(['nombre' => 'Truper'], ['activo' => true])->id;
-        $marcaCommScope = Marca::firstOrCreate(['nombre' => 'CommScope'], ['activo' => true])->id;
+        $marcaKingston = Marca::where('nombre', 'Kingston')->first()->id ?? 1;
+        $marcaTruper = Marca::where('nombre', 'Truper')->first()->id ?? 1;
+        $marcaCommScope = Marca::where('nombre', 'CommScope')->first()->id ?? 1;
 
-        Insumo::create([
-            'bien_nacional' => null,
-            'serial' => null,
-            'nombre' => 'Bobina UTP Cat 6',
-            'descripcion' => 'Cable multifilar interior estándar azul.',
-            'marca_id' => $marcaCommScope,
-            'categoria_insumo_id' => $catCable,
-            'unidad_medida' => 'metros',
-            'medida_actual' => 120,
-            'medida_minima' => 50,
-            'reutilizable' => false,
-            'instalable_en_equipo' => false,
-            'estado_fisico' => 'operativo',
-            'activo' => true
-        ]);
+        $insumosBase = [
+            ['nombre' => 'Bobina UTP Cat 6', 'cat' => $catCable, 'marca' => $marcaCommScope, 'medida' => 'metros'],
+            ['nombre' => 'Crimpadora RJ45', 'cat' => $catHerramienta, 'marca' => $marcaTruper, 'medida' => 'unidad'],
+            ['nombre' => 'RAM 8GB DDR4', 'cat' => $catRepuesto, 'marca' => $marcaKingston, 'medida' => 'unidad'],
+            ['nombre' => 'Tóner Negro', 'cat' => $catToner, 'marca' => $marcaEpson, 'medida' => 'unidad'],
+        ];
 
-        Insumo::create([
-            'bien_nacional' => 'BN-2026-HR01',
-            'serial' => 'TRP-CRM-08',
-            'nombre' => 'Crimpadora RJ45 Profesional',
-            'descripcion' => 'Crimpadora resistente para cableado estructurado.',
-            'marca_id' => $marcaTruper,
-            'categoria_insumo_id' => $catHerramienta,
-            'unidad_medida' => 'unidad',
-            'medida_actual' => 2,
-            'medida_minima' => 1,
-            'reutilizable' => true,
-            'instalable_en_equipo' => false,
-            'estado_fisico' => 'operativo',
-            'activo' => true
-        ]);
-
-        Insumo::create([
-            'bien_nacional' => 'BN-2026-RM32',
-            'serial' => 'KVR32S22S8/8',
-            'nombre' => 'Memoria RAM 8GB DDR4 3200MHz',
-            'descripcion' => 'Módulo SO-DIMM para Laptop.',
-            'marca_id' => $marcaKingston,
-            'categoria_insumo_id' => $catRepuesto,
-            'unidad_medida' => 'unidad',
-            'medida_actual' => 5,
-            'medida_minima' => 2,
-            'reutilizable' => false,
-            'instalable_en_equipo' => true,
-            'estado_fisico' => 'operativo',
-            'activo' => true
-        ]);
-        
-        Insumo::create([
-            'bien_nacional' => null,
-            'serial' => null,
-            'nombre' => 'Tóner Negro',
-            'descripcion' => 'Genérico, rinde 2000 páginas.',
-            'marca_id' => $marcaEpson,
-            'categoria_insumo_id' => $catToner,
-            'unidad_medida' => 'unidad',
-            'medida_actual' => 1, 
-            'medida_minima' => 2, // Stock critico forzado
-            'reutilizable' => false,
-            'instalable_en_equipo' => false,
-            'estado_fisico' => 'operativo',
-            'activo' => true
-        ]);
+        for ($i = 1; $i <= 11; $i++) {
+            $base = $insumosBase[($i - 1) % count($insumosBase)];
+            Insumo::create([
+                'bien_nacional' => ($i % 2 == 0) ? 'BN-2026-INS-' . $i : null,
+                'serial' => ($i % 2 == 0) ? 'SER-' . $i . '-ABC' : null,
+                'nombre' => $base['nombre'] . ' Model ' . $i,
+                'descripcion' => 'Insumo de prueba para el almacén.',
+                'marca_id' => $base['marca'],
+                'categoria_insumo_id' => $base['cat'],
+                'unidad_medida' => $base['medida'],
+                'medida_actual' => rand(10, 100),
+                'medida_minima' => 5,
+                'reutilizable' => ($i % 4 == 0),
+                'instalable_en_equipo' => ($i % 3 == 0),
+                'estado_fisico' => 'operativo',
+                'activo' => true
+            ]);
+        }
     }
 }

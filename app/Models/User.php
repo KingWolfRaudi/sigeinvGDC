@@ -39,7 +39,7 @@ class User extends Authenticatable
 
     public function trabajador()
     {
-        return $this->hasOne(Trabajador::class);
+        return $this->belongsTo(Trabajador::class);
     }
 
     public function solicitudesPerfil()

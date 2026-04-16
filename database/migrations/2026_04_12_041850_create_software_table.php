@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('software', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre_programa', 35);
-            $table->enum('arquitectura_programa', ['32bits', '64bits'])->nullable();
+            $table->string('nombre_programa', 100);
+            $table->enum('arquitectura_programa', ['32bits', '64bits', 'Universal'])->nullable();
             $table->enum('tipo_licencia', ['Libre', 'Privativo']);
             $table->string('serial', 50)->nullable();
             $table->string('descripcion_programa', 250)->nullable();

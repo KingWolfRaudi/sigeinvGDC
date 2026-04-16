@@ -16,104 +16,77 @@ class DemoTicketsSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Obtener Especialidades
-        $espSoporte = EspecialidadTecnica::where('nombre', 'Soporte Técnico Hardware/Software')->first();
-        $espRedes = EspecialidadTecnica::where('nombre', 'Redes e Infraestructura')->first();
+        // 2. Crear 11 Trabajadores y Usuarios
+        $deptos = Departamento::where('activo', true)->take(11)->get();
+        if ($deptos->isEmpty()) return;
 
-        if (!$espSoporte || !$espRedes) return;
+        for ($i = 1; $i <= 11; $i++) {
+            $deptoId = $deptos[($i - 1) % $deptos->count()]->id;
+            
+            $trab = Trabajador::create([
+                'nombres' => 'Trabajador ' . $i,
+                'apellidos' => 'Demo ' . $i,
+                'cedula' => 'V-' . (25000000 + $i),
+                'cargo' => 'Cargo Demo ' . $i,
+                'departamento_id' => $deptoId,
+                'activo' => true
+            ]);
 
-        // 2. Crear Técnicos Resolutores
-        $tecnicoRedes = User::firstOrCreate(
-            ['email' => 'redes@sigeinv.test'],
-            [
-                'name' => 'Técnico de Redes (Demo)',
-                'username' => 'tecnico_redes',
-                'password' => Hash::make('password'),
-                'activo' => true,
-                'disponible_asignacion' => true,
-                'especialidad_id' => $espRedes->id,
-            ]
-        );
-        $tecnicoRedes->assignRole('resolutor-incidencia');
-
-        $tecnicoSoporte = User::firstOrCreate(
-            ['email' => 'soporte@sigeinv.test'],
-            [
-                'name' => 'Técnico de Soporte (Demo)',
-                'username' => 'tecnico_soporte',
-                'password' => Hash::make('password'),
-                'activo' => true,
-                'disponible_asignacion' => true,
-                'especialidad_id' => $espSoporte->id,
-            ]
-        );
-        $tecnicoSoporte->assignRole('resolutor-incidencia');
-
-        // 3. Crear Usuario Estándar atado a un Trabajador (si existe alguno)
-        $trabajador = Trabajador::first();
-        $departamento = $trabajador ? $trabajador->departamento_id : Departamento::first()->id ?? null;
-
-        if ($trabajador) {
-            $usuarioEstandar = User::firstOrCreate(
-                ['email' => 'usuario@sigeinv.test'],
-                [
-                    'name' => 'Usuario Estándar (Demo)',
-                    'username' => 'usuario',
+            // Crear un usuario para algunos trabajadores
+            if ($i <= 11) {
+                $user = User::create([
+                    'name' => $trab->nombres . ' ' . $trab->apellidos,
+                    'username' => 'user' . $i,
+                    'email' => 'trabajador' . $i . '@sigeinv.test',
                     'password' => Hash::make('password'),
                     'activo' => true,
-                    'trabajador_id' => $trabajador->id,
-                ]
-            );
-            $usuarioEstandar->assignRole('trabajador');
+                    'trabajador_id' => $trab->id,
+                ]);
+                $user->assignRole('trabajador');
+            }
         }
 
-        // 4. Sembrar algunas Incidencias falsas
-        if ($departamento) {
-            $comp = Computador::first();
-            $probSoporte = Problema::where('especialidad_id', $espSoporte->id)->first();
-            $probRedes = Problema::where('especialidad_id', $espRedes->id)->first();
+        // Crear 11 Técnicos Resolutores (reutilizando especialidades)
+        $especialidades = EspecialidadTecnica::all();
+        for ($i = 1; $i <= 11; $i++) {
+            $esp = $especialidades[($i - 1) % $especialidades->count()];
+            $tec = User::create([
+                'name' => 'Técnico ' . $i . ' (' . $esp->nombre . ')',
+                'username' => 'tecnico' . $i,
+                'email' => 'tecnico' . $i . '@sigeinv.test',
+                'password' => Hash::make('password'),
+                'activo' => true,
+                'disponible_asignacion' => true,
+                'especialidad_id' => $esp->id,
+            ]);
+            $tec->assignRole('resolutor-incidencia');
+        }
 
-            // Incidencia 1: Abierta, asignada a Soporte
-            if ($probSoporte && $comp) {
-                Incidencia::create([
-                    'problema_id' => $probSoporte->id,
-                    'departamento_id' => $departamento,
-                    'trabajador_id' => $trabajador->id ?? null,
-                    'user_id' => $tecnicoSoporte->id,
-                    'modelo_id' => $comp->id,
-                    'modelo_type' => Computador::class,
-                    'descripcion' => 'El equipo no enciende desde la tormenta de anoche.',
-                    'solventado' => false,
-                    'cerrado' => false,
-                ]);
-            }
+        // 3. Crear 11 Incidencias
+        $problemas = Problema::all();
+        $tecnicos = User::role('resolutor-incidencia')->get();
+        $usuarios = User::whereNotNull('trabajador_id')->role('trabajador')->get();
+        $computadores = Computador::all();
+        $fallbackDepto = Departamento::first()->id ?? 1;
 
-            // Incidencia 2: Cerrada, de Redes
-            if ($probRedes) {
-                Incidencia::create([
-                    'problema_id' => $probRedes->id,
-                    'departamento_id' => $departamento,
-                    'trabajador_id' => $trabajador->id ?? null,
-                    'user_id' => $tecnicoRedes->id,
-                    'descripcion' => 'Punto de red en oficina principal no da acceso a internet.',
-                    'nota_resolucion' => 'Se reemplazó el cable patch cord de la roseta al switch. Puerto 14.',
-                    'solventado' => true,
-                    'cerrado' => true,
-                ]);
-            }
+        for ($i = 1; $i <= 11; $i++) {
+            $userSolicitante = $usuarios[($i - 1) % $usuarios->count()];
+            $prob = $problemas[($i - 1) % $problemas->count()];
+            $tec = $tecnicos[($i - 1) % $tecnicos->count()];
+            $comp = $computadores[($i - 1) % $computadores->count()];
 
-            // Incidencia 3: Pendiente de asignación (Sin Técnico)
-            if ($probSoporte) {
-                Incidencia::create([
-                    'problema_id' => $probSoporte->id,
-                    'departamento_id' => $departamento,
-                    'trabajador_id' => $trabajador->id ?? null,
-                    'user_id' => null, // Nadie la ha tomado!
-                    'descripcion' => 'Se requiere instalación de software de diseño.',
-                    'solventado' => false,
-                    'cerrado' => false,
-                ]);
-            }
+            Incidencia::create([
+                'problema_id' => $prob->id,
+                'departamento_id' => $userSolicitante->trabajador?->departamento_id ?? $fallbackDepto,
+                'trabajador_id' => $userSolicitante->trabajador_id,
+                'user_id' => ($i % 3 != 0) ? $tec->id : null, 
+                'modelo_id' => ($i % 2 == 0) ? $comp->id : null,
+                'modelo_type' => ($i % 2 == 0) ? Computador::class : null,
+                'descripcion' => 'Descripción de la incidencia demo #' . $i . ': Fallo reportado por el usuario.',
+                'nota_resolucion' => ($i % 2 == 0) ? 'Resolución técnica aplicada para el ticket #' . $i : null,
+                'solventado' => ($i % 2 == 0),
+                'cerrado' => ($i % 4 == 0),
+            ]);
         }
     }
 }
