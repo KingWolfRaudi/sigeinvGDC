@@ -141,7 +141,7 @@ class ReporteController extends Controller
     {
         $this->authorize('reportes-excel');
 
-        $filters = $request->only(['search', 'estado']);
+        $filters = $request->only(['search', 'estado', 'departamento_id']);
         
         activity()->log("Exportó catálogo de Insumos a Excel con filtros: " . json_encode($filters));
 
@@ -183,7 +183,7 @@ class ReporteController extends Controller
     {
         $this->authorize('reportes-excel');
 
-        $filters = $request->only(['search', 'estado', 'prioridad']);
+        $filters = $request->only(['search', 'estado', 'departamento_id']);
         
         activity()->log("Exportó reporte de Incidencias a Excel");
 

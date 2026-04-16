@@ -42,6 +42,10 @@ class InsumosExport implements FromCollection, WithHeadings, WithMapping, WithTi
             if ($this->filters['estado'] === 'inactivos') $query->where('activo', false);
         }
 
+        if (!empty($this->filters['departamento_id'])) {
+            $query->where('departamento_id', $this->filters['departamento_id']);
+        }
+
         return $query->get();
     }
 
