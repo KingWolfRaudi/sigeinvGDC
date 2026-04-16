@@ -2,13 +2,20 @@
     <!-- Header Especial -->
     @if(!isset($ocultarTitulos) || !$ocultarTitulos)
     <div class="row mb-4 align-items-center">
-        <div class="col-12 d-flex align-items-center">
-            <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3 text-primary border shadow-sm">
-                <i class="bi bi-pc-display fs-3"></i>
+        <div class="col-12 d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3 text-primary border shadow-sm">
+                    <i class="bi bi-pc-display fs-3"></i>
+                </div>
+                <div>
+                    <h2 class="fw-bold mb-0 text-dark">Catálogo de Tipos de Dispositivo</h2>
+                    <p class="text-muted mb-0">Clasificación de activos según su propósito y categoría de hardware.</p>
+                </div>
             </div>
-            <div>
-                <h2 class="fw-bold mb-0 text-dark">Catálogo de Tipos de Dispositivo</h2>
-                <p class="text-muted mb-0">Clasificación de activos según su propósito y categoría de hardware.</p>
+            <div class="text-end">
+                <div class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 rounded-pill shadow-sm">
+                    <i class="bi bi-collection me-1"></i> Total Tipos: <span class="fw-bold fs-6 ms-1">{{ $tipos->total() }}</span>
+                </div>
             </div>
         </div>
     </div>

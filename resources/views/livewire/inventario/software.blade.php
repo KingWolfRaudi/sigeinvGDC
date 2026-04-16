@@ -2,13 +2,20 @@
     <!-- Header Especial -->
     @if(!isset($ocultarTitulos) || !$ocultarTitulos)
     <div class="row mb-4 align-items-center">
-        <div class="col-12 d-flex align-items-center">
-            <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3 text-primary border shadow-sm">
-                <i class="bi bi-disc fs-3"></i>
+        <div class="col-12 d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3 text-primary border shadow-sm">
+                    <i class="bi bi-disc fs-3"></i>
+                </div>
+                <div>
+                    <h2 class="fw-bold mb-0 text-dark">Catálogo de Software</h2>
+                    <p class="text-muted mb-0">Gestión de licencias, versiones y programas informáticos autorizados.</p>
+                </div>
             </div>
-            <div>
-                <h2 class="fw-bold mb-0 text-dark">Catálogo de Software</h2>
-                <p class="text-muted mb-0">Gestión de licencias, versiones y programas informáticos autorizados.</p>
+            <div class="text-end">
+                <div class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 rounded-pill shadow-sm">
+                    <i class="bi bi-collection me-1"></i> Total Software: <span class="fw-bold fs-6 ms-1">{{ $softwares->total() }}</span>
+                </div>
             </div>
         </div>
     </div>
