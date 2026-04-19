@@ -286,8 +286,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('livewire:initialized', () => {
-            const ramData = @json($graficoRam);
-            const discoData = @json($graficoDiscos);
+            const ramData = {!! json_encode($graficoRam) !!};
+            const discoData = {!! json_encode($graficoDiscos) !!};
 
             // Paleta de colores Premium
             const colors = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1'];
