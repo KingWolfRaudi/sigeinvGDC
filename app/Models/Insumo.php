@@ -30,6 +30,12 @@ class Insumo extends Model
         'instalable_en_equipo', 'estado_fisico', 'activo',
         'departamento_id', 'trabajador_id', 'dispositivo_id', 'computador_id'
     ];
+
+    protected $casts = [
+        'activo' => 'boolean',
+        'reutilizable' => 'boolean',
+        'instalable_en_equipo' => 'boolean',
+    ];
     
     public function marca() { return $this->belongsTo(Marca::class); }
     public function categoriaInsumo() { return $this->belongsTo(CategoriaInsumo::class); }

@@ -8,7 +8,7 @@
                     <i class="bi bi-cpu fs-3"></i>
                 </div>
                 <div>
-                    <h2 class="fw-bold mb-0 text-dark">Catálogo de Procesadores</h2>
+                    <h2 class="fw-bold mb-0 text-body">Catálogo de Procesadores</h2>
                     <p class="text-muted mb-0">Gestión de unidades centrales de procesamiento (CPU) para estaciones y servidores.</p>
                 </div>
             </div>
@@ -27,7 +27,7 @@
             <div class="row g-3 justify-content-between align-items-center">
                 <div class="col-md-5">
                     <div class="input-group shadow-sm">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <span class="input-group-text bg-body border-end-0"><i class="bi bi-search text-primary"></i></span>
                         <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar por modelo o marca...">
                     </div>
                 </div>
@@ -209,7 +209,7 @@
     <div wire:ignore.self class="modal fade" id="modalDetalle" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header bg-light">
+                <div class="modal-header bg-body-secondary">
                     <h5 class="modal-title"><i class="bi bi-cpu me-2"></i>Detalles del Procesador</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>

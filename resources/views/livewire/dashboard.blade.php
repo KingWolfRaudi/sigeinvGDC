@@ -3,10 +3,10 @@
     <div class="row mb-5 align-items-center">
         <div class="col">
             <h5 class="text-primary fw-bold mb-1">Resumen del Sistema</h5>
-            <h2 class="fw-bold text-dark">Bienvenido, {{ Auth::user()->name }}</h2>
+            <h2 class="fw-bold text-body">Bienvenido, {{ Auth::user()->name }}</h2>
         </div>
         <div class="col-auto">
-            <div class="bg-white p-2 rounded-4 shadow-sm border d-flex align-items-center">
+            <div class="bg-body p-2 rounded-4 shadow-sm border d-flex align-items-center">
                 <div class="bg-info bg-opacity-10 p-2 rounded-3 me-3 text-info">
                     <i class="bi bi-calendar-check fs-4"></i>
                 </div>
@@ -97,7 +97,7 @@
     <div class="row g-4">
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm rounded-4 h-100">
-                <div class="card-header bg-white border-0 py-4 px-4">
+                <div class="card-header bg-body border-0 py-4 px-4">
                     <h5 class="fw-bold mb-0"><i class="bi bi-bar-chart-fill me-2 text-primary"></i> Estado General de Equipos</h5>
                 </div>
                 <div class="card-body px-4 pb-4">
@@ -119,7 +119,7 @@
                         @if(Auth::user()->avatar)
                             <img src="{{ asset('storage/' . Auth::user()->avatar) }}" class="rounded-circle me-3 border border-3 border-white border-opacity-25 shadow" style="width: 64px; height: 64px; object-fit: cover;">
                         @else
-                            <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center fw-bold shadow me-3" style="width: 64px; height: 64px; font-size: 1.5rem;">
+                            <div class="rounded-circle bg-body text-primary d-flex align-items-center justify-content-center fw-bold shadow me-3" style="width: 64px; height: 64px; font-size: 1.5rem;">
                                 {{ substr(Auth::user()->name, 0, 1) }}
                             </div>
                         @endif
@@ -128,10 +128,10 @@
                             <div class="small opacity-75">{{ Auth::user()->email }}</div>
                         </div>
                     </div>
-                    <hr class="bg-white border-opacity-25 my-4">
+                    <hr class="bg-body border-opacity-25 my-4">
                     <div class="mb-3">
                         <label class="small opacity-75 d-block mb-1">ROL ASIGNADO</label>
-                        <span class="badge bg-white text-primary rounded-pill px-3">{{ Auth::user()->roles->pluck('name')->first() }}</span>
+                        <span class="badge bg-body text-primary rounded-pill px-3">{{ Auth::user()->roles->pluck('name')->first() }}</span>
                     </div>
                     <div class="mb-4">
                         <label class="small opacity-75 d-block mb-1">ÚLTIMO ACCESO</label>

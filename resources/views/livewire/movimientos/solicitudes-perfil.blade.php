@@ -6,7 +6,7 @@
                 <i class="bi bi-person-gear fs-3"></i>
             </div>
             <div>
-                <h2 class="fw-bold mb-0 text-dark">Solicitudes de Cambio de Perfil</h2>
+                <h2 class="fw-bold mb-0 text-body">Solicitudes de Cambio de Perfil</h2>
                 <p class="text-muted mb-0">Gestión de requerimientos para actualización de datos y perfiles de usuario.</p>
             </div>
         </div>
@@ -18,7 +18,7 @@
             <div class="row g-3 justify-content-between align-items-center">
                 <div class="col-md-5">
                     <div class="input-group shadow-sm">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <span class="input-group-text bg-body border-end-0"><i class="bi bi-search text-primary"></i></span>
                         <input type="text" class="form-control border-start-0 ps-0" placeholder="Buscar por nombre o usuario..." wire:model.live="search">
                     </div>
                 </div>
@@ -58,7 +58,7 @@
                         <th class="pe-4 text-end">Acciones</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white">
+                <tbody class="bg-body">
                     @forelse($solicitudes as $sol)
                         <tr>
                             <td class="ps-4">
@@ -73,7 +73,7 @@
                                 </div>
                             </td>
                             <td>
-                                <span class="badge bg-light text-dark border p-2 text-capitalize">
+                                <span class="badge bg-body-secondary text-body border p-2 text-capitalize">
                                     {{ $sol->tipo }}
                                 </span>
                             </td>
@@ -87,7 +87,7 @@
                                 @endif
                                 
                                 @if($sol->estado === 'pendiente')
-                                    <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i> Pendiente</span>
+                                    <span class="badge bg-warning text-body"><i class="bi bi-hourglass-split me-1"></i> Pendiente</span>
                                 @elseif($sol->estado === 'aprobado')
                                     <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> Aprobado</span>
                                 @elseif($sol->estado === 'rechazado')
@@ -142,7 +142,7 @@
             </table>
         </div>
         @if($solicitudes->hasPages())
-            <div class="card-footer bg-white border-top-0 py-3">
+            <div class="card-footer bg-body border-top-0 py-3">
                 {{ $solicitudes->links() }}
             </div>
         @endif
@@ -166,7 +166,7 @@
                         @error('motivo_rechazo') <span class="text-danger small">{{ $message }}</span> @enderror
                     </div>
                 </div>
-                <div class="modal-footer border-0 p-3 bg-light rounded-bottom">
+                <div class="modal-footer border-0 p-3 bg-body-secondary rounded-bottom">
                     <button type="button" class="btn btn-secondary px-4 shadow-sm" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-danger px-4 shadow-sm" wire:click="rechazar">Confirmar Rechazo</button>
                 </div>

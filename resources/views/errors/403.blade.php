@@ -9,22 +9,39 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #212529;
+            --text-muted: #6c757d;
+        }
+
+        [data-bs-theme="dark"] {
+            --bg-color: #1a1d20;
+            --card-bg: #2b3035;
+            --text-color: #f8f9fa;
+            --text-muted: #adb5bd;
+        }
+
         body {
-            background-color: #f8f9fa;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             font-family: system-ui, -apple-system, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
         .error-container {
             text-align: center;
             padding: 3rem;
-            background: white;
+            background: var(--card-bg);
             border-radius: 1rem;
-            box-shadow: 0 .5rem 1rem rgba(0,0,0,.05);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.1);
             max-width: 500px;
             width: 90%;
+            transition: background-color 0.3s ease;
         }
         .error-code {
             font-size: 6rem;
@@ -39,6 +56,10 @@
             margin-bottom: 1rem;
         }
     </style>
+    <script>
+        const savedTheme = localStorage.getItem('sigeinv-theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', savedTheme);
+    </script>
 </head>
 <body>
     <div class="error-container">

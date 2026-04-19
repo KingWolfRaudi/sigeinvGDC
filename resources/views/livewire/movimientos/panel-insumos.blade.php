@@ -6,7 +6,7 @@
                 <i class="bi bi-arrow-left-right fs-3"></i>
             </div>
             <div>
-                <h2 class="fw-bold mb-0 text-dark">Movimientos de Insumos</h2>
+                <h2 class="fw-bold mb-0 text-body">Movimientos de Insumos</h2>
                 <p class="text-muted mb-0">Entradas, salidas, préstamos y actualizaciones del almacén.</p>
             </div>
         </div>
@@ -18,7 +18,7 @@
             <div class="row g-3">
                 <div class="col-md-5">
                     <div class="input-group shadow-sm">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <span class="input-group-text bg-body border-end-0"><i class="bi bi-search text-primary"></i></span>
                         <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar por nombre, Bien Nacional, serial o justificación...">
                     </div>
                 </div>
@@ -116,7 +116,7 @@
                                 @php
                                 $tipos = [
                                     'entrada_stock'      => ['label' => 'Entrada Stock', 'color' => 'success'],
-                                    'salida_consumo'     => ['label' => 'Salida Consumo', 'color' => 'warning text-dark'],
+                                    'salida_consumo'     => ['label' => 'Salida Consumo', 'color' => 'warning text-body'],
                                     'prestamo'           => ['label' => 'Préstamo', 'color' => 'info'],
                                     'devolucion'         => ['label' => 'Devolución', 'color' => 'primary'],
                                     'actualizacion_datos' => ['label' => 'Actualización', 'color' => 'secondary'],
@@ -148,7 +148,7 @@
                                 @php
                                 $estados = [
                                     'borrador'          => ['label' => 'Borrador', 'color' => 'secondary'],
-                                    'pendiente'         => ['label' => 'En Revisión', 'color' => 'warning text-dark'],
+                                    'pendiente'         => ['label' => 'En Revisión', 'color' => 'warning text-body'],
                                     'aprobado'          => ['label' => 'Aprobado', 'color' => 'success'],
                                     'rechazado'         => ['label' => 'Rechazado', 'color' => 'danger'],
                                     'ejecutado_directo' => ['label' => 'Ejecutado', 'color' => 'dark'],
@@ -171,7 +171,7 @@
                                 @can('movimientos-insumos-enviar')
                                 <button wire:click="enviarARevision({{ $mov->id }})"
                                     wire:confirm="¿Enviar este borrador a revisión?"
-                                    class="btn btn-sm btn-warning text-dark" title="Enviar a Revisión">
+                                    class="btn btn-sm btn-warning text-body" title="Enviar a Revisión">
                                     <i class="bi bi-send"></i>
                                 </button>
                                 @endcan
@@ -226,7 +226,7 @@
     <div wire:ignore.self class="modal fade" id="modalDetalle" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-light">
+                <div class="modal-header bg-body-secondary">
                     <h5 class="modal-title"><i class="bi bi-arrow-left-right me-2"></i>Detalle del Movimiento</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -276,7 +276,7 @@
                     </div>
                     @endif
                 </div>
-                <div class="modal-footer bg-light">
+                <div class="modal-footer bg-body-secondary">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
@@ -358,7 +358,7 @@
 
                 <div class="modal-body p-0" style="max-height: 65vh; overflow-y: auto;">
                     {{-- Barra de Progreso --}}
-                    <div class="bg-light border-bottom px-4 py-2 d-flex justify-content-center gap-4">
+                    <div class="bg-body-secondary border-bottom px-4 py-2 d-flex justify-content-center gap-4">
                         <div class="d-flex align-items-center {{ $paso_generador === 1 ? 'text-primary' : 'text-muted' }}">
                             <span class="badge rounded-circle {{ $paso_generador === 1 ? 'bg-primary' : 'bg-secondary' }} me-2">1</span>
                             <small class="fw-bold">Selección</small>
@@ -425,7 +425,7 @@
                                                     <div class="fw-semibold">{{ $ins->nombre }}</div>
                                                     <small class="text-muted">{{ $ins->marca->nombre ?? 'Sin Marca' }}</small>
                                                 </td>
-                                                <td><span class="badge bg-light text-dark border">{{ $ins->categoriaInsumo->nombre ?? 'Sin Categ.' }}</span></td>
+                                                <td><span class="badge bg-body-secondary text-body border">{{ $ins->categoriaInsumo->nombre ?? 'Sin Categ.' }}</span></td>
                                                 <td>
                                                     <span class="fw-bold">{{ floatval($ins->medida_actual) }}</span> {{ $ins->unidad_medida }}
                                                 </td>
@@ -443,7 +443,7 @@
                                                 </td>
                                                 <td class="text-end">
                                                     @if($ins->pendientes_count > 0)
-                                                        <span class="badge bg-warning text-dark me-2">
+                                                        <span class="badge bg-warning text-body me-2">
                                                             <i class="bi bi-exclamation-triangle me-1"></i>{{ $ins->pendientes_count }} Pendiente(s)
                                                         </span>
                                                     @endif
@@ -456,7 +456,7 @@
                                             <tr>
                                                 <td colspan="6" class="text-center py-5 text-muted small">
                                                     @if(empty($searchBN) && empty($searchSerial) && empty($searchDpto) && empty($searchTrabajador))
-                                                        <i class="bi bi-search display-6 d-block mb-2 opacity-50"></i>
+                                                        <i class="bi bi-search text-primary display-6 d-block mb-2 opacity-50"></i>
                                                         Utilice los filtros superiores para localizar el insumo.
                                                     @else
                                                         No se encontraron resultados para los filtros aplicados.
@@ -473,7 +473,7 @@
                             {{-- Paso 2: Formulario --}}
                             <div class="row">
                                 <div class="col-md-9 border-end">
-                                    <div class="d-flex align-items-center mb-3 p-3 bg-light rounded border border-primary border-opacity-25">
+                                    <div class="d-flex align-items-center mb-3 p-3 bg-body-secondary rounded border border-primary border-opacity-25">
                                         <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
                                             <i class="bi bi-box-seam fs-4 text-primary"></i>
                                         </div>
@@ -513,7 +513,7 @@
                                             <div class="input-group">
                                                 <input type="number" wire:model="cantidad_movida" step="1" min="1" 
                                                     class="form-control @error('cantidad_movida') is-invalid @enderror">
-                                                <span class="input-group-text bg-light tiny">{{ $unidad_medida }}</span>
+                                                <span class="input-group-text bg-body-secondary tiny">{{ $unidad_medida }}</span>
                                             </div>
                                             @error('cantidad_movida') <span class="text-danger tiny">{{ $message }}</span> @enderror
                                         </div>
@@ -523,7 +523,7 @@
                                     <hr class="my-3 opacity-25">
                                     
                                     {{-- Campos Reutilizables --}}
-                                    <div class="{{ !in_array($tipo_operacion, ['actualizacion_datos', 'prestamo']) ? 'opacity-50 pe-none' : '' }} {{ $tipo_operacion === 'prestamo' ? 'border border-primary border-2 p-3 rounded bg-light' : '' }}">
+                                    <div class="{{ !in_array($tipo_operacion, ['actualizacion_datos', 'prestamo']) ? 'opacity-50 pe-none' : '' }} {{ $tipo_operacion === 'prestamo' ? 'border border-primary border-2 p-3 rounded bg-body-secondary' : '' }}">
                                         @if($tipo_operacion === 'prestamo')
                                             <div class="mb-3 text-primary fw-bold">
                                                 <i class="bi bi-person-check me-1"></i> Seleccione el Destino del Préstamo
@@ -533,7 +533,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-md-3 bg-light bg-opacity-50 rounded p-3">
+                                <div class="col-md-3 bg-body-secondary bg-opacity-50 rounded p-3">
                                     <label class="form-label fw-bold text-danger">Justificación del Cambio <span class="text-danger">*</span></label>
                                     
                                     <textarea wire:model="justificacion" class="form-control mb-3 @error('justificacion') is-invalid @enderror" 
@@ -556,7 +556,7 @@
                     </div>
                 </div>
 
-                <div class="modal-footer bg-light px-4 py-3">
+                <div class="modal-footer bg-body-secondary px-4 py-3">
                     @if($paso_generador === 2)
                         <button type="button" wire:click="$set('paso_generador', 1)" class="btn btn-outline-secondary px-4 me-auto">
                             <i class="bi bi-arrow-left me-1"></i> Volver a Selección
@@ -618,7 +618,7 @@
                         <i class="bi bi-info-circle-fill me-1"></i> Se creará el registro completo del trabajador en la base de datos.
                     </div>
                 </div>
-                <div class="modal-footer bg-light px-4 py-3">
+                <div class="modal-footer bg-body-secondary px-4 py-3">
                     <button type="button" class="btn btn-secondary px-4" wire:click="cancelarModalTrabajador">Volver</button>
                     <button type="button" class="btn btn-primary px-4 fw-bold shadow-sm" wire:click="guardarTrabajadorRapido">
                         <i class="bi bi-save me-1"></i> Guardar Trabajador

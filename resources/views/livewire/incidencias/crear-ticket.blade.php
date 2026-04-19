@@ -20,15 +20,15 @@
                             <div class="alert alert-warning border-0 bg-warning bg-opacity-10 rounded-3 mb-4 d-flex align-items-center">
                                 <i class="bi bi-exclamation-triangle-fill fs-4 text-warning me-3"></i>
                                 <div>
-                                    <h6 class="fw-bold text-dark mb-1">Perfil Incompleto</h6>
-                                    <p class="mb-0 small text-dark opacity-75">Tu usuario no está vinculado a una ficha de trabajador. Deberás seleccionar manualmente el departamento administrativo en el cual te encuentras ahora mismo para que los técnicos puedan ubicar este requerimiento.</p>
+                                    <h6 class="fw-bold text-body mb-1">Perfil Incompleto</h6>
+                                    <p class="mb-0 small text-body opacity-75">Tu usuario no está vinculado a una ficha de trabajador. Deberás seleccionar manualmente el departamento administrativo en el cual te encuentras ahora mismo para que los técnicos puedan ubicar este requerimiento.</p>
                                 </div>
                             </div>
                         @else
                             <div class="alert alert-info border-0 bg-info bg-opacity-10 rounded-3 mb-4 d-flex align-items-center">
                                 <i class="bi bi-info-circle-fill fs-4 text-info me-3"></i>
                                 <div>
-                                    <p class="mb-0 small text-dark opacity-75">Este ticket se asociará automáticamente a tu departamento: <strong>{{ Auth::user()->trabajador->departamento->nombre ?? 'Sin Asignar' }}</strong></p>
+                                    <p class="mb-0 small text-body opacity-75">Este ticket se asociará automáticamente a tu departamento: <strong>{{ Auth::user()->trabajador->departamento->nombre ?? 'Sin Asignar' }}</strong></p>
                                 </div>
                             </div>
                         @endif
@@ -38,7 +38,7 @@
                             @if(!Auth::user()->trabajador)
                             <!-- Departamento Manual -->
                             <div class="mb-4">
-                                <label class="form-label fw-bold text-dark mb-2">
+                                <label class="form-label fw-bold text-body mb-2">
                                     <i class="bi bi-building text-primary me-2"></i>Departamento de Ubicación <span class="text-danger">*</span>
                                 </label>
                                 <select class="form-select form-select-lg border-2 shadow-none @error('departamento_id') is-invalid @enderror" wire:model="departamento_id">
@@ -53,7 +53,7 @@
                             
                             <!-- Tipo de Problema -->
                             <div class="mb-4">
-                                <label class="form-label fw-bold text-dark mb-2">
+                                <label class="form-label fw-bold text-body mb-2">
                                     <i class="bi bi-bookmark-star-fill text-primary me-2"></i>¿Qué tipo de problema presentas? <span class="text-danger">*</span>
                                 </label>
                                 <select class="form-select form-select-lg border-2 shadow-none @error('problema_id') is-invalid @enderror" wire:model="problema_id">
@@ -68,12 +68,12 @@
                             <!-- Equipo Asociado (Opcional/Obligatorio) -->
                             @if(count($misEquipos) > 0 || count($misDispositivos) > 0)
                                 <div class="mb-4">
-                                    <label class="form-label fw-bold text-dark mb-2">
+                                    <label class="form-label fw-bold text-body mb-2">
                                         <i class="bi bi-pc-display text-primary me-2"></i>¿Deseas relacionar un equipo a este reporte?
                                         @if($activoObligatorio)<span class="text-danger">*</span>@else<span class="text-muted fw-normal small">(Opcional)</span>@endif
                                     </label>
                                     
-                                    <div class="bg-light p-3 rounded-3 border">
+                                    <div class="bg-body-secondary p-3 rounded-3 border">
                                         <div class="row g-3">
                                             <div class="col-md-4">
                                                 <select class="form-select border-2 shadow-none @error('tipo_activo') is-invalid @enderror" wire:model.live="tipo_activo">
@@ -116,7 +116,7 @@
 
                             <!-- Descripción -->
                             <div class="mb-5">
-                                <label class="form-label fw-bold text-dark mb-2">
+                                <label class="form-label fw-bold text-body mb-2">
                                     <i class="bi bi-text-paragraph text-primary me-2"></i>Descripción Detallada <span class="text-danger">*</span>
                                 </label>
                                 <textarea class="form-control border-2 shadow-none @error('descripcion') is-invalid @enderror" 

@@ -6,7 +6,7 @@
                 <i class="bi bi-gear-fill fs-3"></i>
             </div>
             <div>
-                <h2 class="fw-bold mb-0 text-dark">Configuración General</h2>
+                <h2 class="fw-bold mb-0 text-body">Configuración General</h2>
                 <p class="text-muted mb-0">Gestiona los parámetros globales del sistema y módulos.</p>
             </div>
         </div>
@@ -90,14 +90,14 @@
 
                         <div class="mb-3">
                             <div class="input-group shadow-sm">
-                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                                <span class="input-group-text bg-body border-end-0"><i class="bi bi-search text-primary"></i></span>
                                 <input type="text" class="form-control border-start-0" placeholder="Buscar tipo de incidencia..." wire:model.live="searchProblema">
                             </div>
                         </div>
 
                         <div class="table-responsive rounded-3 border">
                             <table class="table table-hover align-middle mb-0">
-                                <thead class="bg-light">
+                                <thead class="bg-body-secondary">
                                     <tr>
                                         <th class="ps-3" style="cursor:pointer;" wire:click="sortBy('nombre')">
                                             Nombre @if($sortField === 'nombre') <i class="bi bi-sort-{{ $sortAsc ? 'alpha-down' : 'alpha-up' }}"></i> @endif
@@ -149,14 +149,14 @@
 
                         <div class="mb-3">
                             <div class="input-group shadow-sm">
-                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                                <span class="input-group-text bg-body border-end-0"><i class="bi bi-search text-primary"></i></span>
                                 <input type="text" class="form-control border-start-0" placeholder="Buscar especialidad..." wire:model.live="searchEspecialidad">
                             </div>
                         </div>
 
                         <div class="table-responsive rounded-3 border">
                             <table class="table table-hover align-middle mb-0">
-                                <thead class="bg-light">
+                                <thead class="bg-body-secondary">
                                     <tr>
                                         <th class="ps-3" style="cursor:pointer;" wire:click="sortByEspecialidad('nombre')">
                                             Nombre @if($sortFieldEspecialidad === 'nombre') <i class="bi bi-sort-{{ $sortAscEspecialidad ? 'alpha-down' : 'alpha-up' }}"></i> @endif
@@ -262,7 +262,7 @@
                             </div>
                         </div>
 
-                        <div class="mt-5 p-4 bg-light rounded-4 border border-dashed text-center">
+                        <div class="mt-5 p-4 bg-body-secondary rounded-4 border border-dashed text-center">
                             <i class="bi bi-clock-history fs-3 text-muted d-block mb-2"></i>
                             <h6 class="fw-bold mb-1">Regla de los 180 días</h6>
                             <p class="text-muted small mb-0 px-md-5">

@@ -8,7 +8,7 @@
                     <i class="bi bi-cpu fs-3"></i>
                 </div>
                 <div>
-                    <h2 class="fw-bold mb-0 text-dark">Catálogo de GPUs</h2>
+                    <h2 class="fw-bold mb-0 text-body">Catálogo de GPUs</h2>
                     <p class="text-muted mb-0">Gestión de chipsets y tarjetas gráficas integradas o dedicadas.</p>
                 </div>
             </div>
@@ -27,7 +27,7 @@
             <div class="row g-3 justify-content-between align-items-center">
                 <div class="col-md-5">
                     <div class="input-group shadow-sm">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <span class="input-group-text bg-body border-end-0"><i class="bi bi-search text-primary"></i></span>
                         <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar por modelo o marca...">
                     </div>
                 </div>
@@ -178,7 +178,7 @@
                                 <label class="form-label">Memoria</label>
                                 <div class="input-group">
                                     <input type="number" class="form-control @error('memoria') is-invalid @enderror" wire:model="memoria" min="1" placeholder="Ej: 8">
-                                    <span class="input-group-text bg-light text-muted">GB</span>
+                                    <span class="input-group-text bg-body-secondary text-muted">GB</span>
                                 </div>
                                 @error('memoria') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                             </div>
@@ -203,14 +203,14 @@
                                 <label class="form-label">Frecuencia</label>
                                 <div class="input-group">
                                     <input type="number" class="form-control @error('frecuencia') is-invalid @enderror" wire:model="frecuencia" min="1" placeholder="Ej: 1680">
-                                    <span class="input-group-text bg-light text-muted">MHz</span>
+                                    <span class="input-group-text bg-body-secondary text-muted">MHz</span>
                                 </div>
                                 @error('frecuencia') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                             </div>
 
                             <div class="col-12 mb-3">
                                 <label class="form-label d-block">Puertos de Conexión</label>
-                                <div class="border rounded p-3 bg-light">
+                                <div class="border rounded p-3 bg-body-secondary">
                                     <div class="row">
                                         @foreach($lista_puertos as $puerto)
                                         <div class="col-md-4">
@@ -243,7 +243,7 @@
     <div wire:ignore.self class="modal fade" id="modalDetalle" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header bg-light">
+                <div class="modal-header bg-body-secondary">
                     <h5 class="modal-title"><i class="bi bi-gpu-card me-2"></i>Detalles de GPU</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>

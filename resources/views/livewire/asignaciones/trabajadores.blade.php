@@ -8,7 +8,7 @@
                     <i class="bi bi-person-badge fs-3"></i>
                 </div>
                 <div>
-                    <h2 class="fw-bold mb-0 text-dark">Gestión de Trabajadores</h2>
+                    <h2 class="fw-bold mb-0 text-body">Gestión de Trabajadores</h2>
                     <p class="text-muted mb-0">Control y administración del personal, cargos y dependencias.</p>
                 </div>
             </div>
@@ -27,7 +27,7 @@
             <div class="row g-3 justify-content-between align-items-center">
                 <div class="col-md-5">
                     <div class="input-group shadow-sm">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <span class="input-group-text bg-body border-end-0"><i class="bi bi-search text-primary"></i></span>
                         <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar trabajador por cédula, nombre o departamento...">
                     </div>
                 </div>
@@ -236,7 +236,7 @@
     <div wire:ignore.self class="modal fade" id="modalDetalleTrabajador" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header bg-light">
+                <div class="modal-header bg-body-secondary">
                     <h5 class="modal-title"><i class="bi bi-info-circle me-2"></i>Detalles del Trabajador</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" wire:click="$set('trabajador_detalle', null)"></button>
                 </div>

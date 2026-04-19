@@ -27,7 +27,7 @@ class MovimientosExport implements FromCollection, WithHeadings, WithMapping, Wi
 
     public function collection()
     {
-        $query = $this->modelClass::with(['solicitante', 'aprobador']);
+        $query = $this->modelClass::with(['solicitante', 'aprobador', 'incidencia']);
 
         // Cargar relación del equipo base según el modelo
         $base = class_basename($this->modelClass);
@@ -55,6 +55,7 @@ class MovimientosExport implements FromCollection, WithHeadings, WithMapping, Wi
         return [
             'ID',
             'Referencia / Equipo',
+            'Folio Incidencia',
             'Tipo Operación',
             'Cantidad (Insumos)',
             'Estado Workflow',
@@ -90,6 +91,7 @@ class MovimientosExport implements FromCollection, WithHeadings, WithMapping, Wi
         return [
             $item->id,
             $referencia,
+            $item->incidencia_id ? '#' . str_pad($item->incidencia_id, 5, '0', STR_PAD_LEFT) : 'N/A',
             $item->tipo_operacion === 'toggle_activo' ? 'Cambio de Estado' : strtoupper(str_replace('_', ' ', $item->tipo_operacion)),
             $item->cantidad_movida ?? '—',
             strtoupper($item->estado_workflow),

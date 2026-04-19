@@ -15,5 +15,9 @@ class CategoriaInsumo extends Model
     
     protected $fillable = ['nombre', 'activo'];
     
+    protected $casts = [
+        'activo' => 'boolean',
+    ];
+    
     public function insumos() { return $this->hasMany(Insumo::class); }
 }

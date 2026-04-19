@@ -208,13 +208,13 @@
     };
     $esAumento = in_array($tipo, ['entrada_stock', 'devolucion']);
 @endphp
-<div class="card border-{{ $esAumento ? 'success' : 'warning' }} mb-3 bg-light shadow-sm">
+<div class="card border-{{ $esAumento ? 'success' : 'warning' }} mb-3 bg-body-secondary shadow-sm">
     <div class="card-body py-2 px-3">
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <small class="text-muted d-block uppercase fw-bold" style="font-size: 0.65rem;">Impacto en Existencias</small>
                 <div class="d-flex align-items-center gap-2">
-                    <span class="fs-5 fw-bold text-dark">{{ $stockAntes }}</span>
+                    <span class="fs-5 fw-bold text-body">{{ $stockAntes }}</span>
                     <i class="bi bi-arrow-right text-muted"></i>
                     <span class="fs-4 fw-bold text-{{ $esAumento ? 'success' : 'danger' }}">{{ $stockDespues }}</span>
                     <span class="badge bg-{{ $esAumento ? 'success' : 'danger' }} ms-2">
@@ -295,7 +295,7 @@
             <tbody>
                 @foreach($camposAMostrar as $field => $vals)
                 <tr>
-                    <td class="fw-semibold text-dark small">
+                    <td class="fw-semibold text-body small">
                         {{ $labels[$field] ?? ucwords(str_replace('_', ' ', $field)) }}
                     </td>
                     <td class="small text-danger">

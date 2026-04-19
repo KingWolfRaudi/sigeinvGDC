@@ -69,7 +69,8 @@ El sistema está construido sobre una arquitectura moderna y escalable:
 
 ### 5.1. Exportaciones Excel
 - **Campos Requeridos:** Deben incluir TODA la información del modelo, incluyendo asociaciones (ej. en Insumos mostrar el nombre del Departamento, no el ID).
-- **Auditoría:** Incluir siempre columnas: `Creado Por`, `Modificado Por`, `Fecha Registro`, `Última Modificación`.
+- **Auditoría Cruzada:** Todo reporte de movimientos debe mapear explícitamente el **Folio de Incidencia** si este fue generado desde un caso técnico.
+- **Auditoría Estándar:** Incluir siempre columnas: `Creado Por`, `Modificado Por`, `Fecha Registro`, `Última Modificación`.
 - **ID Técnica:** La columna ID se mantiene en Excel por utilidad administrativa.
 
 ### 5.2. Reportes PDF (Fichas Técnicas y Trazabilidad)
@@ -78,6 +79,9 @@ El sistema está construido sobre una arquitectura moderna y escalable:
     - Todo reporte de incidencia DEBE incluir una sección de **Resolución Administrativa** si esta generó un movimiento de inventario.
 - **Privacidad:** Prohibido el uso de IDs de sistema (autoincrementales puros) en textos descriptivos. Usar Bien Nacional o el Folio Formateado como referencia.
 - **Ubicación de Acciones:** El botón de exportación PDF debe situarse en las acciones de cada registro individual.
+
+### 5.3. Seguridad en Exportaciones
+- **Blindaje Frontend:** Todo botón de exportación, ya sea Excel (en cabeceras) o PDF (en tablas/modales), DEBE estar protegido por las directivas `@can('reportes-excel')` o `@can('reportes-pdf')` correspondientes.
 ---
 
 ## 6. Guía de Interfaz (Premium UI)

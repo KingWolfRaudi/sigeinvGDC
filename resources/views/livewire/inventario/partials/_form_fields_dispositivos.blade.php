@@ -126,7 +126,7 @@
 <h6 class="border-bottom pb-2 text-primary">3. Puertos de Salida y Notas Adicionales</h6>
 <div class="row">
     <div class="col-12 mb-3">
-        <div class="border rounded p-3 bg-light">
+        <div class="border rounded p-3 bg-body-secondary">
             <div class="row">
                 @foreach($puertos as $puerto)
                 <div class="col-md-3 col-sm-4 mb-2">

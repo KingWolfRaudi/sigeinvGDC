@@ -9,7 +9,7 @@
                 <i class="bi bi-people-fill fs-3"></i>
             </div>
             <div>
-                <h2 class="fw-bold mb-0 text-dark">Gestión de Usuarios</h2>
+                <h2 class="fw-bold mb-0 text-body">Gestión de Usuarios</h2>
                 <p class="text-muted mb-0">Administración de cuentas, perfiles de acceso y directorio de personal del sistema.</p>
             </div>
         </div>
@@ -21,7 +21,7 @@
             <div class="row g-3 justify-content-between align-items-center">
                 <div class="col-md-5">
                     <div class="input-group shadow-sm">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <span class="input-group-text bg-body border-end-0"><i class="bi bi-search text-primary"></i></span>
                         <input type="text" class="form-control border-start-0 ps-0" placeholder="Buscar por nombre, usuario o correo..." wire:model.live="search">
                     </div>
                 </div>
@@ -218,7 +218,7 @@
                             <div class="col-md-6 pl-3">
                                 <h6 class="mb-3"><i class="bi bi-shield-lock me-2"></i>Asignación de Roles</h6>
                                 
-                                <div class="bg-light p-3 rounded border">
+                                <div class="bg-body-secondary p-3 rounded border">
                                     @forelse($roles as $rol)
                                         <div class="form-check form-switch mb-2">
                                             <input class="form-check-input" type="checkbox" 
@@ -308,7 +308,7 @@
                                 <strong>Correo Electrónico:</strong> {{ $usuario_detalle->email }}
                             </li>
                             
-                            <li class="list-group-item bg-light">
+                            <li class="list-group-item bg-body-secondary">
                                 <strong><i class="bi bi-shield-lock me-1"></i> Roles Asignados:</strong><br>
                                 @forelse($usuario_detalle->roles as $rol)
                                     <span class="badge bg-dark mt-1" title="{{ $rol->descripcion ?? 'Sin descripción' }}" style="cursor: help;">{{ str_replace('-', ' ', $rol->name) }}</span>
@@ -318,7 +318,7 @@
                             </li>
                             
                             @if(count(array_intersect(['personal-ti', 'resolutor-incidencia'], $usuario_detalle->roles->pluck('name')->toArray())) > 0)
-                            <li class="list-group-item bg-light">
+                            <li class="list-group-item bg-body-secondary">
                                 <strong><i class="bi bi-diagram-3 me-1"></i> Especialidad:</strong><br>
                                 @if($usuario_detalle->especialidad)
                                     <span class="badge bg-primary mt-1">{{ $usuario_detalle->especialidad->nombre }}</span>
@@ -334,7 +334,7 @@
                         </ul>
                     @endif
                 </div>
-                <div class="modal-footer bg-light">
+                <div class="modal-footer bg-body-secondary">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="resetCampos">Cerrar</button>
                 </div>
             </div>

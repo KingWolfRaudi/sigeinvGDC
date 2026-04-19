@@ -8,7 +8,7 @@
                     <i class="bi bi-box-seam fs-3"></i>
                 </div>
                 <div>
-                    <h2 class="fw-bold mb-0 text-dark">Almacén General (Insumos)</h2>
+                    <h2 class="fw-bold mb-0 text-body">Almacén General (Insumos)</h2>
                     <p class="text-muted mb-0">Gestión de insumos, recambios, herramientas y suministros.</p>
                 </div>
             </div>
@@ -27,7 +27,7 @@
             <div class="row g-3 justify-content-between align-items-center">
                 <div class="col-md-5">
                     <div class="input-group shadow-sm">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <span class="input-group-text bg-body border-end-0"><i class="bi bi-search text-primary"></i></span>
                         <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar por Nombre, Serial, BN o Marca...">
                     </div>
                 </div>
@@ -110,7 +110,7 @@
                                 <strong>BN:</strong> {{ $insumo->bien_nacional ?? 'N/A' }}
                                 @if($insumo->pendientes_count > 0)
                                     <button wire:click="verCambioPendiente({{ $insumo->id }})"
-                                        class="badge bg-warning text-dark border-0 ms-1"
+                                        class="badge bg-warning text-body border-0 ms-1"
                                         title="{{ $insumo->pendientes_count }} cambio(s) en revisión — clic para ver">
                                         <i class="bi bi-hourglass-split"></i> En revisión
                                     </button>
@@ -191,7 +191,7 @@
     <div wire:ignore.self class="modal fade" id="modalInsumo" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
-                <div class="modal-header bg-light">
+                <div class="modal-header bg-body-secondary">
                     <h5 class="modal-title"><i class="bi bi-box-seam me-2"></i>{{ $tituloModal }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetCampos"></button>
                 </div>
@@ -217,7 +217,7 @@
                         @endif
                     </div>
 
-                    <div class="modal-footer bg-light">
+                    <div class="modal-footer bg-body-secondary">
                         @can('cambiar-estatus-insumos')
                         <div class="form-check form-switch mb-3">
                             <input class="form-check-input" type="checkbox" id="activo" wire:model="activo">
@@ -236,7 +236,7 @@
     <div wire:ignore.self class="modal fade" id="modalDetalleInsumo" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-light">
+                <div class="modal-header bg-body-secondary">
                     <h5 class="modal-title"><i class="bi bi-box-seam me-2"></i>Ficha de Almacén</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -263,7 +263,7 @@
                                 <li class="mb-1"><strong>Alerta Mínima (Trigger):</strong> {{ floatval($insumo_detalle->medida_minima) }} {{ $insumo_detalle->unidad_medida }}</li>
                                 <li class="mb-1"><strong>Condición Estética:</strong> {{ ucfirst($insumo_detalle->estado_fisico) }}</li>
                                 <li class="mb-1 mt-2">
-                                    {!! $insumo_detalle->reutilizable ? '<span class="badge bg-secondary"><i class="bi bi-exclamation-triangle"></i> Requerirá Devolución</span>' : '<span class="badge bg-light text-dark"><i class="bi bi-trash"></i> Uso Descartable</span>' !!}
+                                    {!! $insumo_detalle->reutilizable ? '<span class="badge bg-secondary"><i class="bi bi-exclamation-triangle"></i> Requerirá Devolución</span>' : '<span class="badge bg-body-secondary text-body"><i class="bi bi-trash"></i> Uso Descartable</span>' !!}
                                 </li>
                             </ul>
                         </div>
@@ -280,14 +280,14 @@
                         </div>
                         <div class="col-md-6 mb-4">
                             <h6 class="border-bottom pb-2 text-primary">Descripción Completa</h6>
-                            <div class="p-3 bg-light rounded text-dark small border">
+                            <div class="p-3 bg-body-secondary rounded text-body small border">
                                 {{ $insumo_detalle->descripcion ?? 'El registro no posee descripción ampliada.' }}
                             </div>
                         </div>
                     </div>
                     @endif
                 </div>
-                <div class="modal-footer bg-light d-flex justify-content-between">
+                <div class="modal-footer bg-body-secondary d-flex justify-content-between">
                     @if($insumo_detalle)
                         @can('ver-insumos')
                         <div>
@@ -325,7 +325,7 @@
                         'baja'                => 'Baja del Sistema',
                     ];
                 @endphp
-                <div class="modal-header {{ $esRevisión ? 'bg-warning text-dark' : 'bg-info text-white' }}">
+                <div class="modal-header {{ $esRevisión ? 'bg-warning text-body' : 'bg-info text-white' }}">
                     <h5 class="modal-title">
                         <i class="bi bi-{{ $esRevisión ? 'hourglass-split' : 'pencil-square' }} me-2"></i>
                         Cambio {{ $esRevisión ? 'En Revisión' : 'En Borrador' }}
@@ -335,7 +335,7 @@
                         data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
-                    <div class="d-flex align-items-start gap-3 p-3 bg-light rounded mb-3">
+                    <div class="d-flex align-items-start gap-3 p-3 bg-body-secondary rounded mb-3">
                         <div class="flex-shrink-0">
                             <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white fw-bold"
                                 style="width:42px;height:42px;font-size:1rem;">
@@ -353,7 +353,7 @@
                                 <span class="badge bg-secondary fw-normal">
                                     {{ $tiposLabel[$movimiento_preview->tipo_operacion] ?? ucwords(str_replace('_',' ',$movimiento_preview->tipo_operacion)) }}
                                 </span>
-                                <span class="badge {{ $esRevisión ? 'bg-warning text-dark' : 'bg-info' }} fw-normal ms-1">
+                                <span class="badge {{ $esRevisión ? 'bg-warning text-body' : 'bg-info' }} fw-normal ms-1">
                                     {{ $esRevisión ? 'En Revisión' : 'Borrador' }}
                                 </span>
                             </div>
@@ -376,7 +376,7 @@
                         ])
                     </div>
                 </div>
-                <div class="modal-footer bg-light">
+                <div class="modal-footer bg-body-secondary">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
                     @if($esRevisión)
                         @can('movimientos-insumos-aprobar')
@@ -439,7 +439,7 @@
                         <i class="bi bi-shield-lock me-1"></i> El sistema generará el correo automáticamente usando el formato institucional.
                     </div>
                 </div>
-                <div class="modal-footer bg-light">
+                <div class="modal-footer bg-body-secondary">
                     <button type="button" class="btn btn-secondary" wire:click="cancelarModalTrabajador">Volver</button>
                     <button type="button" class="btn btn-primary" wire:click="guardarTrabajadorRapido">Guardar Trabajador</button>
                 </div>

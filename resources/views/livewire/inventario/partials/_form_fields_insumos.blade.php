@@ -162,7 +162,7 @@
     <div class="col-md-12 mb-3">
         <div class="row g-3">
             <div class="col-md-6">
-                <div class="card h-100 bg-light border-0 shadow-sm">
+                <div class="card h-100 bg-body-secondary border-0 shadow-sm">
                     <div class="card-body py-2 d-flex align-items-center">
                         <div class="form-check form-switch mb-0">
                             <input class="form-check-input" type="checkbox" id="reutilizable" wire:model="reutilizable">
@@ -172,7 +172,7 @@
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="card h-100 bg-light border-0 shadow-sm">
+                <div class="card h-100 bg-body-secondary border-0 shadow-sm">
                     <div class="card-body py-2 d-flex align-items-center">
                         <div class="form-check form-switch mb-0">
                             <input class="form-check-input" type="checkbox" id="instalable_en_equipo" wire:model="instalable_en_equipo">

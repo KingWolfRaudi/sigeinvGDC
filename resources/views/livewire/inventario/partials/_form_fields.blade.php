@@ -143,7 +143,7 @@
         <div class="row mb-2">
             <div class="col-4">
                 <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-light">Slot {{ $ram['slot'] }}</span>
+                    <span class="input-group-text bg-body-secondary">Slot {{ $ram['slot'] }}</span>
                 </div>
             </div>
             <div class="col-6">
@@ -264,7 +264,7 @@
 <h6 class="border-bottom pb-2 text-primary">4. Puertos y Notas</h6>
 <div class="row">
     <div class="col-12 mb-3">
-        <div class="border rounded p-3 bg-light">
+        <div class="border rounded p-3 bg-body-secondary">
             <div class="row">
                 @foreach($puertos as $puerto)
                 <div class="col-md-3 col-sm-4 mb-2">

@@ -2,11 +2,11 @@
     <!-- Header -->
     <div class="row mb-4 align-items-center">
         <div class="col-md-9 d-flex align-items-center">
-            <div class="bg-dark bg-opacity-10 p-3 rounded-3 me-3 text-dark border shadow-sm">
+            <div class="bg-dark bg-opacity-10 p-3 rounded-3 me-3 text-body border shadow-sm">
                 <i class="bi bi-clock-history fs-3"></i>
             </div>
             <div>
-                <h2 class="fw-bold mb-0 text-dark">Logs del Sistema</h2>
+                <h2 class="fw-bold mb-0 text-body">Logs del Sistema</h2>
                 <p class="text-muted mb-0">Trazabilidad total de acciones, cambios y auditoría de datos.</p>
             </div>
         </div>
@@ -26,14 +26,14 @@
                 <div class="col-md-3">
                     <label class="form-label small fw-bold">Responsable</label>
                     <div class="input-group shadow-sm">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-person"></i></span>
+                        <span class="input-group-text bg-body border-end-0"><i class="bi bi-person"></i></span>
                         <input type="text" class="form-control border-start-0" placeholder="Nombre o email..." wire:model.live="searchUser">
                     </div>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label small fw-bold">Módulo / Acción</label>
                     <div class="input-group shadow-sm">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <span class="input-group-text bg-body border-end-0"><i class="bi bi-search text-primary"></i></span>
                         <input type="text" class="form-control border-start-0" placeholder="Ej: Computador..." wire:model.live="searchModule">
                     </div>
                 </div>
@@ -59,7 +59,7 @@
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
+                    <thead class="bg-body-secondary">
                         <tr>
                             <th class="ps-4 py-3" style="cursor:pointer" wire:click="sortBy('id')">ID 
                                 @if($sortField === 'id') <i class="bi bi-sort-numeric-{{ $sortAsc ? 'down' : 'up' }}"></i> @endif
@@ -110,7 +110,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="text-dark fw-medium">{{ class_basename($log->subject_type) }}</span>
+                                    <span class="text-body fw-medium">{{ class_basename($log->subject_type) }}</span>
                                     @if($log->subject_id)
                                         <span class="text-muted small"> (ID: {{ $log->subject_id }})</span>
                                     @endif
@@ -140,7 +140,7 @@
             </div>
         </div>
         @if($logs->hasPages())
-            <div class="card-footer bg-white py-3">
+            <div class="card-footer bg-body py-3">
                 {{ $logs->links() }}
             </div>
         @endif
@@ -158,7 +158,7 @@
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body p-0" style="max-height: 65vh; overflow-y: auto;">
-                        <div class="p-4 bg-light border-bottom">
+                        <div class="p-4 bg-body-secondary border-bottom">
                             <div class="row">
                                 <div class="col-md-6 mb-3 mb-md-0">
                                     <label class="text-muted small fw-bold d-block mb-1 text-uppercase">Entidad / Módulo</label>
@@ -181,7 +181,7 @@
                             @if(count($new) > 0)
                                 <div class="table-responsive rounded-3 border">
                                     <table class="table table-sm table-bordered align-middle mb-0">
-                                        <thead class="bg-light fs-7 text-uppercase">
+                                        <thead class="bg-body-secondary fs-7 text-uppercase">
                                             <tr>
                                                 <th class="ps-3 py-2" style="width: 30%">Campo</th>
                                                 <th class="py-2">Valor Anterior</th>
@@ -240,17 +240,17 @@
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4 bg-light" style="max-height: 65vh; overflow-y: auto;">
+                <div class="modal-body p-4 bg-body-secondary" style="max-height: 65vh; overflow-y: auto;">
                     <p class="text-muted mb-4">Seleccione los módulos que desea incluir en el archivo Excel y aplique los filtros necesarios para cada uno.</p>
 
                     <div class="row g-4">
                         @foreach($reportSelections as $module => $data)
                         <div class="col-md-6 col-lg-4">
                             <div class="card h-100 border-0 shadow-sm rounded-3 {{ $data['selected'] ? 'ring-primary' : '' }}">
-                                <div class="card-header bg-white border-0 py-3 d-flex align-items-center justify-content-between">
+                                <div class="card-header bg-body border-0 py-3 d-flex align-items-center justify-content-between">
                                     <div class="form-check form-switch mb-0">
                                         <input class="form-check-input ms-0 me-2" type="checkbox" wire:model.live="reportSelections.{{ $module }}.selected" style="transform: scale(1.2);">
-                                        <label class="form-check-label fw-bold text-dark">{{ ucfirst(str_replace('-', ' ', $module)) }}</label>
+                                        <label class="form-check-label fw-bold text-body">{{ ucfirst(str_replace('-', ' ', $module)) }}</label>
                                     </div>
                                     @if($data['selected'])
                                         <i class="bi bi-check-circle-fill text-primary"></i>
@@ -258,7 +258,7 @@
                                 </div>
                                 <div class="card-body py-2 px-3 {{ !$data['selected'] ? 'opacity-50 grayscale' : '' }}">
                                     @if($data['selected'])
-                                        <div class="form-check form-switch mb-3 bg-light p-2 rounded border">
+                                        <div class="form-check form-switch mb-3 bg-body-secondary p-2 rounded border">
                                             <input class="form-check-input ms-0 me-2" type="checkbox" id="full_{{ $module }}" wire:model.live="reportSelections.{{ $module }}.full_inventory">
                                             <label class="form-check-label small fw-bold" for="full_{{ $module }}">
                                                 {{ $data['full_inventory'] ? 'Todo el Inventario' : 'Vista con Filtros' }}
@@ -304,7 +304,7 @@
                         @endforeach
                     </div>
                 </div>
-                <div class="modal-footer bg-white border-0 p-4">
+                <div class="modal-footer bg-body border-0 p-4">
                     <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" wire:click="generarReporteMasivo" class="btn btn-primary px-5 shadow-sm fw-bold">
                         <i class="bi bi-cloud-download me-2"></i> Generar Excel Consolidado

@@ -15,16 +15,16 @@
                         @endif
                         
                         @unless(Auth::user()->hasRole('super-admin'))
-                        <label for="fotoInput" class="position-absolute bottom-0 end-0 bg-white rounded-circle shadow p-2" style="cursor: pointer;" title="Cambiar Avatar">
+                        <label for="fotoInput" class="position-absolute bottom-0 end-0 bg-body rounded-circle shadow p-2" style="cursor: pointer;" title="Cambiar Avatar">
                             <i class="bi bi-camera-fill text-primary"></i>
                             <input type="file" id="fotoInput" class="d-none" wire:model="nueva_foto">
                         </label>
                         @endunless
                     </div>
 
-                    <h4 class="mb-1 fw-bold text-dark">{{ Auth::user()->name }}</h4>
+                    <h4 class="mb-1 fw-bold text-body">{{ Auth::user()->name }}</h4>
                     <p class="text-muted small mb-3">@ {{ Auth::user()->username }}</p>
-                    <span class="badge bg-light text-primary border border-primary px-3 rounded-pill">
+                    <span class="badge bg-body-secondary text-primary border border-primary px-3 rounded-pill">
                         <i class="bi bi-shield-check me-1"></i> {{ Auth::user()->roles->pluck('name')->first() ?? 'Sin Rol' }}
                     </span>
                     <hr class="my-4 text-muted opacity-25">
@@ -43,8 +43,8 @@
                         
                         @if($es_tecnico)
                         <hr class="my-3 text-muted opacity-25">
-                        <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded-4 border border-light shadow-sm">
-                            <label class="fw-bold text-dark mb-0 cursor-pointer fs-6" for="toggleAsignacion">
+                        <div class="d-flex justify-content-between align-items-center bg-body-secondary p-3 rounded-4 border border-light shadow-sm">
+                            <label class="fw-bold text-body mb-0 cursor-pointer fs-6" for="toggleAsignacion">
                                 <i class="bi bi-person-workspace text-primary me-2"></i> Recibir Casos
                             </label>
                             <div class="form-check form-switch m-0 pt-1">
@@ -72,7 +72,7 @@
         <!-- Columna Derecha: Secciones / Solicitudes -->
         <div class="col-lg-8">
             <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-white py-3 border-0">
+                <div class="card-header bg-body py-3 border-0">
                     <ul class="nav nav-pills card-header-pills" id="pills-tab" role="tablist">
                         <li class="nav-item">
                             <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-solicitudes" type="button">
@@ -86,7 +86,7 @@
                         </li>
                     </ul>
                 </div>
-                <div class="card-body bg-light p-4">
+                <div class="card-body bg-body-secondary p-4">
                     @if(Auth::user()->hasRole('super-admin'))
                         <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-4">
                             <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
@@ -182,7 +182,7 @@
                                         <div class="d-flex justify-content-between align-items-center mt-1">
                                             <div>
                                                 @if($sol->estado === 'pendiente')
-                                                    <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i> Pendiente</span>
+                                                    <span class="badge bg-warning text-body"><i class="bi bi-hourglass-split me-1"></i> Pendiente</span>
                                                 @elseif($sol->estado === 'aprobado')
                                                     <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> Aprobado</span>
                                                 @elseif($sol->estado === 'rechazado')

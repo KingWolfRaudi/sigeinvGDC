@@ -9,7 +9,7 @@
                 <i class="bi bi-diagram-3 fs-3"></i>
             </div>
             <div>
-                <h2 class="fw-bold mb-0 text-dark">{{ $titulo }}</h2>
+                <h2 class="fw-bold mb-0 text-body">{{ $titulo }}</h2>
                 @if($subtitulo)
                     <p class="text-muted mb-0">{{ $subtitulo }}</p>
                 @endif
@@ -19,7 +19,7 @@
 
     <!-- Pestañas de Asociaciones -->
     <div class="card shadow-sm border-0">
-        <div class="card-header bg-white border-bottom-0 pb-0 pt-3">
+        <div class="card-header bg-body border-bottom-0 pb-0 pt-3">
             <ul class="nav nav-tabs card-header-tabs" id="asociacionesTabs" role="tablist">
                 <!-- Pestaña de Trabajadores (Solo para Departamentos, Marcas, Computadores o Dispositivos) -->
                 @if(in_array($tipo, ['departamento', 'marca', 'computador', 'dispositivo', 'insumo']))
@@ -79,7 +79,7 @@
                 @endcan
             </ul>
         </div>
-        <div class="card-body bg-light p-4">
+        <div class="card-body bg-body-secondary p-4">
             <div class="tab-content" id="asociacionesTabsContent">
                 
                 @if(in_array($tipo, ['departamento', 'marca', 'computador', 'dispositivo', 'insumo']))

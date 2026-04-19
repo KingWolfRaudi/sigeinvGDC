@@ -6,7 +6,7 @@ use App\Livewire\Admin\Roles;
 use App\Livewire\Auth\Login;
 use App\Livewire\Admin\Usuarios;
 use App\Livewire\Admin\IncidenciasConfig;
-use App\Livewire\Dashboard;
+use App\Livewire\Dashboard\MainDashboard;
 use App\Livewire\Catalogos\Marcas;
 use App\Livewire\Catalogos\TiposDispositivo;
 use App\Livewire\Catalogos\SistemasOperativos;
@@ -30,7 +30,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     
     // Nuestro nuevo Dashboard
-    Route::get('/', Dashboard::class)->name('dashboard');
+    Route::get('/', MainDashboard::class)->name('dashboard');
     Route::get('/admin/roles', Roles::class)->name('admin.roles')->can('ver-roles');
     Route::get('/admin/usuarios', Usuarios::class)->name('admin.usuarios')->can('ver-usuarios');
     // Configuración General

@@ -8,7 +8,7 @@
                     <i class="bi bi-pc-display fs-3"></i>
                 </div>
                 <div>
-                    <h2 class="fw-bold mb-0 text-dark">Inventario de Computadores</h2>
+                    <h2 class="fw-bold mb-0 text-body">Inventario de Computadores</h2>
                     <p class="text-muted mb-0">Gestión de equipos, laptops y servidores registrados.</p>
                 </div>
             </div>
@@ -27,7 +27,7 @@
             <div class="row g-3 justify-content-between align-items-center">
                 <div class="col-md-5">
                     <div class="input-group shadow-sm">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <span class="input-group-text bg-body border-end-0"><i class="bi bi-search text-primary"></i></span>
                         <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar por Bien Nacional, Serial o IP...">
                     </div>
                 </div>
@@ -115,7 +115,7 @@
                                     <strong>BN:</strong> {{ $comp->bien_nacional ?? 'N/A' }}
                                     @if($comp->pendientes_count > 0)
                                         <button wire:click="verCambioPendiente({{ $comp->id }})"
-                                            class="badge bg-warning text-dark border-0 ms-1"
+                                            class="badge bg-warning text-body border-0 ms-1"
                                             title="{{ $comp->pendientes_count }} cambio(s) en revisión — clic para ver">
                                             <i class="bi bi-hourglass-split"></i> En revisión
                                         </button>
@@ -194,7 +194,7 @@
     <div wire:ignore.self class="modal fade" id="modalComputador" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
-                <div class="modal-header bg-light">
+                <div class="modal-header bg-body-secondary">
                     <h5 class="modal-title"><i class="bi bi-pc-display me-2"></i>{{ $tituloModal }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetCampos"></button>
                 </div>
@@ -220,7 +220,7 @@
                     </div>
 
 
-                    <div class="modal-footer bg-light">
+                    <div class="modal-footer bg-body-secondary">
                         @can('cambiar-estatus-computadores')
                             <div class="form-check form-switch mb-3">
                                 <input class="form-check-input" type="checkbox" id="activo" wire:model="activo">
@@ -238,7 +238,7 @@
     <div wire:ignore.self class="modal fade" id="modalDetalleComputador" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
-                <div class="modal-header bg-light">
+                <div class="modal-header bg-body-secondary">
                     <h5 class="modal-title"><i class="bi bi-pc-display me-2"></i>Detalles del Equipo</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -315,7 +315,7 @@
                         </div>
                     @endif
                 </div>
-                <div class="modal-footer bg-light d-flex justify-content-between">
+                <div class="modal-footer bg-body-secondary d-flex justify-content-between">
                     @if($computador_detalle)
                         @can('ver-computadores')
                         <div>
@@ -374,7 +374,7 @@
                         <i class="bi bi-shield-lock me-1"></i> El sistema generará el correo automáticamente usando el formato institucional.
                     </div>
                 </div>
-                <div class="modal-footer bg-light">
+                <div class="modal-footer bg-body-secondary">
                     <button type="button" class="btn btn-secondary" wire:click="cancelarModalTrabajador">Volver</button>
                     <button type="button" class="btn btn-primary" wire:click="guardarTrabajadorRapido">Guardar Trabajador</button>
                 </div>
@@ -399,7 +399,7 @@
                         'baja'                    => 'Baja del Sistema',
                     ];
                 @endphp
-                <div class="modal-header {{ $esRevisión ? 'bg-warning text-dark' : 'bg-info text-white' }}">
+                <div class="modal-header {{ $esRevisión ? 'bg-warning text-body' : 'bg-info text-white' }}">
                     <h5 class="modal-title">
                         <i class="bi bi-{{ $esRevisión ? 'hourglass-split' : 'pencil-square' }} me-2"></i>
                         Cambio {{ $esRevisión ? 'En Revisión' : 'En Borrador' }}
@@ -410,7 +410,7 @@
                 </div>
                 <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
                     {{-- Solicitante y Metadata --}}
-                    <div class="d-flex align-items-start gap-3 p-3 bg-light rounded mb-3">
+                    <div class="d-flex align-items-start gap-3 p-3 bg-body-secondary rounded mb-3">
                         <div class="flex-shrink-0">
                             <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white fw-bold"
                                 style="width:42px;height:42px;font-size:1rem;">
@@ -428,7 +428,7 @@
                                 <span class="badge bg-secondary fw-normal">
                                     {{ $tiposLabel[$movimiento_preview->tipo_operacion] ?? ucwords(str_replace('_',' ',$movimiento_preview->tipo_operacion)) }}
                                 </span>
-                                <span class="badge {{ $esRevisión ? 'bg-warning text-dark' : 'bg-info' }} fw-normal ms-1">
+                                <span class="badge {{ $esRevisión ? 'bg-warning text-body' : 'bg-info' }} fw-normal ms-1">
                                     {{ $esRevisión ? 'En Revisión' : 'Borrador' }}
                                 </span>
                             </div>
@@ -454,7 +454,7 @@
                         ])
                     </div>
                 </div>
-                <div class="modal-footer bg-light">
+                <div class="modal-footer bg-body-secondary">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
                     @if($esRevisión)
                         @can('movimientos-computadores-aprobar')

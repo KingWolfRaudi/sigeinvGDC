@@ -6,7 +6,7 @@
                 <i class="bi bi-arrow-left-right fs-3"></i>
             </div>
             <div>
-                <h2 class="fw-bold mb-0 text-dark">Movimientos de Computadores</h2>
+                <h2 class="fw-bold mb-0 text-body">Movimientos de Computadores</h2>
                 <p class="text-muted mb-0">Historial de cambios, bajas y actualizaciones de equipos.</p>
             </div>
         </div>
@@ -18,7 +18,7 @@
             <div class="row g-3">
                 <div class="col-md-5">
                     <div class="input-group shadow-sm">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <span class="input-group-text bg-body border-end-0"><i class="bi bi-search text-primary"></i></span>
                         <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar por Bien Nacional, Serial, Justificación...">
                     </div>
                 </div>
@@ -136,7 +136,7 @@
                                 @php
                                 $estados = [
                                     'borrador'          => ['label' => 'Borrador', 'color' => 'secondary'],
-                                    'pendiente'         => ['label' => 'En Revisión', 'color' => 'warning text-dark'],
+                                    'pendiente'         => ['label' => 'En Revisión', 'color' => 'warning text-body'],
                                     'aprobado'          => ['label' => 'Aprobado', 'color' => 'success'],
                                     'rechazado'         => ['label' => 'Rechazado', 'color' => 'danger'],
                                     'ejecutado_directo' => ['label' => 'Ejecutado', 'color' => 'dark'],
@@ -163,7 +163,7 @@
                                 @can('movimientos-computadores-enviar')
                                 <button wire:click="enviarARevision({{ $mov->id }})"
                                     wire:confirm="¿Enviar este borrador a revisión? Ya no podrá editarlo."
-                                    class="btn btn-sm btn-warning text-dark" title="Enviar a Revisión">
+                                    class="btn btn-sm btn-warning text-body" title="Enviar a Revisión">
                                     <i class="bi bi-send"></i>
                                 </button>
                                 @endcan
@@ -220,7 +220,7 @@
     <div wire:ignore.self class="modal fade" id="modalDetalle" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-light">
+                <div class="modal-header bg-body-secondary">
                     <h5 class="modal-title"><i class="bi bi-arrow-left-right me-2"></i>Detalle del Movimiento</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -266,7 +266,7 @@
                     </div>
                     @endif
                 </div>
-                <div class="modal-footer bg-light">
+                <div class="modal-footer bg-body-secondary">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
@@ -348,7 +348,7 @@
 
                 <div class="modal-body p-0" style="max-height: 65vh; overflow-y: auto;">
                     {{-- Indicador de Pasos --}}
-                    <div class="bg-light p-3 border-bottom d-flex justify-content-center gap-4">
+                    <div class="bg-body-secondary p-3 border-bottom d-flex justify-content-center gap-4">
                         <div class="d-flex align-items-center {{ $paso_generador == 1 ? 'text-primary fw-bold' : 'text-muted' }}">
                             <span class="badge {{ $paso_generador == 1 ? 'bg-primary' : 'bg-secondary' }} me-2">1</span> Selección
                         </div>
@@ -394,7 +394,7 @@
                                 </div>
                             </div>
 
-                            <div class="table-responsive border rounded bg-white shadow-sm" style="max-height: 400px;">
+                            <div class="table-responsive border rounded bg-body shadow-sm" style="max-height: 400px;">
                                 <table class="table table-sm table-hover align-middle mb-0">
                                     <thead class="table-light sticky-top">
                                         <tr>
@@ -422,7 +422,7 @@
                                                 </td>
                                                 <td>
                                                     @if($e->pendientes_count > 0)
-                                                        <span class="badge bg-warning text-dark animate__animated animate__pulse animate__infinite">
+                                                        <span class="badge bg-warning text-body animate__animated animate__pulse animate__infinite">
                                                             <i class="bi bi-exclamation-triangle me-1"></i> {{ $e->pendientes_count }} Pendiente(s)
                                                         </span>
                                                     @else
@@ -438,7 +438,7 @@
                                         @empty
                                             <tr>
                                                 <td colspan="5" class="text-center py-5 text-muted italic">
-                                                    <i class="bi bi-search d-block fs-3 mb-2"></i>
+                                                    <i class="bi bi-search text-primary d-block fs-3 mb-2"></i>
                                                     Usa los filtros para encontrar un equipo
                                                 </td>
                                             </tr>
@@ -449,10 +449,10 @@
                         </div>
                     @else
                         {{-- PASO 2: CONFIGURACIÓN --}}
-                        <div class="p-4 bg-white">
+                        <div class="p-4 bg-body">
                             <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
                                 <div>
-                                    <h5 class="mb-0 text-dark">{{ $nombre_equipo }} - <span class="text-muted small">{{ $bien_nacional }}</span></h5>
+                                    <h5 class="mb-0 text-body">{{ $nombre_equipo }} - <span class="text-muted small">{{ $bien_nacional }}</span></h5>
                                     <p class="text-muted small mb-0">Configura los cambios que deseas proponer para este equipo.</p>
                                 </div>
                                 @if($incidencia_id)
@@ -471,7 +471,7 @@
                                     {{-- Reutilización del formulario partial --}}
                                     @include('livewire.inventario.partials._form_fields')
                                 </div>
-                                <div class="col-md-3 bg-light p-3">
+                                <div class="col-md-3 bg-body-secondary p-3">
                                     <label class="form-label fw-bold text-danger">Justificación del Cambio <span class="text-danger">*</span></label>
                                     <textarea wire:model="justificacion" class="form-control mb-3" rows="8" 
                                         placeholder="Describe el motivo de este movimiento (Reparación, cambio de usuario, actualización disco, etc.)"></textarea>
@@ -536,7 +536,7 @@
                         <i class="bi bi-info-circle-fill me-1"></i> Se creará el registro completo del trabajador en la base de datos.
                     </div>
                 </div>
-                <div class="modal-footer bg-light px-4 py-3">
+                <div class="modal-footer bg-body-secondary px-4 py-3">
                     <button type="button" class="btn btn-secondary px-4" wire:click="cancelarModalTrabajador">Volver</button>
                     <button type="button" class="btn btn-primary px-4 fw-bold shadow-sm" wire:click="guardarTrabajadorRapido">
                         <i class="bi bi-save me-1"></i> Guardar Trabajador

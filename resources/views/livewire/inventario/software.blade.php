@@ -8,7 +8,7 @@
                     <i class="bi bi-disc fs-3"></i>
                 </div>
                 <div>
-                    <h2 class="fw-bold mb-0 text-dark">Catálogo de Software</h2>
+                    <h2 class="fw-bold mb-0 text-body">Catálogo de Software</h2>
                     <p class="text-muted mb-0">Gestión de licencias, versiones y programas informáticos autorizados.</p>
                 </div>
             </div>
@@ -27,7 +27,7 @@
             <div class="row g-3 justify-content-between align-items-center">
                 <div class="col-md-5">
                     <div class="input-group shadow-sm">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <span class="input-group-text bg-body border-end-0"><i class="bi bi-search text-primary"></i></span>
                         <input type="text" wire:model.live.debounce.300ms="search" class="form-control border-start-0 ps-0" placeholder="Buscar por nombre, licencia, serial...">
                     </div>
                 </div>
@@ -79,7 +79,7 @@
                         <th class="pe-4 text-end">Acciones</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white">
+                <tbody class="bg-body">
                     @forelse($softwares as $soft)
                         <tr>
                             <td class="ps-4 fw-medium">
@@ -90,7 +90,7 @@
                             </td>
                             <td>
                                 @if($soft->tipo_licencia === 'Privativo')
-                                    <span class="badge bg-warning text-dark"><i class="bi bi-key me-1"></i> Privativa</span>
+                                    <span class="badge bg-warning text-body"><i class="bi bi-key me-1"></i> Privativa</span>
                                 @else
                                     <span class="badge bg-success"><i class="bi bi-unlock me-1"></i> Libre</span>
                                 @endif
@@ -149,7 +149,7 @@
             </table>
         </div>
         @if($softwares->hasPages())
-        <div class="card-footer bg-white border-top-0 py-3">
+        <div class="card-footer bg-body border-top-0 py-3">
             {{ $softwares->links() }}
         </div>
         @endif
@@ -213,7 +213,7 @@
                         </div>
 
                     </div>
-                    <div class="modal-footer bg-light">
+                    <div class="modal-footer bg-body-secondary">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="resetCampos">Cancelar</button>
                         <button type="submit" class="btn btn-primary fw-bold"><i class="bi bi-save me-1"></i> Guardar Software</button>
                     </div>
@@ -237,7 +237,7 @@
                                 <i class="bi bi-disc text-primary" style="font-size: 2.5rem;"></i>
                             </div>
                             <h4 class="mb-1">{{ $software_detalle->nombre_programa }}</h4>
-                            <span class="badge bg-{{ $software_detalle->tipo_licencia === 'Privativo' ? 'warning text-dark' : 'success' }} mb-2">
+                            <span class="badge bg-{{ $software_detalle->tipo_licencia === 'Privativo' ? 'warning text-body' : 'success' }} mb-2">
                                 Licencia {{ $software_detalle->tipo_licencia }}
                             </span>
                             @if($software_detalle->arquitectura_programa)
@@ -245,13 +245,13 @@
                             @endif
                         </div>
                         
-                        <div class="card bg-light border-0 shadow-sm mb-3">
+                        <div class="card bg-body-secondary border-0 shadow-sm mb-3">
                             <div class="card-body">
                                 <h6 class="fw-bold border-bottom pb-2 mb-3">Información de Licencia</h6>
                                 <p class="mb-1"><strong class="text-muted">Serial:</strong></p>
                                 <p>
                                     @if($software_detalle->serial)
-                                        <code class="fs-6 text-dark bg-white p-2 border rounded d-block">{{ $software_detalle->serial }}</code>
+                                        <code class="fs-6 text-body bg-body p-2 border rounded d-block">{{ $software_detalle->serial }}</code>
                                     @else
                                         <span class="text-muted">No especificado</span>
                                     @endif
@@ -259,7 +259,7 @@
                             </div>
                         </div>
 
-                        <div class="card bg-light border-0 shadow-sm">
+                        <div class="card bg-body-secondary border-0 shadow-sm">
                             <div class="card-body">
                                 <h6 class="fw-bold border-bottom pb-2 mb-3">Descripción</h6>
                                 <p class="mb-0">{{ $software_detalle->descripcion_programa ?: 'Sin descripción detallada.' }}</p>
@@ -267,7 +267,7 @@
                         </div>
                     @endif
                 </div>
-                <div class="modal-footer bg-light">
+                <div class="modal-footer bg-body-secondary">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar Detalle</button>
                 </div>
             </div>

@@ -6,7 +6,7 @@
                 <i class="bi bi-shield-lock fs-3"></i>
             </div>
             <div>
-                <h2 class="fw-bold mb-0 text-dark">Gestión de Roles</h2>
+                <h2 class="fw-bold mb-0 text-body">Gestión de Roles</h2>
                 <p class="text-muted mb-0">Administración de perfiles de acceso, permisos y seguridad del sistema.</p>
             </div>
         </div>
@@ -117,8 +117,8 @@
                                         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
                                             @foreach($subgrupos as $entidad => $permisos)
                                                 <div class="col">
-                                                    <div class="card h-100 border-0 shadow-sm bg-light">
-                                                        <div class="card-header bg-white border-bottom-0 py-2">
+                                                    <div class="card h-100 border-0 shadow-sm bg-body-secondary">
+                                                        <div class="card-header bg-body border-bottom-0 py-2">
                                                             <h6 class="text-secondary mb-0 fw-bold">
                                                                 <i class="bi bi-box me-1"></i> {{ $entidad }}
                                                             </h6>
@@ -126,7 +126,7 @@
                                                         <div class="card-body py-2">
                                                             <div class="d-flex flex-column gap-2">
                                                             @foreach($permisos as $perm)
-                                                                <div class="form-check form-switch p-2 bg-white rounded border d-flex align-items-center">
+                                                                <div class="form-check form-switch p-2 bg-body rounded border d-flex align-items-center">
                                                                     <input class="form-check-input ms-1 flex-shrink-0" type="checkbox" 
                                                                            value="{{ $perm['name'] }}" 
                                                                            id="permiso_{{ $perm['id'] }}" 

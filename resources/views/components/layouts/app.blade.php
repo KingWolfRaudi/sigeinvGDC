@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
     <title>{{ env('ORG_NOMBRE', 'SIGEINV') }}</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v=2">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     @livewireStyles
@@ -45,15 +46,28 @@
         #menuLateral .collapse .nav-link:hover {
             padding-left: 1.5rem !important; 
         }
+
+        /* Acentuar contraste en Modo Claro */
+        [data-bs-theme="light"] body {
+            background-color: #eff1f4 !important;
+        }
+        [data-bs-theme="light"] .bg-body-tertiary {
+            background-color: #eff1f4 !important;
+        }
     </style>
+    <script>
+        // Evitar el parpadeo blanco aplicando el tema guardado antes de renderizar
+        const savedTheme = localStorage.getItem('sigeinv-theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', savedTheme);
+    </script>
 </head>
-<body class="bg-light">
+<body class="bg-body-tertiary">
 
     @auth
     <div class="d-flex vh-100 overflow-hidden">
         
         <div id="sidebarMenu" class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark shadow-sm" style="width: 280px; z-index: 1000;">
-            <a href="{{ route('perfil') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none px-2 py-1 rounded hover-bg-light">
+            <a href="{{ route('perfil') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none px-2 py-1 rounded hover-bg-body-secondary">
                 <div class="me-2">
                     @if(Auth::user()->avatar)
                         <img src="{{ asset('storage/' . Auth::user()->avatar) }}" class="rounded-circle shadow-sm" style="width: 38px; height: 38px; object-fit: cover;">
@@ -323,15 +337,19 @@
             <hr>
 
             <div class="dropdown px-2">
-                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle p-2 rounded hover-bg-light" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
-                    @if(Auth::user()->avatar)
-                        <img src="{{ asset('storage/' . Auth::user()->avatar) }}" class="rounded-circle me-2 shadow-sm" style="width: 28px; height: 28px; object-fit: cover;">
-                    @else
-                        <div class="rounded-circle bg-primary me-2 d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" style="width: 28px; height: 28px; font-size: 0.8rem;">
-                            {{ substr(Auth::user()->name, 0, 1) }}
-                        </div>
-                    @endif
-                    <strong class="small">{{ Auth::user()->name }}</strong>
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle p-2 rounded hover-bg-body-secondary" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false" style="min-width: 0;">
+                    <div class="flex-shrink-0">
+                        @if(Auth::user()->avatar)
+                            <img src="{{ asset('storage/' . Auth::user()->avatar) }}" class="rounded-circle shadow-sm" style="width: 32px; height: 32px; object-fit: cover;">
+                        @else
+                            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                                {{ substr(Auth::user()->name, 0, 1) }}
+                            </div>
+                        @endif
+                    </div>
+                    <div class="flex-grow-1 ms-2 overflow-hidden">
+                        <strong class="small d-block text-truncate">{{ Auth::user()->name }}</strong>
+                    </div>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser">
                     <li><a class="dropdown-item" href="{{ route('perfil') }}"><i class="bi bi-person me-2"></i>Mi Perfil</a></li>
@@ -348,13 +366,17 @@
             </div>
         </div>
 
-        <main class="d-flex flex-column flex-grow-1 bg-light overflow-hidden">
-            <header class="bg-white shadow-sm px-4 py-3 d-flex align-items-center justify-content-between">
-                <!--
-                <button class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('sidebarMenu').classList.toggle('d-none')">
-                    ☰ Menú
-                </button>
-                -->
+        <main class="d-flex flex-column flex-grow-1 bg-body-tertiary overflow-hidden">
+            <header class="bg-body shadow-sm px-4 py-3 d-flex align-items-center justify-content-between border-bottom">
+                <div class="d-flex align-items-center">
+                    <!-- Espacio para el breadcrumb o título -->
+                </div>
+                <div class="d-flex align-items-center">
+                    <!-- Botón Tema Oscuro -->
+                    <button id="themeToggleBtn" class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center border-0" style="width: 40px; height: 40px;" title="Cambiar Tema">
+                        <i class="bi bi-moon-stars" id="themeIcon"></i>
+                    </button>
+                </div>
             </header>
             
             <div class="flex-grow-1 overflow-auto p-4">
@@ -441,7 +463,7 @@
                     document.getElementById('toastMessage').innerText = data.mensaje;
                     
                     // Limpiamos los colores de notificaciones anteriores, incluyendo el texto
-                    toastEl.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info', 'bg-secondary', 'text-white', 'text-dark');
+                    toastEl.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info', 'bg-secondary', 'text-white', 'text-body');
                     
                     // Le ponemos texto blanco por defecto para que se lea bien en fondos oscuros
                     toastEl.classList.add('text-white');
@@ -460,7 +482,7 @@
                     } else if (tipo === 'warning' || tipo === 'alerta') {
                         toastEl.classList.add('bg-warning');
                         toastEl.classList.remove('text-white'); // El warning se lee mejor con texto oscuro
-                        toastEl.classList.add('text-dark');
+                        toastEl.classList.add('text-body');
                     } else {
                         toastEl.classList.add('bg-info');
                     }
@@ -476,6 +498,40 @@
             Livewire.on('mostrar-toast', procesarToast);
         });
     </script>
+    
+    <script>
+        // Lógica del Botón de Modo Oscuro
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleBtn = document.getElementById('themeToggleBtn');
+            const themeIcon = document.getElementById('themeIcon');
+            
+            if (!toggleBtn) return;
 
+            const updateIcon = (theme) => {
+                if (theme === 'dark') {
+                    themeIcon.classList.remove('bi-moon-stars');
+                    themeIcon.classList.add('bi-sun', 'text-warning');
+                } else {
+                    themeIcon.classList.remove('bi-sun', 'text-warning');
+                    themeIcon.classList.add('bi-moon-stars');
+                }
+            };
+
+            // Inicializar icono
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+            updateIcon(currentTheme);
+
+            toggleBtn.addEventListener('click', () => {
+                const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+                const newTheme = isDark ? 'light' : 'dark';
+                
+                document.documentElement.setAttribute('data-bs-theme', newTheme);
+                localStorage.setItem('sigeinv-theme', newTheme);
+                updateIcon(newTheme);
+            });
+        });
+    </script>
+    
+    @stack('scripts')
 </body>
 </html>

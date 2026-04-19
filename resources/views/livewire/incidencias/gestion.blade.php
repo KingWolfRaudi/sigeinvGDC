@@ -8,7 +8,7 @@
                     <i class="bi bi-list-task fs-3"></i>
                 </div>
                 <div>
-                    <h2 class="fw-bold mb-0 text-dark">Gestión de Incidencias</h2>
+                    <h2 class="fw-bold mb-0 text-body">Gestión de Incidencias</h2>
                     <p class="text-muted mb-0">Seguimiento de problemas técnicos, soporte a usuarios y mantenimiento de activos.</p>
                 </div>
             </div>
@@ -51,7 +51,7 @@
             <div class="row g-2 align-items-center">
                 <div class="col-md-4">
                     <div class="input-group shadow-sm">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <span class="input-group-text bg-body border-end-0"><i class="bi bi-search text-primary"></i></span>
                         <input type="text" class="form-control border-start-0 ps-0" placeholder="Buscar por folio, descripción o nombres..." wire:model.live.debounce.300ms="search">
                     </div>
                 </div>
@@ -136,20 +136,20 @@
                                 <td>
                                     <div class="d-flex flex-column">
                                         @if($inc->trabajador)
-                                            <span class="fw-bold text-dark">{{ $inc->trabajador->nombres }} {{ $inc->trabajador->apellidos }}</span>
+                                            <span class="fw-bold text-body">{{ $inc->trabajador->nombres }} {{ $inc->trabajador->apellidos }}</span>
                                         @else
-                                            <span class="fw-bold text-dark">{{ $inc->creator->name ?? 'Usuario Sistema' }} <span class="badge bg-secondary ms-1 py-0 px-1" style="font-size: 0.65rem;">Externo</span></span>
+                                            <span class="fw-bold text-body">{{ $inc->creator->name ?? 'Usuario Sistema' }} <span class="badge bg-secondary ms-1 py-0 px-1" style="font-size: 0.65rem;">Externo</span></span>
                                         @endif
                                         <small class="text-muted">{{ $inc->departamento->nombre ?? 'Sin Departamento' }}</small>
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="badge bg-light text-dark border d-block mb-1">{{ $inc->formato_problema ?? $inc->problema->nombre }}</span>
+                                    <span class="badge bg-body-secondary text-body border d-block mb-1">{{ $inc->formato_problema ?? $inc->problema->nombre }}</span>
                                     <small class="text-primary"><i class="bi bi-diagram-3"></i> {{ $inc->problema->especialidad->nombre ?? 'N/A' }}</small>
                                 </td>
                                 <td>
                                     @if($inc->tecnico)
-                                        <span class="text-dark">{{ $inc->tecnico->name }}</span>
+                                        <span class="text-body">{{ $inc->tecnico->name }}</span>
                                     @else
                                         <span class="text-danger small fst-italic"><i class="bi bi-hourglass-split"></i> Pendiente</span>
                                     @endif
@@ -165,7 +165,7 @@
                                                 {{ $inc->modelo->bien_nacional ?? $inc->modelo->serial ?? $inc->modelo->nombre }}
                                             </small>
                                             @if($inc->amerita_movimiento)
-                                                <span class="badge bg-warning text-dark mt-1" style="font-size: 0.6rem; width: fit-content;">
+                                                <span class="badge bg-warning text-body mt-1" style="font-size: 0.6rem; width: fit-content;">
                                                     <i class="bi bi-arrow-left-right me-1"></i> Movimiento
                                                 </span>
                                             @endif
@@ -180,14 +180,16 @@
                                     @elseif($inc->solventado)
                                         <span class="badge bg-success rounded-pill px-3">Solventado</span>
                                     @else
-                                        <span class="badge bg-warning text-dark rounded-pill px-3">En Curso</span>
+                                        <span class="badge bg-warning text-body rounded-pill px-3">En Curso</span>
                                     @endif
                                 </td>
                                 <td class="text-end pe-4">
                                     <div class="btn-group shadow-sm">
-                                        <a href="{{ route('reportes.incidencia.ficha', $inc->id) }}" target="_blank" class="btn btn-sm btn-outline-danger" title="Descargar PDF">
-                                            <i class="bi bi-file-pdf"></i>
-                                        </a>
+                                        @can('reportes-pdf')
+                                            <a href="{{ route('reportes.incidencia.ficha', $inc->id) }}" target="_blank" class="btn btn-sm btn-outline-danger" title="Descargar PDF">
+                                                <i class="bi bi-file-pdf"></i>
+                                            </a>
+                                        @endcan
                                         @if($inc->amerita_movimiento && $inc->modelo_id)
                                             <button wire:click="crearMovimiento({{ $inc->id }})" class="btn btn-sm btn-outline-warning" title="Generar Movimiento">
                                                 <i class="bi bi-arrow-left-right"></i>
@@ -218,7 +220,7 @@
             </div>
         </div>
         @if($incidencias->hasPages())
-            <div class="card-footer bg-white py-3 border-0">
+            <div class="card-footer bg-body py-3 border-0">
                 {{ $incidencias->links() }}
             </div>
         @endif
@@ -234,12 +236,12 @@
                         {{ $incidencia_id ? ($es_lectura ? 'Detalles de Incidencia (Solo Lectura)' : 'Gestionar Incidencia') : 'Reportar Nueva Incidencia' }}
                     </h5>
                     @if($incidencia_id)
-                        <span class="badge bg-white text-primary ms-3">#{{ str_pad($incidencia_id, 5, '0', STR_PAD_LEFT) }}</span>
+                        <span class="badge bg-body text-primary ms-3">#{{ str_pad($incidencia_id, 5, '0', STR_PAD_LEFT) }}</span>
                     @endif
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" wire:click="resetForm"></button>
                 </div>
                 <form wire:submit.prevent="guardar">
-                    <div class="modal-body p-4 bg-light" style="max-height: 75vh; overflow-y: auto;">
+                    <div class="modal-body p-4 bg-body-secondary" style="max-height: 75vh; overflow-y: auto;">
                         @if($incidencia_id && $cerrado)
                             @if($cierre_irreversible)
                                 <div class="alert alert-danger d-flex align-items-center py-2 mb-3 border-0 shadow-sm" style="font-size: 0.85rem;">
@@ -361,14 +363,14 @@
                             <div class="col-12 mt-4"><h6 class="text-uppercase text-muted fw-bold small border-bottom pb-2">4. Control y Seguimiento</h6></div>
 
                             <div class="col-6">
-                                <div class="form-check form-switch p-3 border rounded bg-white">
+                                <div class="form-check form-switch p-3 border rounded bg-body">
                                     <input class="form-check-input ms-0 me-3" type="checkbox" id="solventCheck" wire:model.live="solventado" @disabled($es_lectura)>
                                     <label class="form-check-label fw-bold" for="solventCheck">¿Caso Solventado?</label>
                                 </div>
                             </div>
 
                              <div class="col-6">
-                                <div class="form-check form-switch p-3 border rounded bg-white">
+                                <div class="form-check form-switch p-3 border rounded bg-body">
                                     <input class="form-check-input ms-0 me-3" type="checkbox" id="movimientoCheck" wire:model.live="amerita_movimiento" @disabled($es_lectura)>
                                     <label class="form-check-label fw-bold" for="movimientoCheck">¿Amerita Movimiento?</label>
                                     <div class="small text-muted" style="font-size: 0.7rem;">Traslado o retiro de equipo.</div>
@@ -376,7 +378,7 @@
                             </div>
 
                             <div class="col-6">
-                                <div class="form-check form-switch p-3 border rounded bg-white border-danger shadow-sm">
+                                <div class="form-check form-switch p-3 border rounded bg-body border-danger shadow-sm">
                                     <input class="form-check-input ms-0 me-3" type="checkbox" id="cerrarCheck" wire:model="cerrado" @disabled(!$solventado || $es_lectura)>
                                     <label class="form-check-label fw-bold text-danger" for="cerrarCheck text-danger">¿CERRAR INCIDENCIA?</label>
                                     <div class="small text-muted mt-1">Bloqueo de edición.</div>
@@ -386,11 +388,13 @@
                         </div>
 
                     </div>
-                    <div class="modal-footer bg-white border-top-0 p-4">
+                    <div class="modal-footer bg-body border-top-0 p-4">
                         @if($incidencia_id)
-                            <a href="{{ route('reportes.incidencia.ficha', $incidencia_id) }}" target="_blank" class="btn btn-danger px-4 me-auto">
-                                <i class="bi bi-file-pdf me-1"></i> Ficha PDF
-                            </a>
+                            @can('reportes-pdf')
+                                <a href="{{ route('reportes.incidencia.ficha', $incidencia_id) }}" target="_blank" class="btn btn-danger px-4 me-auto">
+                                    <i class="bi bi-file-pdf me-1"></i> Ficha PDF
+                                </a>
+                            @endcan
                         @endif
 
 
