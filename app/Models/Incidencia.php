@@ -25,6 +25,7 @@ class Incidencia extends Model
     protected $fillable = [
         'problema_id',
         'departamento_id',
+        'dependencia_id',
         'trabajador_id',
         'user_id',
         'modelo_id',
@@ -51,6 +52,11 @@ class Incidencia extends Model
     public function departamento()
     {
         return $this->belongsTo(Departamento::class);
+    }
+
+    public function dependencia()
+    {
+        return $this->belongsTo(Dependencia::class);
     }
 
     public function trabajador()

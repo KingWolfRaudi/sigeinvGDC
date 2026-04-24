@@ -68,7 +68,7 @@
 
 <h6 class="border-bottom pb-2 text-primary">2. Distribución y Asignación</h6>
 <div class="row mb-4">
-    <div class="col-md-3 mb-3">
+    <div class="col-md-4 mb-3">
         <label class="form-label">Departamento / Área <span class="text-danger">*</span></label>
         <div class="input-group">
             @if($creando_departamento)
@@ -87,7 +87,21 @@
         @error('departamento_id') <span class="text-danger small">{{ $message }}</span> @enderror
     </div>
 
-    <div class="col-md-3 mb-3">
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Dependencia (Opcional)</label>
+        <select class="form-select @error('dependencia_id') is-invalid @enderror" wire:model="dependencia_id" {{ empty($dependencias_disponibles) ? 'disabled' : '' }}>
+            <option value="">Seleccione una dependencia...</option>
+            @foreach($dependencias_disponibles as $depen)
+                <option value="{{ $depen->id }}">{{ $depen->nombre }}</option>
+            @endforeach
+        </select>
+        @if(empty($dependencias_disponibles) && $departamento_id)
+            <div class="form-text text-muted small"><i class="bi bi-info-circle"></i> Este departamento no tiene dependencias.</div>
+        @endif
+        @error('dependencia_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+    </div>
+
+    <div class="col-md-4 mb-3">
         <label class="form-label">Responsable / Trabajador</label>
         <div class="input-group">
             <select class="form-select @error('trabajador_id') is-invalid @enderror" wire:model="trabajador_id" @if(!$departamento_id) disabled @endif>
@@ -105,7 +119,7 @@
         @error('trabajador_id') <span class="text-danger small">{{ $message }}</span> @enderror
     </div>
 
-    <div class="col-md-3 mb-3">
+    <div class="col-md-6 mb-3">
         <label class="form-label">Dispositivo Asociado</label>
         <select class="form-select @error('dispositivo_id') is-invalid @enderror" wire:model="dispositivo_id" @if(!$departamento_id) disabled @endif>
             <option value="">Ninguno...</option>
@@ -116,7 +130,7 @@
         @error('dispositivo_id') <span class="text-danger small">{{ $message }}</span> @enderror
     </div>
 
-    <div class="col-md-3 mb-3">
+    <div class="col-md-6 mb-3">
         <label class="form-label">Computador Asociado</label>
         <select class="form-select @error('computador_id') is-invalid @enderror" wire:model="computador_id" @if(!$departamento_id) disabled @endif>
             <option value="">Ninguno...</option>

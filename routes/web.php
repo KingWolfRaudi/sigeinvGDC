@@ -15,6 +15,7 @@ use App\Livewire\Catalogos\Procesadores;
 use App\Livewire\Catalogos\Gpus;
 use App\Livewire\Asignaciones\Trabajadores;
 use App\Livewire\Asignaciones\Departamentos;
+use App\Livewire\Asignaciones\Dependencias;
 use App\Livewire\Inventario\Computadores;
 use App\Livewire\Inventario\Dispositivos;
 use App\Livewire\Movimientos\PanelComputadores;
@@ -71,6 +72,7 @@ Route::middleware('auth')->group(function () {
 
     // Asignaciones
     Route::get('/asignaciones/departamentos', Departamentos::class)->name('asignaciones.departamentos')->can('ver-departamentos');
+    Route::get('/asignaciones/dependencias', Dependencias::class)->name('asignaciones.dependencias')->can('ver-departamentos');
     Route::get('/asignaciones/trabajadores', Trabajadores::class)->name('asignaciones.trabajadores')->can('ver-trabajadores');
 
     // Módulos de Inventario

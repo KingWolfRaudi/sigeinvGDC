@@ -13,7 +13,12 @@
         </tr>
         <tr>
             <th>Departamento:</th>
-            <td>{{ $incidencia->departamento->nombre ?? 'Sin Departamento' }}</td>
+            <td>
+                {{ $incidencia->departamento->nombre ?? 'Sin Departamento' }}
+                @if($incidencia->dependencia)
+                    <br><span style="color: #666; font-size: 0.9em;">&#8627; {{ $incidencia->dependencia->nombre }}</span>
+                @endif
+            </td>
             <th>Estatus Final:</th>
             <td>
                 @if($incidencia->cerrado)

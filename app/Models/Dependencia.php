@@ -5,19 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
 use App\Traits\RecordSignature;
 
-class Trabajador extends Model
+class Dependencia extends Model
 {
     use HasFactory, SoftDeletes, RecordSignature;
 
-    protected $table = 'trabajadores';
+    protected $table = 'dependencias';
 
-    // 1. Agrega 'user_id' aquí:
     protected $fillable = [
-        'nombres', 'apellidos', 'cedula', 'cargo', 
-        'departamento_id', 'dependencia_id', 'user_id', 'activo'
+        'nombre',
+        'departamento_id',
+        'activo',
     ];
 
     protected $casts = [
@@ -29,14 +28,9 @@ class Trabajador extends Model
         return $this->belongsTo(Departamento::class);
     }
 
-    public function dependencia()
+    public function trabajadores()
     {
-        return $this->belongsTo(Dependencia::class);
-    }
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
+        return $this->hasMany(Trabajador::class);
     }
 
     public function computadores()
@@ -47,6 +41,11 @@ class Trabajador extends Model
     public function dispositivos()
     {
         return $this->hasMany(Dispositivo::class);
+    }
+
+    public function insumos()
+    {
+        return $this->hasMany(Insumo::class);
     }
 
     public function incidencias()

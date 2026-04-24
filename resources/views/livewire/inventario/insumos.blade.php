@@ -272,7 +272,12 @@
                         <div class="col-md-6 mb-4">
                             <h6 class="border-bottom pb-2 text-primary">Asociaciones</h6>
                             <ul class="list-unstyled mb-0">
-                                <li class="mb-1"><strong>Departamento:</strong> {{ $insumo_detalle->departamento->nombre ?? 'Sin asignar' }}</li>
+                                <li class="mb-1"><strong>Departamento:</strong> 
+                                    {{ $insumo_detalle->departamento->nombre ?? 'Sin asignar' }}
+                                    @if($insumo_detalle->dependencia)
+                                        <span class="text-muted"><br><i class="bi bi-arrow-return-right"></i> {{ $insumo_detalle->dependencia->nombre }}</span>
+                                    @endif
+                                </li>
                                 <li class="mb-1"><strong>Responsable:</strong> {{ $insumo_detalle->trabajador ? ($insumo_detalle->trabajador->nombres . ' ' . $insumo_detalle->trabajador->apellidos) : 'Sin asignar' }}</li>
                                 <li class="mb-1"><strong>Dispositivo:</strong> {{ $insumo_detalle->dispositivo->nombre ?? 'Sin asignar' }}</li>
                                 <li class="mb-1"><strong>Computador:</strong> {{ $insumo_detalle->computador->nombre_equipo ?? 'Sin asignar' }}</li>

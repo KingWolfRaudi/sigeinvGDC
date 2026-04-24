@@ -24,9 +24,14 @@
         </tr>
         <tr>
             <th>Departamento:</th>
-            <td>{{ $pc->departamento->nombre ?? 'N/A' }}</td>
+            <td>
+                {{ $pc->departamento->nombre ?? 'N/A' }}
+                @if($pc->dependencia)
+                    <br><span style="color: #666; font-size: 0.9em;">&#8627; {{ $pc->dependencia->nombre }}</span>
+                @endif
+            </td>
             <th>Custodio Actual:</th>
-            <td>{{ $pc->trabajador->nombre ?? 'Sin Asignar' }}</td>
+            <td>{{ $pc->trabajador ? ($pc->trabajador->nombres . ' ' . $pc->trabajador->apellidos) : 'Sin Asignar' }}</td>
         </tr>
         <tr>
             <th>Estado Físico:</th>

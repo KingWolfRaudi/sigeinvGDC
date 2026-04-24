@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Incidencia;
 use App\Models\Departamento;
+use App\Models\Dependencia;
 use App\Models\Trabajador;
 use App\Models\Problema;
 use App\Models\Configuracion;
@@ -34,7 +35,7 @@ class Gestion extends Component
 
     // Formulario de Creación/Edición
     public $incidencia_id;
-    public $departamento_id, $trabajador_id, $problema_id, $user_id; // user_id es el técnico
+    public $departamento_id, $dependencia_id, $trabajador_id, $problema_id, $user_id; // user_id es el técnico
     public $modelo_type, $modelo_id;
     public $descripcion, $nota_resolucion;
     public $solventado = false;
@@ -44,6 +45,7 @@ class Gestion extends Component
 
     // Listas dinámicas para el formulario
     public $trabajadores = [];
+    public $dependencias_disponibles = [];
     public $activos = [];
     public $tecnicos = [];
 
@@ -59,6 +61,14 @@ class Gestion extends Component
         // Aplicar filtros iniciales
         if (isset($this->presetFiltro['departamento_id'])) {
             $this->filtro_departamento = $this->presetFiltro['departamento_id'];
+        }
+
+        if (isset($this->presetFiltro['dependencia_id'])) {
+            // Si viene dependencia, forzamos la carga de trabajadores de ese depto
+            $depen = Dependencia::find($this->presetFiltro['dependencia_id']);
+            if ($depen) {
+                $this->filtro_departamento = $depen->departamento_id;
+            }
         }
 
         $this->tecnicos = $this->obtenerTecnicos();
@@ -80,9 +90,38 @@ class Gestion extends Component
     public function updatedDepartamentoId($value)
     {
         $this->trabajadores = Trabajador::where('departamento_id', $value)->where('activo', true)->get();
-        $this->trabajador_id = null;
-        $this->modelo_id = null;
-        $this->activos = [];
+        $this->dependencias_disponibles = !empty($value) 
+            ? Dependencia::where('departamento_id', $value)->where('activo', true)->get() 
+            : [];
+        
+        // IMPORTANTE: Solo resetear si los valores actuales no pertenecen al nuevo departamento
+        // Esto evita que la precarga automática sea borrada por el hook de actualización
+        if ($this->dependencia_id) {
+            $depActual = Dependencia::find($this->dependencia_id);
+            if (!$depActual || $depActual->departamento_id != $value) {
+                $this->dependencia_id = null;
+            }
+        }
+
+        if ($this->trabajador_id) {
+            $trabActual = Trabajador::find($this->trabajador_id);
+            if (!$trabActual || $trabActual->departamento_id != $value) {
+                $this->trabajador_id = null;
+            }
+        }
+
+        if ($this->modelo_id && in_array($this->modelo_type, [Computador::class, Dispositivo::class, Insumo::class])) {
+            $activoActual = $this->modelo_type::find($this->modelo_id);
+            if (!$activoActual || $activoActual->departamento_id != $value) {
+                $this->modelo_id = null;
+            }
+        }
+
+        $this->cargarActivos();
+    }
+
+    public function updatedDependenciaId($value)
+    {
         $this->cargarActivos();
     }
 
@@ -107,19 +146,79 @@ class Gestion extends Component
         $query = null;
         if ($this->modelo_type === Computador::class) {
             $query = Computador::where('departamento_id', $this->departamento_id);
+            if ($this->dependencia_id) $query->where('dependencia_id', $this->dependencia_id);
             if ($this->trabajador_id) $query->where('trabajador_id', $this->trabajador_id);
         } elseif ($this->modelo_type === Dispositivo::class) {
             $query = Dispositivo::where('departamento_id', $this->departamento_id);
+            if ($this->dependencia_id) $query->where('dependencia_id', $this->dependencia_id);
             if ($this->trabajador_id) $query->where('trabajador_id', $this->trabajador_id);
         } elseif ($this->modelo_type === Insumo::class) {
-            // Los insumos no suelen tener trabajador_id directo, así que mostramos los del depto o todos si no hay relación clara
-            $query = Insumo::query(); // Ajustar si Insumo tuviera depto_id
+            $query = Insumo::where('departamento_id', $this->departamento_id);
+            if ($this->dependencia_id) $query->where('dependencia_id', $this->dependencia_id);
+            if ($this->trabajador_id) $query->where('trabajador_id', $this->trabajador_id);
         }
 
         $this->activos = $query ? $query->where('activo', true)->get() : [];
     }
 
     // --- CRUD ---
+
+    public function crear()
+    {
+        $this->resetForm();
+
+        if (!empty($this->presetFiltro)) {
+            // Extraer IDs básicos primero
+            if (isset($this->presetFiltro['departamento_id'])) {
+                $this->departamento_id = (string) $this->presetFiltro['departamento_id'];
+            }
+            
+            if (isset($this->presetFiltro['dependencia_id'])) {
+                $this->dependencia_id = (string) $this->presetFiltro['dependencia_id'];
+                // Si no tenemos depto, lo buscamos desde la dependencia
+                if (!$this->departamento_id) {
+                    $dep = Dependencia::find($this->dependencia_id);
+                    if ($dep) $this->departamento_id = (string) $dep->departamento_id;
+                }
+            }
+
+            if (isset($this->presetFiltro['trabajador_id'])) {
+                $this->trabajador_id = (string) $this->presetFiltro['trabajador_id'];
+                // Inferir depto/dependencia si faltan
+                if (!$this->departamento_id || !$this->dependencia_id) {
+                    $trab = Trabajador::find($this->trabajador_id);
+                    if ($trab) {
+                        if (!$this->departamento_id) $this->departamento_id = (string) $trab->departamento_id;
+                        if (!$this->dependencia_id) $this->dependencia_id = (string) $trab->dependencia_id;
+                    }
+                }
+            }
+
+            if (isset($this->presetFiltro['modelo_type'], $this->presetFiltro['modelo_id'])) {
+                $this->modelo_type = $this->presetFiltro['modelo_type'];
+                $this->modelo_id = (string) $this->presetFiltro['modelo_id'];
+                
+                // Inferir ubicación desde el activo
+                if (!$this->departamento_id) {
+                    $mod = $this->modelo_type::find($this->modelo_id);
+                    if ($mod) {
+                        $this->departamento_id = (string) ($mod->departamento_id ?? '');
+                        if (!$this->dependencia_id) $this->dependencia_id = (string) ($mod->dependencia_id ?? '');
+                        if (!$this->trabajador_id) $this->trabajador_id = (string) ($mod->trabajador_id ?? '');
+                    }
+                }
+            }
+
+            // Cargar listas dinámicas basadas en la ubicación final
+            if ($this->departamento_id) {
+                $this->dependencias_disponibles = Dependencia::where('departamento_id', $this->departamento_id)->where('activo', true)->get();
+                $this->trabajadores = Trabajador::where('departamento_id', $this->departamento_id)->where('activo', true)->get();
+                $this->cargarActivos();
+            }
+        }
+
+        $this->dispatch('abrir-modal', id: 'modalIncidencia');
+    }
 
     public function guardar()
     {
@@ -160,6 +259,7 @@ class Gestion extends Component
             [
                 'problema_id' => $this->problema_id,
                 'departamento_id' => $this->departamento_id,
+                'dependencia_id' => $this->dependencia_id ?: null,
                 'trabajador_id' => $this->trabajador_id ?: null,
                 'user_id' => $this->user_id ?: null,
                 'modelo_type' => $this->modelo_type ?: null,
@@ -216,6 +316,7 @@ class Gestion extends Component
         $this->incidencia_id = $inc->id;
         $this->problema_id = $inc->problema_id;
         $this->departamento_id = $inc->departamento_id;
+        $this->dependencia_id = $inc->dependencia_id;
         $this->trabajador_id = $inc->trabajador_id;
         $this->user_id = $inc->user_id;
         $this->modelo_type = $inc->modelo_type;
@@ -228,6 +329,11 @@ class Gestion extends Component
 
         // Cargar listas dependientes
         $this->trabajadores = Trabajador::where('departamento_id', $this->departamento_id)->get();
+        if ($this->departamento_id) {
+            $this->dependencias_disponibles = Dependencia::where('departamento_id', $this->departamento_id)->where('activo', true)->get();
+        } else {
+            $this->dependencias_disponibles = [];
+        }
         $this->cargarActivos();
 
         $this->dispatch('abrir-modal', id: 'modalIncidencia');
@@ -236,9 +342,9 @@ class Gestion extends Component
     public function resetForm()
     {
         $this->reset([
-            'incidencia_id', 'departamento_id', 'trabajador_id', 'problema_id', 
+            'incidencia_id', 'departamento_id', 'dependencia_id', 'trabajador_id', 'problema_id', 
             'user_id', 'modelo_type', 'modelo_id', 'descripcion', 'nota_resolucion', 
-            'solventado', 'cerrado', 'amerita_movimiento', 'trabajadores', 'activos', 'es_lectura'
+            'solventado', 'cerrado', 'amerita_movimiento', 'trabajadores', 'dependencias_disponibles', 'activos', 'es_lectura'
         ]);
     }
 
@@ -258,7 +364,7 @@ class Gestion extends Component
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        $incidencias = Incidencia::with(['problema.especialidad', 'departamento', 'trabajador', 'tecnico', 'modelo', 'creator'])
+        $incidencias = Incidencia::with(['problema.especialidad', 'departamento', 'dependencia', 'trabajador', 'tecnico', 'modelo', 'creator'])
             ->where(function($query) {
                 $query->where('descripcion', 'like', '%' . $this->search . '%')
                       ->orWhereHas('trabajador', function($q) {
@@ -319,6 +425,9 @@ class Gestion extends Component
         // Filtros de Preset (Asociaciones)
         if (isset($this->presetFiltro['trabajador_id'])) {
             $incidencias->where('trabajador_id', $this->presetFiltro['trabajador_id']);
+        }
+        if (isset($this->presetFiltro['dependencia_id'])) {
+            $incidencias->where('dependencia_id', $this->presetFiltro['dependencia_id']);
         }
         if (isset($this->presetFiltro['modelo_type']) && isset($this->presetFiltro['modelo_id'])) {
             $incidencias->where('modelo_type', $this->presetFiltro['modelo_type'])

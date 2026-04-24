@@ -21,11 +21,11 @@
     <div class="card shadow-sm border-0">
         <div class="card-header bg-body border-bottom-0 pb-0 pt-3">
             <ul class="nav nav-tabs card-header-tabs" id="asociacionesTabs" role="tablist">
-                <!-- Pestaña de Trabajadores (Solo para Departamentos, Marcas, Computadores o Dispositivos) -->
-                @if(in_array($tipo, ['departamento', 'marca', 'computador', 'dispositivo', 'insumo']))
+                <!-- Pestaña de Trabajadores (Solo para Departamentos, Dependencias, Marcas, Computadores o Dispositivos) -->
+                @if(in_array($tipo, ['departamento', 'dependencia', 'marca', 'computador', 'dispositivo', 'insumo']))
                 @can('ver-trabajadores')
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link @if(in_array($tipo, ['departamento', 'computador', 'dispositivo', 'insumo'])) active @endif" id="trabajadores-tab" data-bs-toggle="tab" data-bs-target="#trabajadores" type="button" role="tab" aria-controls="trabajadores" aria-selected="true">
+                    <button class="nav-link @if(in_array($tipo, ['departamento', 'dependencia', 'computador', 'dispositivo', 'insumo'])) active @endif" id="trabajadores-tab" data-bs-toggle="tab" data-bs-target="#trabajadores" type="button" role="tab" aria-controls="trabajadores" aria-selected="true">
                         @if($tipo == 'computador' || $tipo == 'dispositivo' || $tipo == 'insumo')
                             <i class="bi bi-people-fill"></i> Responsable y Ubicación
                         @else
@@ -37,18 +37,18 @@
                 @endif
 
                 <!-- Pestaña de Computadores (Casi todos) -->
-                @if(in_array($tipo, ['departamento', 'trabajador', 'procesador', 'gpu', 'so', 'marca', 'dispositivo']))
+                @if(in_array($tipo, ['departamento', 'dependencia', 'trabajador', 'procesador', 'gpu', 'so', 'marca', 'dispositivo']))
                 @can('ver-computadores')
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link @if($tipo != 'departamento' && $tipo != 'dispositivo') active @endif" id="computadores-tab" data-bs-toggle="tab" data-bs-target="#computadores" type="button" role="tab" aria-controls="computadores" aria-selected="false">
+                    <button class="nav-link @if($tipo != 'departamento' && $tipo != 'dependencia' && $tipo != 'dispositivo') active @endif" id="computadores-tab" data-bs-toggle="tab" data-bs-target="#computadores" type="button" role="tab" aria-controls="computadores" aria-selected="false">
                         <i class="bi bi-pc-display"></i> @if($tipo == 'dispositivo') Computador Asociado @else Computadores @endif
                     </button>
                 </li>
                 @endcan
                 @endif
 
-                <!-- Pestaña de Dispositivos (Departamentos, Trabajadores, Marcas, Insumos, Computadores) -->
-                @if(in_array($tipo, ['departamento', 'trabajador', 'marca', 'insumo', 'computador']))
+                <!-- Pestaña de Dispositivos (Departamentos, Dependencias, Trabajadores, Marcas, Insumos, Computadores) -->
+                @if(in_array($tipo, ['departamento', 'dependencia', 'trabajador', 'marca', 'insumo', 'computador']))
                 @can('ver-dispositivos')
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="dispositivos-tab" data-bs-toggle="tab" data-bs-target="#dispositivos" type="button" role="tab" aria-controls="dispositivos" aria-selected="false">
@@ -59,7 +59,7 @@
                 @endif
                 
                 <!-- Pestaña de Insumos -->
-                @if(in_array($tipo, ['marca', 'departamento', 'trabajador', 'dispositivo', 'computador']))
+                @if(in_array($tipo, ['marca', 'departamento', 'dependencia', 'trabajador', 'dispositivo', 'computador']))
                 @can('ver-insumos')
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="insumos-tab" data-bs-toggle="tab" data-bs-target="#insumos" type="button" role="tab" aria-controls="insumos" aria-selected="false">
@@ -82,8 +82,8 @@
         <div class="card-body bg-body-secondary p-4">
             <div class="tab-content" id="asociacionesTabsContent">
                 
-                @if(in_array($tipo, ['departamento', 'marca', 'computador', 'dispositivo', 'insumo']))
-                <div class="tab-pane fade @if(in_array($tipo, ['departamento', 'computador', 'dispositivo', 'insumo'])) show active @endif" id="trabajadores" role="tabpanel" aria-labelledby="trabajadores-tab">
+                @if(in_array($tipo, ['departamento', 'dependencia', 'marca', 'computador', 'dispositivo', 'insumo']))
+                <div class="tab-pane fade @if(in_array($tipo, ['departamento', 'dependencia', 'computador', 'dispositivo', 'insumo'])) show active @endif" id="trabajadores" role="tabpanel" aria-labelledby="trabajadores-tab">
                     @php
                         $filtroTrabajador = [];
                         if($tipo == 'computador' || $tipo == 'dispositivo' || $tipo == 'insumo') {
@@ -113,8 +113,8 @@
                 </div>
                 @endif
 
-                @if(in_array($tipo, ['departamento', 'trabajador', 'procesador', 'gpu', 'so', 'marca', 'dispositivo']))
-                <div class="tab-pane fade @if($tipo != 'departamento' && $tipo != 'dispositivo') show active @endif" id="computadores" role="tabpanel" aria-labelledby="computadores-tab">
+                @if(in_array($tipo, ['departamento', 'dependencia', 'trabajador', 'procesador', 'gpu', 'so', 'marca', 'dispositivo']))
+                <div class="tab-pane fade @if($tipo != 'departamento' && $tipo != 'dependencia' && $tipo != 'dispositivo') show active @endif" id="computadores" role="tabpanel" aria-labelledby="computadores-tab">
                     @php
                         $filtroComputador = [];
                         if($tipo == 'so') $filtroComputador = ['sistema_operativo_id' => $modelo_id];
@@ -125,7 +125,7 @@
                 </div>
                 @endif
 
-                @if(in_array($tipo, ['departamento', 'trabajador', 'marca', 'insumo', 'computador']))
+                @if(in_array($tipo, ['departamento', 'dependencia', 'trabajador', 'marca', 'insumo', 'computador']))
                 <div class="tab-pane fade" id="dispositivos" role="tabpanel" aria-labelledby="dispositivos-tab">
                     @if($tipo == 'insumo')
                         <div class="mb-4">
@@ -151,7 +151,7 @@
                 </div>
                 @endif
                 
-                @if(in_array($tipo, ['marca', 'departamento', 'trabajador', 'dispositivo', 'computador']))
+                @if(in_array($tipo, ['marca', 'departamento', 'dependencia', 'trabajador', 'dispositivo', 'computador']))
                 <div class="tab-pane fade" id="insumos" role="tabpanel" aria-labelledby="insumos-tab">
                     <livewire:inventario.insumos :presetFiltro="[$tipo.'_id' => $modelo_id]" :ocultarTitulos="true" :key="'insumos-'.$tipo.'-'.$modelo_id" />
                 </div>

@@ -13,6 +13,7 @@ use App\Models\TipoDispositivo;
 use App\Models\Trabajador;
 use App\Models\Puerto;
 use App\Models\Departamento;
+use App\Models\Dependencia;
 use App\Models\Computador;
 use App\Models\MovimientoDispositivo;
 
@@ -23,7 +24,8 @@ class Dispositivos extends Component
 
     // Campos principales
     public $dispositivo_id, $bien_nacional, $serial, $tipo_dispositivo_id, $marca_id;
-    public $nombre, $ip, $estado = 'operativo', $departamento_id, $trabajador_id;
+    public $nombre, $ip, $estado = 'operativo', $departamento_id, $dependencia_id, $trabajador_id;
+    public $dependencias_disponibles = [];
     public $computador_id, $notas;
     public bool $activo = true;
 
@@ -74,17 +76,22 @@ class Dispositivos extends Component
         $this->ocultarTitulos = $ocultarTitulos;
     }
 
-    // Este método se ejecuta AUTOMÁTICAMENTE cuando $departamento_id cambia en la vista
     public function updatedDepartamentoId($value)
     {
         $this->trabajador_id = null; // Reseteamos al trabajador para forzar la actualización
+        $this->dependencia_id = null;
+        if (!empty($value)) {
+            $this->dependencias_disponibles = Dependencia::where('departamento_id', $value)->where('activo', true)->get();
+        } else {
+            $this->dependencias_disponibles = [];
+        }
     }
     
     public function render()
     {
         // 1. Iniciamos la consulta base
         $userId = Auth::id();
-        $query = Dispositivo::with(['marca', 'tipoDispositivo', 'trabajador', 'departamento'])
+        $query = Dispositivo::with(['marca', 'tipoDispositivo', 'trabajador', 'departamento', 'dependencia'])
             ->withCount([
                 'movimientos as pendientes_count'    => fn($q) => $q->where('estado_workflow', 'pendiente'),
                 'movimientos as mis_borradores_count' => fn($q) => $q->where('estado_workflow', 'borrador')->where('solicitante_id', $userId),
@@ -189,7 +196,8 @@ class Dispositivos extends Component
             'ip'             => 'nullable|ipv4',
             'estado'         => 'required|string',
             'nombre'         => 'required|string',
-            'departamento_id'=> 'required_without:nuevo_departamento'
+            'departamento_id'=> 'required_without:nuevo_departamento',
+            'dependencia_id' => 'nullable|exists:dependencias,id'
         ];
         if ($esEdicion) {
             $rules['justificacion'] = 'required|string|min:10';
@@ -219,6 +227,7 @@ class Dispositivos extends Component
                 'ip'                  => $this->ip,
                 'estado'              => $this->estado,
                 'departamento_id'     => $this->departamento_id,
+                'dependencia_id'      => $this->dependencia_id ?: null,
                 'trabajador_id'       => $this->trabajador_id ?: null,
                 'computador_id'       => $this->computador_id ?: null,
                 'notas'               => $this->notas,
@@ -245,6 +254,7 @@ class Dispositivos extends Component
                 'tipo_dispositivo_id' => $this->tipo_dispositivo_id, 'marca_id'        => $this->marca_id,
                 'nombre'              => $this->nombre,              'ip'              => $this->ip,
                 'estado'              => $this->estado,              'departamento_id' => $this->departamento_id,
+                'dependencia_id'      => $this->dependencia_id ?: null,
                 'trabajador_id'       => $this->trabajador_id ?: null, 'computador_id' => $this->computador_id ?: null,
                 'notas'               => $this->notas,              'activo'          => $this->activo,
                 'puertos'             => $this->puertos_seleccionados,
@@ -325,10 +335,15 @@ class Dispositivos extends Component
         $this->ip = $dispositivo->ip;
         $this->estado = $dispositivo->estado;
         $this->departamento_id = $dispositivo->departamento_id;
+        $this->dependencia_id = $dispositivo->dependencia_id;
         $this->trabajador_id = $dispositivo->trabajador_id;
         $this->computador_id = $dispositivo->computador_id;
         $this->notas = $dispositivo->notas;
         $this->activo = (bool) $dispositivo->activo; 
+
+        if ($this->departamento_id) {
+            $this->dependencias_disponibles = Dependencia::where('departamento_id', $this->departamento_id)->where('activo', true)->get();
+        }
 
         // Recuperar Puertos
         $this->puertos_seleccionados = $dispositivo->puertos->pluck('id')->toArray();
@@ -492,7 +507,7 @@ class Dispositivos extends Component
     {
         $this->reset([
             'dispositivo_id', 'bien_nacional', 'serial', 'tipo_dispositivo_id', 'marca_id', 
-            'nombre', 'ip', 'estado', 'departamento_id', 'trabajador_id', 'computador_id', 
+            'nombre', 'ip', 'estado', 'departamento_id', 'dependencia_id', 'dependencias_disponibles', 'trabajador_id', 'computador_id', 
             'notas', 'dispositivo_detalle', 'nueva_marca', 'nuevo_tipo', 'nuevo_departamento', 'justificacion'
         ]);
         $this->creando_marca = false;

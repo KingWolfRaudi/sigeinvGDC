@@ -30,6 +30,11 @@ class AsociacionesDashboard extends Component
                 $this->modelo = Departamento::findOrFail($id);
                 $this->titulo = 'Departamento: ' . $this->modelo->nombre;
                 break;
+            case 'dependencia':
+                $this->modelo = \App\Models\Dependencia::with('departamento')->findOrFail($id);
+                $this->titulo = 'Dependencia: ' . $this->modelo->nombre;
+                $this->subtitulo = 'Perteneciente a: ' . ($this->modelo->departamento->nombre ?? 'N/A');
+                break;
             case 'trabajador':
                 $this->modelo = Trabajador::with('departamento')->findOrFail($id);
                 $this->titulo = 'Trabajador: ' . $this->modelo->nombres . ' ' . $this->modelo->apellidos;

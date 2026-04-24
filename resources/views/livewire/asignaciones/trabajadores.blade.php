@@ -102,7 +102,12 @@
                                 <td>{{ $trabajador->cedula }}</td>
                                 <td>{{ $trabajador->nombres }} {{ $trabajador->apellidos }}</td>
                                 <td>{{ $trabajador->cargo ?? 'N/A' }}</td>
-                                <td>{{ $trabajador->departamento->nombre ?? 'Sin Asignar' }}</td>
+                                <td>
+                                    {{ $trabajador->departamento->nombre ?? 'Sin Asignar' }}
+                                    @if($trabajador->dependencia)
+                                        <br><small class="text-muted"><i class="bi bi-arrow-return-right"></i> {{ $trabajador->dependencia->nombre }}</small>
+                                    @endif
+                                </td>
                                 <td>
                                     @if($trabajador->activo)
                                         <span class="badge bg-success">Activo</span>
@@ -214,6 +219,20 @@
                             </div>
 
                             <div class="col-md-12 mt-3">
+                                <label class="form-label">Dependencia (Opcional)</label>
+                                <select class="form-select @error('dependencia_id') is-invalid @enderror" wire:model="dependencia_id" {{ empty($dependencias_disponibles) ? 'disabled' : '' }}>
+                                    <option value="">Seleccione una dependencia...</option>
+                                    @foreach($dependencias_disponibles as $depen)
+                                        <option value="{{ $depen->id }}">{{ $depen->nombre }}</option>
+                                    @endforeach
+                                </select>
+                                @if(empty($dependencias_disponibles) && $departamento_id)
+                                    <div class="form-text text-muted small"><i class="bi bi-info-circle"></i> Este departamento no tiene dependencias registradas.</div>
+                                @endif
+                                @error('dependencia_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                            </div>
+
+                            <div class="col-md-12 mt-3">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="activo" wire:model="activo">
                                     <label class="form-check-label" for="activo">Trabajador Activo</label>
@@ -247,7 +266,13 @@
                             <li class="list-group-item"><strong>Nombres:</strong> {{ $trabajador_detalle->nombres }}</li>
                             <li class="list-group-item"><strong>Apellidos:</strong> {{ $trabajador_detalle->apellidos }}</li>
                             <li class="list-group-item"><strong>Cargo:</strong> {{ $trabajador_detalle->cargo ?? 'No especificado' }}</li>
-                            <li class="list-group-item"><strong>Departamento:</strong> {{ $trabajador_detalle->departamento->nombre ?? 'Sin Asignar' }}</li>
+                            <li class="list-group-item">
+                                <strong>Ubicación:</strong> 
+                                {{ $trabajador_detalle->departamento->nombre ?? 'Sin Asignar' }}
+                                @if($trabajador_detalle->dependencia)
+                                    <br><span class="ms-3 text-muted"><i class="bi bi-arrow-return-right"></i> {{ $trabajador_detalle->dependencia->nombre }}</span>
+                                @endif
+                            </li>
                             <li class="list-group-item">
                                 <strong>Estado:</strong> 
                                 @if($trabajador_detalle->activo)

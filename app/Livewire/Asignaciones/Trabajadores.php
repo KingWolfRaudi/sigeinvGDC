@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Trabajador;
 use App\Models\Departamento;
+use App\Models\Dependencia;
 
 class Trabajadores extends Component
 {
@@ -21,7 +22,8 @@ class Trabajadores extends Component
     public $filtro_estado = 'todos';
 
     // Variables de formulario
-    public $trabajador_id, $nombres, $apellidos, $cedula, $cargo, $departamento_id;
+    public $trabajador_id, $nombres, $apellidos, $cedula, $cargo, $departamento_id, $dependencia_id;
+    public $dependencias_disponibles = [];
     public $activo = true;
     
     // Variables de Anidación
@@ -57,7 +59,7 @@ class Trabajadores extends Component
     public function render()
     {
         // 1. Iniciamos la consulta base con la relación
-        $query = Trabajador::with('departamento');
+        $query = Trabajador::with('departamento', 'dependencia');
 
         // 2. LÓGICA DE ESTADOS Y VISIBILIDAD (Data Scoping)
         if (\Illuminate\Support\Facades\Gate::allows('ver-estado-trabajadores')) {
@@ -136,7 +138,22 @@ class Trabajadores extends Component
         $this->cedula = $trabajador->cedula;
         $this->cargo = $trabajador->cargo;
         $this->departamento_id = $trabajador->departamento_id;
+        $this->dependencia_id = $trabajador->dependencia_id;
         $this->activo = $trabajador->activo;
+        
+        if ($this->departamento_id) {
+            $this->dependencias_disponibles = Dependencia::where('departamento_id', $this->departamento_id)->where('activo', true)->get();
+        }
+    }
+
+    public function updatedDepartamentoId($value)
+    {
+        $this->dependencia_id = null;
+        if (!empty($value)) {
+            $this->dependencias_disponibles = Dependencia::where('departamento_id', $value)->where('activo', true)->get();
+        } else {
+            $this->dependencias_disponibles = [];
+        }
     }
 
     public function guardarDepartamento()
@@ -167,6 +184,7 @@ class Trabajadores extends Component
             'cedula' => 'nullable|string|unique:trabajadores,cedula,' . $this->trabajador_id,
             
             'departamento_id' => 'required|exists:departamentos,id',
+            'dependencia_id' => 'nullable|exists:dependencias,id',
         ]);
 
         // Ya NO forzamos strtoupper() en los datos personales
@@ -178,6 +196,7 @@ class Trabajadores extends Component
                 'cedula' => $this->cedula,
                 'cargo' => $this->cargo,
                 'departamento_id' => $this->departamento_id,
+                'dependencia_id' => $this->dependencia_id ?: null,
                 'activo' => $this->activo,
             ]
         );
@@ -205,7 +224,7 @@ class Trabajadores extends Component
 
     public function resetCampos()
     {
-        $this->reset(['trabajador_id', 'nombres', 'apellidos', 'cedula', 'cargo', 'departamento_id', 'nuevo_departamento', 'creando_departamento', 'trabajador_detalle']);
+        $this->reset(['trabajador_id', 'nombres', 'apellidos', 'cedula', 'cargo', 'departamento_id', 'dependencia_id', 'dependencias_disponibles', 'nuevo_departamento', 'creando_departamento', 'trabajador_detalle']);
         $this->activo = true;
         $this->resetValidation();
     }

@@ -35,8 +35,8 @@ class CatalogosExport implements FromCollection, WithHeadings, WithMapping, With
             $query->with('marca');
         }
         
-        // Si es Trabajador, cargar departamento
-        if (class_basename($this->modelClass) === 'Trabajador') {
+        // Si es Trabajador o Dependencia, cargar departamento
+        if (in_array(class_basename($this->modelClass), ['Trabajador', 'Dependencia'])) {
             $query->with('departamento');
         }
 
@@ -71,6 +71,9 @@ class CatalogosExport implements FromCollection, WithHeadings, WithMapping, With
         if ($base === 'Trabajador') {
             return ['ID', 'Nombres', 'Apellidos', 'Cédula', 'Cargo', 'Departamento', 'Estatus', 'Creado Por', 'Modificado Por', 'Fecha Reg.', 'Última Modif.'];
         }
+        if ($base === 'Dependencia') {
+            return ['ID', 'Nombre / Identificador', 'Departamento Padre', 'Estatus', 'Creado Por', 'Modificado Por', 'Fecha Registro', 'Última Modif.'];
+        }
         if (in_array($base, ['Procesador', 'Gpu'])) {
             return ['ID', 'Modelo', 'Marca', 'Estatus', 'Creado Por', 'Modificado Por', 'Fecha Reg.', 'Última Modif.'];
         }
@@ -96,6 +99,19 @@ class CatalogosExport implements FromCollection, WithHeadings, WithMapping, With
                 $item->apellidos,
                 $item->cedula ?? 'N/A',
                 $item->cargo ?? 'N/A',
+                $item->departamento->nombre ?? 'N/A',
+                $item->activo ? 'ACTIVO' : 'INACTIVO',
+                $item->creator->name ?? 'Sistema',
+                $item->updater->name ?? 'N/A',
+                $item->created_at->format('d/m/Y H:i'),
+                $item->updated_at->format('d/m/Y H:i'),
+            ];
+        }
+
+        if ($base === 'Dependencia') {
+            return [
+                $item->id,
+                $item->nombre ?? 'N/A',
                 $item->departamento->nombre ?? 'N/A',
                 $item->activo ? 'ACTIVO' : 'INACTIVO',
                 $item->creator->name ?? 'Sistema',

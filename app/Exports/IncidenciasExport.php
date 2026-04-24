@@ -24,7 +24,7 @@ class IncidenciasExport implements FromCollection, WithHeadings, WithMapping, Wi
 
     public function collection()
     {
-        $query = Incidencia::with(['trabajador', 'tecnico', 'problema', 'departamento', 'modelo', 'activities.causer']);
+        $query = Incidencia::with(['trabajador', 'tecnico', 'problema', 'departamento', 'dependencia', 'modelo', 'activities.causer']);
 
         if (!empty($this->filters['search'])) {
             $search = $this->filters['search'];
@@ -54,6 +54,7 @@ class IncidenciasExport implements FromCollection, WithHeadings, WithMapping, Wi
             'Folio',
             'Fecha Reporte',
             'Departamento',
+            'Dependencia',
             'Solicitante (Trabajador)',
             'Tipo de Problema',
             'Activo Relacionado',
@@ -92,6 +93,7 @@ class IncidenciasExport implements FromCollection, WithHeadings, WithMapping, Wi
             '#' . str_pad($item->id, 5, '0', STR_PAD_LEFT),
             $item->created_at->format('d/m/Y H:i'),
             $item->departamento->nombre ?? 'N/A',
+            $item->dependencia->nombre ?? 'N/A',
             ($item->trabajador->nombres ?? '') . ' ' . ($item->trabajador->apellidos ?? ''),
             $item->problema->nombre ?? 'N/A',
             $activo,

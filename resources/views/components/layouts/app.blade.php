@@ -167,6 +167,11 @@
                                     <i class="bi bi-building me-2"></i> Departamentos
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a href="{{ route('asignaciones.dependencias') }}" class="nav-link {{ request()->routeIs('asignaciones.dependencias') ? 'text-white' : 'text-white-50' }} px-3 py-1 text-sm d-flex align-items-center">
+                                    <i class="bi bi-diagram-2 me-2"></i> Dependencias
+                                </a>
+                            </li>
                             @endcan
                         </ul>
                     </div>

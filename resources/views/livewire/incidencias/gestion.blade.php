@@ -40,7 +40,7 @@
                         </ul>
                     </div>
                     @can('crear-ticket')
-                    <button type="button" class="btn btn-primary shadow-sm fw-bold px-4" wire:click="resetForm" data-bs-toggle="modal" data-bs-target="#modalIncidencia">
+                    <button type="button" class="btn btn-primary shadow-sm fw-bold px-4" wire:click="crear">
                         <i class="bi bi-plus-lg me-1"></i> Nueva Incidencia
                     </button>
                     @endcan
@@ -56,6 +56,7 @@
                     </div>
                 </div>
                 
+                @if(!$ocultarTitulos)
                 <div class="col-md-2">
                     <select class="form-select shadow-sm border-2" wire:model.live="filtro_departamento">
                         <option value="">Todos los Departamentos</option>
@@ -64,6 +65,7 @@
                         @endforeach
                     </select>
                 </div>
+                @endif
 
                 <div class="col-md-2">
                     <select class="form-select shadow-sm border-2" wire:model.live="filtro_problema">
@@ -140,7 +142,12 @@
                                         @else
                                             <span class="fw-bold text-body">{{ $inc->creator->name ?? 'Usuario Sistema' }} <span class="badge bg-secondary ms-1 py-0 px-1" style="font-size: 0.65rem;">Externo</span></span>
                                         @endif
-                                        <small class="text-muted">{{ $inc->departamento->nombre ?? 'Sin Departamento' }}</small>
+                                        <small class="text-muted">
+                                            {{ $inc->departamento->nombre ?? 'Sin Departamento' }}
+                                            @if($inc->dependencia)
+                                                <br><i class="bi bi-arrow-return-right"></i> {{ $inc->dependencia->nombre }}
+                                            @endif
+                                        </small>
                                     </div>
                                 </td>
                                 <td>
@@ -270,9 +277,9 @@
                             <!-- Sección 1: Responsable y Ubicación -->
                             <div class="col-12"><h6 class="text-uppercase text-muted fw-bold small border-bottom pb-2">1. Ubicación y Solicitante</h6></div>
                             
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label fw-bold">Departamento <span class="text-danger">*</span></label>
-                                <select class="form-select @error('departamento_id') is-invalid @enderror" wire:model.live="departamento_id" @disabled($es_lectura)>
+                                <select class="form-select @error('departamento_id') is-invalid @enderror" wire:model.live="departamento_id" @disabled($es_lectura) wire:key="select-depto-modal">
                                     <option value="">Seleccione...</option>
                                     @foreach($departamentos as $depto)
                                         <option value="{{ $depto->id }}">{{ $depto->nombre }}</option>
@@ -281,7 +288,18 @@
                                 @error('departamento_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Dependencia <span class="text-muted fw-normal small">(Opcional)</span></label>
+                                <select class="form-select @error('dependencia_id') is-invalid @enderror" wire:model.live="dependencia_id" {{ count($dependencias_disponibles) == 0 || $es_lectura ? 'disabled' : '' }} wire:key="select-depen-modal-{{ $departamento_id }}">
+                                    <option value="">Seleccione...</option>
+                                    @foreach($dependencias_disponibles as $depen)
+                                        <option value="{{ $depen->id }}">{{ $depen->nombre }}</option>
+                                    @endforeach
+                                </select>
+                                @error('dependencia_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                            </div>
+
+                            <div class="col-md-4">
                                 <label class="form-label fw-bold">Solicitado por (Trabajador)</label>
                                 <select class="form-select" wire:model.live="trabajador_id" @disabled(!$departamento_id || $es_lectura)>
                                     <option value="">Seleccione...</option>
@@ -289,7 +307,7 @@
                                         <option value="{{ $trab->id }}">{{ $trab->nombres }} {{ $trab->apellidos }}</option>
                                     @endforeach
                                 </select>
-                                <small class="text-muted">Filtrado por departamento seleccionado.</small>
+                                <small class="text-muted">Filtrado por departamento.</small>
                             </div>
 
                             <!-- Sección 2: El Activo (Polimórfico) -->
@@ -297,7 +315,7 @@
                             
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Tipo de Activo @if($activo_obligatorio) <span class="text-danger">*</span> @endif</label>
-                                <select class="form-select @error('modelo_type') is-invalid @enderror" wire:model.live="modelo_type" @disabled(!$departamento_id || $es_lectura)>
+                                <select class="form-select @error('modelo_type') is-invalid @enderror" wire:model.live="modelo_type" @disabled(!$departamento_id || $es_lectura) wire:key="select-tipo-activo-modal">
                                     <option value="">Ninguno / No Aplica</option>
                                     <option value="App\Models\Computador">Computador</option>
                                     <option value="App\Models\Dispositivo">Dispositivo Especial</option>
@@ -308,7 +326,7 @@
 
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Elegir Activo @if($activo_obligatorio) <span class="text-danger">*</span> @endif</label>
-                                <select class="form-select @error('modelo_id') is-invalid @enderror" wire:model.live="modelo_id" @disabled(count($activos) == 0 || $es_lectura)>
+                                <select class="form-select @error('modelo_id') is-invalid @enderror" wire:model.live="modelo_id" @disabled(count($activos) == 0 || $es_lectura) wire:key="select-activo-especifico-modal-{{ $modelo_type }}-{{ $departamento_id }}-{{ $dependencia_id }}">
                                     <option value="">Seleccione...</option>
                                     @foreach($activos as $act)
                                         <option value="{{ $act->id }}">

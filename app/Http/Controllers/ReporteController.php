@@ -159,6 +159,7 @@ class ReporteController extends Controller
             'marcas' => [\App\Models\Marca::class, 'Marcas'],
             'tipos' => [\App\Models\TipoDispositivo::class, 'Tipos_Dispositivos'],
             'departamentos' => [\App\Models\Departamento::class, 'Departamentos'],
+            'dependencias' => [\App\Models\Dependencia::class, 'Dependencias'],
             'trabajadores' => [\App\Models\Trabajador::class, 'Trabajadores'],
             'procesadores' => [\App\Models\Procesador::class, 'Procesadores'],
             'gpus' => [\App\Models\Gpu::class, 'GPUs'],
