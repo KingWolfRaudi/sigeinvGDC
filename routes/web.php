@@ -105,6 +105,14 @@ Route::middleware('auth')->group(function () {
 
     // Ruta simple para cerrar sesión
     Route::post('/logout', function () {
+        $user = Auth::user();
+        if ($user) {
+            activity()
+                ->causedBy($user)
+                ->withProperties(['ip' => request()->ip()])
+                ->log('Cierre de sesión');
+        }
+
         Auth::logout();
         session()->invalidate();
         session()->regenerateToken();

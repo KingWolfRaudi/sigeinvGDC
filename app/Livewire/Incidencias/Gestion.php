@@ -53,11 +53,18 @@ class Gestion extends Component
     // Propiedades de configuración
     public $cierre_irreversible = false;
     public $activo_obligatorio = false;
+    public $dashboard_tecnico_ver_global = false;
 
     public function mount($presetFiltro = [], $ocultarTitulos = false)
     {
         $this->presetFiltro = $presetFiltro;
         $this->ocultarTitulos = $ocultarTitulos;
+
+        // Auto-abrir edición si viene ID por URL
+        $url_id = request()->query('id');
+        if ($url_id) {
+            $this->editar($url_id);
+        }
 
         // Aplicar filtros iniciales
         if (isset($this->presetFiltro['departamento_id'])) {
@@ -79,6 +86,9 @@ class Gestion extends Component
 
         $configActivo = Configuracion::where('clave', 'incidencias_activo_obligatorio')->first();
         $this->activo_obligatorio = $configActivo ? (bool)$configActivo->valor : false;
+
+        $configDash = Configuracion::where('clave', 'dashboard_tecnico_ver_global')->first();
+        $this->dashboard_tecnico_ver_global = $configDash ? (bool)$configDash->valor : false;
     }
 
     public function obtenerTecnicos()
@@ -404,18 +414,24 @@ class Gestion extends Component
 
         // Filtrar por rol de usuario
         if (!$user->hasRole(['super-admin', 'administrador', 'coordinador'])) {
-            // Técnicos ven lo asignado a ellos o pendientes que coincidan con su especialidad
-            $incidencias->where(function($q) use ($user) {
-                $q->where('user_id', $user->id);
-                if ($user->especialidad_id) {
-                    $q->orWhere(function($subq) use ($user) {
-                        $subq->whereNull('user_id')
-                             ->whereHas('problema', function($pq) use ($user) {
-                                 $pq->where('especialidad_id', $user->especialidad_id);
-                             });
-                    });
-                }
-            });
+            // Si el usuario es técnico y NO tiene habilitada la vista global
+            if (!$this->dashboard_tecnico_ver_global) {
+                $incidencias->where(function($q) use ($user) {
+                    // Siempre ve lo que tiene asignado él mismo
+                    $q->where('user_id', $user->id);
+                    
+                    // Solo ve lo pendiente si coincide con su especialidad
+                    if ($user->especialidad_id) {
+                        $q->orWhere(function($subq) use ($user) {
+                            $subq->whereNull('user_id')
+                                 ->whereHas('problema', function($pq) use ($user) {
+                                     $pq->where('especialidad_id', $user->especialidad_id);
+                                 });
+                        });
+                    }
+                });
+            }
+            // Si la vista global está ON, no aplicamos filtros adicionales (ve lo mismo que un admin)
         }
 
         if ($this->filtro_departamento) {

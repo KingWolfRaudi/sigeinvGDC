@@ -127,8 +127,12 @@ class CrearTicket extends Component
             
             $this->reset(['problema_id', 'descripcion', 'tipo_activo', 'modelo_id']);
             
-            // Emitir evento que redirija al ticket de ser necesario o simplemente refrescar info
-            $this->redirect(route('incidencias.gestion'));
+            // Redirigir al Dashboard si es trabajador, sino a Gestión
+            if (Auth::user()->hasRole('trabajador') && !Auth::user()->can('ver-incidencias')) {
+                $this->redirect(route('dashboard'));
+            } else {
+                $this->redirect(route('incidencias.gestion'));
+            }
             
         } catch (\Exception $e) {
             DB::rollBack();

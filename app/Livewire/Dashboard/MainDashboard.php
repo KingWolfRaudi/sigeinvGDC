@@ -10,6 +10,7 @@ use App\Models\MovimientoInsumo;
 use App\Models\Insumo;
 use App\Models\ComputadorRam;
 use App\Models\ComputadorDisco;
+use App\Models\Configuracion;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -20,11 +21,15 @@ class MainDashboard extends Component
     public $incidenciasEnCurso = 0;
     public $movimientosPendientes = 0;
     public $insumosCriticos = 0;
+    public $esTecnico = false;
+    public $esTrabajador = false;
+    public $dashboard_tecnico_ver_global = false;
 
     // Acción Rápida
     // Acción Rápida
     public $incidenciasRecientes = [];
     public $incidenciasResueltas = [];
+    public $incidencia_detalle = null;
     public $esResolutor = false;
 
     // Analítica de Hardware
@@ -37,12 +42,18 @@ class MainDashboard extends Component
 
     public function mount()
     {
+        $user = Auth::user();
+        $this->esTecnico = $user->hasRole('resolutor-incidencia') && !$user->hasRole(['super-admin', 'administrador', 'coordinador']);
+        $this->esTrabajador = $user->hasRole('trabajador') && !$user->hasRole(['super-admin', 'administrador', 'coordinador', 'resolutor-incidencia']);
+        
+        $configDash = Configuracion::where('clave', 'dashboard_tecnico_ver_global')->first();
+        $this->dashboard_tecnico_ver_global = $configDash ? (bool)$configDash->valor : false;
+
         $this->cargarMetricasOperativas();
         $this->cargarDatosHardware();
         $user = Auth::user();
 
-        if ($user && $user->hasRole('resolutor-incidencia') && !$user->hasRole('super-admin')) {
-            $this->esResolutor = true;
+        if ($this->esResolutor) {
             $this->incidenciasRecientes = Incidencia::with(['departamento', 'trabajador', 'creator'])
                                                     ->where('user_id', $user->id)
                                                     ->where('solventado', false)
@@ -59,8 +70,24 @@ class MainDashboard extends Component
                                                     ->latest('updated_at')
                                                     ->take(5)
                                                     ->get();
+        } elseif ($this->esTrabajador) {
+            $this->incidenciasRecientes = Incidencia::with(['departamento', 'trabajador', 'creator'])
+                                                    ->where('created_by', $user->id)
+                                                    ->where('solventado', false)
+                                                    ->where('cerrado', false)
+                                                    ->latest()
+                                                    ->take(5)
+                                                    ->get();
+                                                    
+            $this->incidenciasResueltas = Incidencia::with(['departamento', 'trabajador', 'creator'])
+                                                    ->where('created_by', $user->id)
+                                                    ->where(function($q) {
+                                                        $q->where('solventado', true)->orWhere('cerrado', true);
+                                                    })
+                                                    ->latest('updated_at')
+                                                    ->take(5)
+                                                    ->get();
         } else {
-            $this->esResolutor = false;
             $this->incidenciasRecientes = Incidencia::with(['departamento', 'trabajador', 'creator'])
                                                     ->where('solventado', false)
                                                     ->where('cerrado', false)
@@ -80,15 +107,50 @@ class MainDashboard extends Component
 
     private function cargarMetricasOperativas()
     {
-        $this->incidenciasPendientes = Incidencia::whereNull('user_id')->where('cerrado', false)->count();
-        $this->incidenciasEnCurso = Incidencia::whereNotNull('user_id')->where('solventado', false)->where('cerrado', false)->count();
-        
-        $movsPc = MovimientoComputador::where('estado_workflow', 'solicitado')->count();
-        $movsDisp = MovimientoDispositivo::where('estado_workflow', 'solicitado')->count();
-        $movsIns = MovimientoInsumo::where('estado_workflow', 'solicitado')->count();
-        $this->movimientosPendientes = $movsPc + $movsDisp + $movsIns;
+        $user = Auth::user();
 
-        $this->insumosCriticos = Insumo::whereColumn('medida_actual', '<=', 'medida_minima')->where('activo', true)->count();
+        // 1. Incidencias Pendientes (Sin Asignar)
+        $queryPendientes = Incidencia::whereNull('user_id')->where('cerrado', false);
+        
+        if ($this->esTecnico && !$this->dashboard_tecnico_ver_global) {
+            // Si es técnico y la config dice "no ver global", filtramos por su especialidad
+            if ($user->especialidad_id) {
+                $queryPendientes->whereHas('problema', function($q) use ($user) {
+                    $q->where('especialidad_id', $user->especialidad_id);
+                });
+            } else {
+                // Si no tiene especialidad asignada, no ve nada pendiente si el filtro está activo
+                $queryPendientes->whereRaw('1 = 0');
+            }
+        } elseif ($this->esTrabajador) {
+            // Trabajador solo ve sus propios reportes pendientes
+            $queryPendientes->where('created_by', $user->id);
+        }
+        $this->incidenciasPendientes = $queryPendientes->count();
+
+        // 2. Incidencias En Curso
+        $queryEnCurso = Incidencia::whereNotNull('user_id')->where('solventado', false)->where('cerrado', false);
+        if ($this->esTecnico) {
+            // Técnicos solo ven lo que tienen asignado ellos mismos
+            $queryEnCurso->where('user_id', $user->id);
+        } elseif ($this->esTrabajador) {
+            // Trabajador solo ve sus propios reportes en curso
+            $queryEnCurso->where('created_by', $user->id);
+        }
+        $this->incidenciasEnCurso = $queryEnCurso->count();
+        
+        // 3. Movimientos Pendientes
+        // Se muestran solo si tiene permiso de ver movimientos de algún tipo y NO es trabajador raso
+        if (!$this->esTrabajador && ($user->can('movimientos-computadores-ver') || $user->can('movimientos-dispositivos-ver') || $user->can('movimientos-insumos-ver'))) {
+            $movsPc = MovimientoComputador::where('estado_workflow', 'solicitado')->count();
+            $movsDisp = MovimientoDispositivo::where('estado_workflow', 'solicitado')->count();
+            $movsIns = MovimientoInsumo::where('estado_workflow', 'solicitado')->count();
+            $this->movimientosPendientes = $movsPc + $movsDisp + $movsIns;
+        } else {
+            $this->movimientosPendientes = 0;
+        }
+
+        $this->insumosCriticos = $this->esTrabajador ? 0 : Insumo::whereColumn('medida_actual', '<=', 'medida_minima')->where('activo', true)->count();
     }
 
     private function cargarDatosHardware()
@@ -167,6 +229,21 @@ class MainDashboard extends Component
         }
         
         return $val;
+    }
+
+    public function ver($id)
+    {
+        $this->incidencia_detalle = Incidencia::with([
+            'problema.especialidad',
+            'departamento',
+            'dependencia',
+            'trabajador',
+            'tecnico',
+            'creator',
+            'modelo' 
+        ])->findOrFail($id);
+
+        $this->dispatch('abrir-modal', id: 'modalDetalleIncidencia');
     }
 
     public function render()
