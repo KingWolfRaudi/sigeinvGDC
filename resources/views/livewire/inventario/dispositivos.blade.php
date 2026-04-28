@@ -139,6 +139,9 @@
                             </td>
                             <td>
                                 {{ $disp->departamento->nombre ?? 'N/A' }}
+                                @if($disp->dependencia)
+                                    <br><small class="text-muted"><i class="bi bi-arrow-return-right"></i> {{ $disp->dependencia->nombre }}</small>
+                                @endif
                             </td>
                             <td>
                                 <span class="badge bg-{{ $disp->estado === 'operativo' ? 'success' : ($disp->estado === 'dañado' ? 'danger' : 'warning') }}">
@@ -247,7 +250,12 @@
                                 <li class="mb-1"><strong>Bien Nacional:</strong> {{ $dispositivo_detalle->bien_nacional ?? 'No especificado' }}</li>
                                 <li class="mb-1"><strong>Serial:</strong> {{ $dispositivo_detalle->serial ?? 'No especificado' }}</li>
                                 <li class="mb-1"><strong>Marca/Tipo:</strong> {{ $dispositivo_detalle->marca->nombre ?? 'N/A' }} - {{ $dispositivo_detalle->tipoDispositivo->nombre ?? 'N/A' }}</li>
-                                <li class="mb-1"><strong>Ubicación:</strong> {{ $dispositivo_detalle->departamento->nombre ?? 'Sin asignar' }}</li>
+                                <li class="mb-1"><strong>Ubicación:</strong> 
+                                    {{ $dispositivo_detalle->departamento->nombre ?? 'Sin asignar' }}
+                                    @if($dispositivo_detalle->dependencia)
+                                        <span class="text-muted"><br><i class="bi bi-arrow-return-right"></i> {{ $dispositivo_detalle->dependencia->nombre }}</span>
+                                    @endif
+                                </li>
                                 <li class="mb-1"><strong>Responsable:</strong> {{ $dispositivo_detalle->trabajador ? ($dispositivo_detalle->trabajador->nombres . ' ' . $dispositivo_detalle->trabajador->apellidos) : 'Sin asignar' }}</li>
                             </ul>
                         </div>

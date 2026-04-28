@@ -29,6 +29,7 @@ class ComputadoresExport implements FromCollection, WithHeadings, WithMapping, W
         $query = Computador::with([
             'marca', 
             'departamento', 
+            'dependencia',
             'trabajador', 
             'procesador.marca', 
             'gpu.marca', 
@@ -82,6 +83,7 @@ class ComputadoresExport implements FromCollection, WithHeadings, WithMapping, W
             'Conexión',
             'Estado Físico',
             'Departamento',
+            'Dependencia',
             'Responsable',
             'DVD',
             'Fuente',
@@ -125,6 +127,7 @@ class ComputadoresExport implements FromCollection, WithHeadings, WithMapping, W
             $pc->tipo_conexion,
             strtoupper($pc->estado_fisico),
             $pc->departamento->nombre ?? 'STOCK / ALMACEN',
+            $pc->dependencia->nombre ?? 'N/A',
             $pc->trabajador ? ($pc->trabajador->nombres . ' ' . $pc->trabajador->apellidos) : 'Sin Asignar',
             $pc->unidad_dvd ? 'SI' : 'NO',
             $pc->fuente_poder ? 'SI' : 'NO',

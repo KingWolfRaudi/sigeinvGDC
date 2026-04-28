@@ -8,6 +8,7 @@ use App\Models\TipoDispositivo;
 use App\Models\SistemaOperativo;
 use App\Models\Puerto;
 use App\Models\Departamento;
+use App\Models\Dependencia;
 use App\Models\Procesador;
 use App\Models\Gpu;
 use App\Models\CategoriaInsumo;
@@ -74,6 +75,31 @@ class CatalogosSeeder extends Seeder
         ];
         foreach ($departamentos as $departamento) {
             Departamento::firstOrCreate(['nombre' => $departamento], ['activo' => true]);
+        }
+
+        // 4.1. Dependencias (NUEVO)
+        $deptTI = Departamento::where('nombre', 'Tecnología de la Información (TI)')->first();
+        if ($deptTI) {
+            $depsTI = ['Soporte Técnico', 'Desarrollo de Sistemas', 'Infraestructura y Redes', 'Seguridad de la Información'];
+            foreach ($depsTI as $dep) {
+                Dependencia::firstOrCreate(['nombre' => $dep, 'departamento_id' => $deptTI->id], ['activo' => true]);
+            }
+        }
+
+        $deptRH = Departamento::where('nombre', 'Recursos Humanos')->first();
+        if ($deptRH) {
+            $depsRH = ['Nómina', 'Selección y Reclutamiento', 'Bienestar Social', 'Capacitación'];
+            foreach ($depsRH as $dep) {
+                Dependencia::firstOrCreate(['nombre' => $dep, 'departamento_id' => $deptRH->id], ['activo' => true]);
+            }
+        }
+
+        $deptDir = Departamento::where('nombre', 'Dirección General')->first();
+        if ($deptDir) {
+            $depsDir = ['Despacho', 'Asesoría Legal', 'Planificación'];
+            foreach ($depsDir as $dep) {
+                Dependencia::firstOrCreate(['nombre' => $dep, 'departamento_id' => $deptDir->id], ['activo' => true]);
+            }
         }
 
         // 5. Procesadores

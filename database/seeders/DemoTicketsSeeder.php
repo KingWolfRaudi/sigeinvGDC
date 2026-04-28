@@ -78,6 +78,7 @@ class DemoTicketsSeeder extends Seeder
             Incidencia::create([
                 'problema_id' => $prob->id,
                 'departamento_id' => $userSolicitante->trabajador?->departamento_id ?? $fallbackDepto,
+                'dependencia_id' => $userSolicitante->trabajador?->dependencia_id ?? null,
                 'trabajador_id' => $userSolicitante->trabajador_id,
                 'user_id' => ($i % 3 != 0) ? $tec->id : null, 
                 'modelo_id' => ($i % 2 == 0) ? $comp->id : null,

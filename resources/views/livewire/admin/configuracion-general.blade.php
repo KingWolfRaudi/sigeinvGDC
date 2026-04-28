@@ -74,6 +74,16 @@
                                     <p class="small text-muted mb-0">Obliga a seleccionar un equipo o dispositivo al reportar una incidencia.</p>
                                 </div>
                             </div>
+
+                            <div class="col-md-12">
+                                <div class="card border border-light p-3 h-100 bg-light bg-opacity-50">
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" wire:model="dashboard_tecnico_ver_global" id="dashboard_tecnico_ver_global">
+                                        <label class="form-check-label fw-bold" for="dashboard_tecnico_ver_global">Técnicos ven todos los tickets pendientes en Dashboard</label>
+                                    </div>
+                                    <p class="small text-muted mb-0">Si se desactiva, los técnicos solo verán en el contador de "Tickets por Asignar" aquellos que coincidan con su especialidad técnica.</p>
+                                </div>
+                            </div>
                         </div>
                     @endif
                     @endcan

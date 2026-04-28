@@ -18,6 +18,7 @@ use App\Models\Gpu;
 use App\Models\Trabajador;
 use App\Models\Puerto;
 use App\Models\Departamento;
+use App\Models\Dependencia;
 use App\Models\MovimientoComputador;
 
 
@@ -28,7 +29,8 @@ class Computadores extends Component
 
     // Campos principales
     public $computador_id, $bien_nacional, $serial, $nombre_equipo, $marca_id, $tipo_computador, $sistema_operativo_id;
-    public $procesador_id, $gpu_id, $departamento_id, $trabajador_id, $tipo_ram, $mac, $ip;
+    public $procesador_id, $gpu_id, $departamento_id, $dependencia_id, $trabajador_id, $tipo_ram, $mac, $ip;
+    public $dependencias_disponibles = [];
     public $tipo_conexion = 'Ethernet'; // Valor por defecto
     public $estado_fisico = 'operativo';
     public bool $unidad_dvd = true;
@@ -127,13 +129,24 @@ class Computadores extends Component
     public function updatedDepartamentoId($value)
     {
         $this->trabajador_id = null; // Reseteamos al trabajador para forzar la actualización
+        $this->dependencia_id = null;
+        if (!empty($value)) {
+            $this->dependencias_disponibles = Dependencia::where('departamento_id', $value)->where('activo', true)->get();
+        } else {
+            $this->dependencias_disponibles = [];
+        }
+    }
+
+    public function updatedDependenciaId($value)
+    {
+        $this->trabajador_id = null;
     }
     
     public function render()
     {
         // 1. Iniciamos la consulta base
         $userId = Auth::id();
-        $query = Computador::with(['marca', 'trabajador', 'departamento', 'discos', 'rams'])
+        $query = Computador::with(['marca', 'trabajador', 'departamento', 'dependencia', 'discos', 'rams'])
             ->withCount([
                 'movimientos as pendientes_count' => fn($q) => $q->where('estado_workflow', 'pendiente'),
                 'movimientos as mis_borradores_count' => fn($q) => $q->where('estado_workflow', 'borrador')->where('solicitante_id', $userId),
@@ -222,13 +235,16 @@ class Computadores extends Component
         $puertos = Puerto::where('activo', true)->orderBy('nombre')->get();
         $departamentos = Departamento::where('activo', true)->orderBy('nombre')->get();
 
-        // Filtramos trabajadores por departamento si hay uno seleccionado
-        $trabajadores = Trabajador::where('activo', true)
-            ->when($this->departamento_id, function($q) {
-                return $q->where('departamento_id', $this->departamento_id);
-            })
-            ->orderBy('nombres')
-            ->get();
+        $trabajadores = [];
+        if ($this->departamento_id) {
+            $trabajadores = Trabajador::where('activo', true)
+                ->where('departamento_id', $this->departamento_id)
+                ->when($this->dependencia_id, function($q) {
+                    return $q->where('dependencia_id', $this->dependencia_id);
+                })
+                ->orderBy('nombres')
+                ->get();
+        }
             
         return view('livewire.inventario.computadores', compact(
             'computadores', 'marcas', 'sistemas', 'procesadores', 'gpus', 'trabajadores', 'puertos', 'departamentos'
@@ -258,6 +274,7 @@ class Computadores extends Component
             'mac'           => 'nullable|string|unique:computadores,mac,' . $this->computador_id,
             'estado_fisico' => 'required|string',
             'tipo_ram'      => 'required|string',
+            'dependencia_id'=> 'nullable|exists:dependencias,id',
         ];
         // La justificación es OBLIGATORIA solo en ediciones
         if ($esEdicion) {
@@ -304,6 +321,7 @@ class Computadores extends Component
             'sistema_operativo_id' => $this->sistema_operativo_id, 'procesador_id' => $this->procesador_id,
             'gpu_id' => $this->gpu_id ?: null, 'unidad_dvd' => $this->unidad_dvd,
             'fuente_poder' => $this->fuente_poder, 'departamento_id' => $this->departamento_id ?: null,
+            'dependencia_id' => $this->dependencia_id ?: null,
             'trabajador_id' => $this->trabajador_id ?: null, 'tipo_ram' => $this->tipo_ram,
             'mac' => $this->mac, 'ip' => $this->ip, 'tipo_conexion' => $this->tipo_conexion,
             'estado_fisico' => $this->estado_fisico, 'observaciones' => $this->observaciones,
@@ -339,6 +357,7 @@ class Computadores extends Component
                 'sistema_operativo_id'=> $this->sistema_operativo_id, 'procesador_id'    => $this->procesador_id,
                 'gpu_id'              => $this->gpu_id ?: null,   'unidad_dvd'          => $this->unidad_dvd,
                 'fuente_poder'        => $this->fuente_poder,     'departamento_id'     => $this->departamento_id ?: null,
+                'dependencia_id'      => $this->dependencia_id ?: null,
                 'trabajador_id'       => $this->trabajador_id ?: null, 'tipo_ram'         => $this->tipo_ram,
                 'mac'                 => $this->mac,              'ip'                  => $this->ip,
                 'tipo_conexion'       => $this->tipo_conexion,    'estado_fisico'       => $this->estado_fisico,
@@ -515,6 +534,7 @@ class Computadores extends Component
         $this->unidad_dvd = (bool) $computador->unidad_dvd;     // <-- Agregado
         $this->fuente_poder = (bool) $computador->fuente_poder; // <-- Agregado
         $this->departamento_id = $computador->departamento_id;
+        $this->dependencia_id = $computador->dependencia_id;
         $this->trabajador_id = $computador->trabajador_id;
         $this->tipo_ram = $computador->tipo_ram;
         $this->mac = $computador->mac;
@@ -523,6 +543,10 @@ class Computadores extends Component
         $this->estado_fisico = $computador->estado_fisico;
         $this->observaciones = $computador->observaciones;
         $this->activo = (bool) $computador->activo; 
+
+        if ($this->departamento_id) {
+            $this->dependencias_disponibles = Dependencia::where('departamento_id', $this->departamento_id)->where('activo', true)->get();
+        } 
 
         // Recuperar Puertos
         $this->puertos_seleccionados = $computador->puertos->pluck('id')->toArray();
@@ -722,7 +746,7 @@ class Computadores extends Component
     {
         $this->reset([
             'computador_id', 'bien_nacional', 'serial', 'nombre_equipo', 'marca_id', 'tipo_computador', 
-            'sistema_operativo_id', 'procesador_id', 'gpu_id', 'departamento_id', 'trabajador_id', 'tipo_ram', 
+            'sistema_operativo_id', 'procesador_id', 'gpu_id', 'departamento_id', 'dependencia_id', 'dependencias_disponibles', 'trabajador_id', 'tipo_ram', 
             'mac', 'ip', 'tipo_conexion', 'estado_fisico', 'observaciones', 'computador_detalle',
             'nueva_marca', 'nuevo_so', 'justificacion'
         ]);

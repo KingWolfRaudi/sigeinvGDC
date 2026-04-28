@@ -24,7 +24,12 @@
         </tr>
         <tr>
             <th>Departamento:</th>
-            <td>{{ $disp->departamento->nombre ?? 'STOCK / ALMACÉN' }}</td>
+            <td>
+                {{ $disp->departamento->nombre ?? 'STOCK / ALMACÉN' }}
+                @if($disp->dependencia)
+                    <br><span style="color: #666; font-size: 0.9em;">&#8627; {{ $disp->dependencia->nombre }}</span>
+                @endif
+            </td>
             <th>Responsable:</th>
             <td>{{ $disp->trabajador ? ($disp->trabajador->nombres . ' ' . $disp->trabajador->apellidos) : 'Sin Asignar' }}</td>
         </tr>

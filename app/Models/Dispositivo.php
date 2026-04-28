@@ -33,6 +33,7 @@ class Dispositivo extends Model
         'ip',
         'estado',
         'departamento_id',
+        'dependencia_id',
         'trabajador_id',
         'computador_id',
         'notas',
@@ -57,6 +58,11 @@ class Dispositivo extends Model
     public function departamento()
     {
         return $this->belongsTo(Departamento::class, 'departamento_id');
+    }
+
+    public function dependencia()
+    {
+        return $this->belongsTo(Dependencia::class, 'dependencia_id');
     }
 
     public function trabajador()

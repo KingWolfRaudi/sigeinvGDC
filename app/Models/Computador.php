@@ -26,7 +26,7 @@ class Computador extends Model
 
     protected $fillable = [
         'bien_nacional', 'serial', 'nombre_equipo', 'marca_id', 'tipo_computador', 
-        'sistema_operativo_id', 'procesador_id', 'gpu_id', 'unidad_dvd', 'fuente_poder', 'departamento_id', // <-- Agregados aquí
+        'sistema_operativo_id', 'procesador_id', 'gpu_id', 'unidad_dvd', 'fuente_poder', 'departamento_id', 'dependencia_id',
         'trabajador_id', 'tipo_ram', 'mac', 'ip', 'tipo_conexion', 'estado_fisico', 
         'observaciones', 'activo'
     ];
@@ -44,6 +44,7 @@ class Computador extends Model
     public function gpu() { return $this->belongsTo(Gpu::class); }
     public function trabajador() { return $this->belongsTo(Trabajador::class); }
     public function departamento() { return $this->belongsTo(Departamento::class); }
+    public function dependencia() { return $this->belongsTo(Dependencia::class); }
 
     // Relaciones Múltiples (HasMany y BelongsToMany)
     public function discos() { return $this->hasMany(ComputadorDisco::class); }

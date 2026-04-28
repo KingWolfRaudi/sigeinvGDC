@@ -26,6 +26,8 @@ class CrearTicket extends Component
 
     public $catalogoDepartamentos = [];
     public $departamento_id;
+    public $dependencia_id;
+    public $dependencias_disponibles = [];
 
     // Validar si el admin configuró los activos como obligatorios
     public $activoObligatorio = false;
@@ -41,10 +43,21 @@ class CrearTicket extends Component
         $user = Auth::user();
         if ($user && $user->trabajador) {
             $this->departamento_id = $user->trabajador->departamento_id;
+            $this->dependencia_id = $user->trabajador->dependencia_id;
             $this->misEquipos = Computador::where('trabajador_id', $user->trabajador->id)->get();
             $this->misDispositivos = Dispositivo::where('trabajador_id', $user->trabajador->id)->get();
         } else {
             $this->catalogoDepartamentos = \App\Models\Departamento::where('activo', true)->orderBy('nombre')->get();
+        }
+    }
+
+    public function updatedDepartamentoId($value)
+    {
+        $this->dependencia_id = null;
+        if (!empty($value)) {
+            $this->dependencias_disponibles = \App\Models\Dependencia::where('departamento_id', $value)->where('activo', true)->get();
+        } else {
+            $this->dependencias_disponibles = [];
         }
     }
 
@@ -93,6 +106,7 @@ class CrearTicket extends Component
             $ticket->problema_id = $this->problema_id;
             $ticket->descripcion = $this->descripcion;
             $ticket->departamento_id = $trabajador ? $trabajador->departamento_id : $this->departamento_id; 
+            $ticket->dependencia_id = $trabajador ? $trabajador->dependencia_id : ($this->dependencia_id ?: null);
             $ticket->trabajador_id = $trabajador ? $trabajador->id : null;
             $ticket->user_id = $tecnicoAsignado ? $tecnicoAsignado->id : null; // Asignación automática o null
             $ticket->amerita_movimiento = false;
@@ -113,8 +127,12 @@ class CrearTicket extends Component
             
             $this->reset(['problema_id', 'descripcion', 'tipo_activo', 'modelo_id']);
             
-            // Emitir evento que redirija al ticket de ser necesario o simplemente refrescar info
-            $this->redirect(route('incidencias.gestion'));
+            // Redirigir al Dashboard si es trabajador, sino a Gestión
+            if (Auth::user()->hasRole('trabajador') && !Auth::user()->can('ver-incidencias')) {
+                $this->redirect(route('dashboard'));
+            } else {
+                $this->redirect(route('incidencias.gestion'));
+            }
             
         } catch (\Exception $e) {
             DB::rollBack();

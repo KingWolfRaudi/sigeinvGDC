@@ -241,7 +241,21 @@
         </div>
     </div>
 
-    <div class="col-md-8 mb-3">
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Dependencia (Opcional)</label>
+        <select class="form-select @error('dependencia_id') is-invalid @enderror" wire:model.live="dependencia_id" {{ empty($dependencias_disponibles) ? 'disabled' : '' }}>
+            <option value="">Seleccione una dependencia...</option>
+            @foreach($dependencias_disponibles as $depen)
+                <option value="{{ $depen->id }}">{{ $depen->nombre }}</option>
+            @endforeach
+        </select>
+        @if(empty($dependencias_disponibles) && $departamento_id)
+            <div class="form-text text-muted small"><i class="bi bi-info-circle"></i> Este departamento no tiene dependencias.</div>
+        @endif
+        @error('dependencia_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+    </div>
+
+    <div class="col-md-4 mb-3">
         <label class="form-label">Trabajador Responsable (Específico)</label>
         <div class="input-group">
             <select class="form-select" wire:model="trabajador_id" @if(!$departamento_id) disabled @endif>

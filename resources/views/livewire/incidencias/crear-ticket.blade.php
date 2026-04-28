@@ -36,18 +36,37 @@
                         <form wire:submit.prevent="submitTicket">
                             
                             @if(!Auth::user()->trabajador)
-                            <!-- Departamento Manual -->
-                            <div class="mb-4">
-                                <label class="form-label fw-bold text-body mb-2">
-                                    <i class="bi bi-building text-primary me-2"></i>Departamento de Ubicación <span class="text-danger">*</span>
-                                </label>
-                                <select class="form-select form-select-lg border-2 shadow-none @error('departamento_id') is-invalid @enderror" wire:model="departamento_id">
-                                    <option value="">Selecciona tu departamento actual</option>
-                                    @foreach($catalogoDepartamentos as $dep)
-                                        <option value="{{ $dep->id }}">{{ $dep->nombre }}</option>
-                                    @endforeach
-                                </select>
-                                @error('departamento_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            <div class="row">
+                                <!-- Departamento Manual -->
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label fw-bold text-body mb-2">
+                                        <i class="bi bi-building text-primary me-2"></i>Departamento <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select form-select-lg border-2 shadow-none @error('departamento_id') is-invalid @enderror" wire:model.live="departamento_id">
+                                        <option value="">Selecciona tu departamento actual</option>
+                                        @foreach($catalogoDepartamentos as $dep)
+                                            <option value="{{ $dep->id }}">{{ $dep->nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('departamento_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+                                
+                                <!-- Dependencia Manual -->
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label fw-bold text-body mb-2">
+                                        <i class="bi bi-diagram-2 text-primary me-2"></i>Dependencia <span class="text-muted fw-normal small">(Opcional)</span>
+                                    </label>
+                                    <select class="form-select form-select-lg border-2 shadow-none @error('dependencia_id') is-invalid @enderror" wire:model="dependencia_id" {{ empty($dependencias_disponibles) ? 'disabled' : '' }}>
+                                        <option value="">Selecciona una dependencia...</option>
+                                        @foreach($dependencias_disponibles as $depen)
+                                            <option value="{{ $depen->id }}">{{ $depen->nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                    @if(empty($dependencias_disponibles) && $departamento_id)
+                                        <div class="form-text text-muted small mt-1"><i class="bi bi-info-circle"></i> Este departamento no tiene dependencias.</div>
+                                    @endif
+                                    @error('dependencia_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
                             </div>
                             @endif
                             

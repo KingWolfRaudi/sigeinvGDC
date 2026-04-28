@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Insumo;
 use App\Models\Marca;
 use App\Models\CategoriaInsumo;
+use App\Models\Dependencia;
 use App\Models\MovimientoInsumo;
 
 class Insumos extends Component
@@ -29,7 +30,8 @@ class Insumos extends Component
     public bool $activo = true;
 
     // Asociaciones
-    public $departamento_id, $trabajador_id, $dispositivo_id, $computador_id;
+    public $departamento_id, $dependencia_id, $trabajador_id, $dispositivo_id, $computador_id;
+    public $dependencias_disponibles = [];
 
     // Workflow de Movimientos
     public $justificacion = '';
@@ -66,6 +68,12 @@ class Insumos extends Component
     public function updatedDepartamentoId($value)
     {
         $this->trabajador_id = null;
+        $this->dependencia_id = null;
+        if (!empty($value)) {
+            $this->dependencias_disponibles = Dependencia::where('departamento_id', $value)->where('activo', true)->get();
+        } else {
+            $this->dependencias_disponibles = [];
+        }
     }
 
     public function sortBy($field)
@@ -81,7 +89,7 @@ class Insumos extends Component
     public function render()
     {
         $userId = Auth::id();
-        $query = Insumo::with(['marca', 'categoriaInsumo'])
+        $query = Insumo::with(['marca', 'categoriaInsumo', 'departamento', 'dependencia'])
             ->withCount([
                 'movimientos as pendientes_count'     => fn($q) => $q->where('estado_workflow', 'pendiente'),
                 'movimientos as mis_borradores_count'  => fn($q) => $q->where('estado_workflow', 'borrador')->where('solicitante_id', $userId),
@@ -163,6 +171,7 @@ class Insumos extends Component
             'marca_id'       => 'required_without:nueva_marca',
             'categoria_insumo_id' => 'required_without:nueva_categoria',
             'departamento_id' => 'nullable|required_with:nuevo_departamento',
+            'dependencia_id'  => 'nullable|exists:dependencias,id',
             'trabajador_id'   => 'nullable|exists:trabajadores,id',
             'dispositivo_id'  => 'nullable|exists:dispositivos,id',
             'computador_id'   => 'nullable|exists:computadores,id',
@@ -204,6 +213,7 @@ class Insumos extends Component
                 'estado_fisico'        => $this->estado_fisico,
                 'activo'               => $this->activo,
                 'departamento_id'      => $this->departamento_id ?: null,
+                'dependencia_id'       => $this->dependencia_id ?: null,
                 'trabajador_id'        => $this->trabajador_id ?: null,
                 'dispositivo_id'       => $this->dispositivo_id ?: null,
                 'computador_id'        => $this->computador_id ?: null,
@@ -236,6 +246,7 @@ class Insumos extends Component
                 'estado_fisico'        => $this->estado_fisico,
                 'activo'               => $this->activo,
                 'departamento_id'      => $this->departamento_id ?: null,
+                'dependencia_id'       => $this->dependencia_id ?: null,
                 'trabajador_id'        => $this->trabajador_id ?: null,
                 'dispositivo_id'       => $this->dispositivo_id ?: null,
                 'computador_id'        => $this->computador_id ?: null,
@@ -319,9 +330,14 @@ class Insumos extends Component
         $this->estado_fisico = $insumo->estado_fisico;
         $this->activo = (bool) $insumo->activo; 
         $this->departamento_id = $insumo->departamento_id;
+        $this->dependencia_id = $insumo->dependencia_id;
         $this->trabajador_id = $insumo->trabajador_id;
         $this->dispositivo_id = $insumo->dispositivo_id;
         $this->computador_id = $insumo->computador_id;
+
+        if ($this->departamento_id) {
+            $this->dependencias_disponibles = Dependencia::where('departamento_id', $this->departamento_id)->where('activo', true)->get();
+        }
 
         $this->tituloModal = 'Editar Insumo/Herramienta';
         $this->dispatch('abrir-modal', id: 'modalInsumo');
@@ -465,7 +481,7 @@ class Insumos extends Component
         $this->reset([
             'insumo_id', 'bien_nacional', 'serial', 'nombre', 'descripcion', 
             'marca_id', 'categoria_insumo_id', 'insumo_detalle', 'nueva_marca', 'nueva_categoria', 'nuevo_departamento', 'justificacion',
-            'departamento_id', 'trabajador_id', 'dispositivo_id', 'computador_id'
+            'departamento_id', 'dependencia_id', 'dependencias_disponibles', 'trabajador_id', 'dispositivo_id', 'computador_id'
         ]);
         $this->creando_marca = false;
         $this->creando_categoria = false;

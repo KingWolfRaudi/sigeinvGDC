@@ -39,6 +39,14 @@ class Login extends Component
 
         // 3. Intentar autenticar
         if (Auth::attempt($credenciales, $this->remember)) {
+            $user = Auth::user();
+            
+            // Registrar auditoría de inicio de sesión
+            activity()
+                ->causedBy($user)
+                ->withProperties(['ip' => request()->ip(), 'user_agent' => request()->userAgent()])
+                ->log('Inicio de sesión exitoso');
+
             // Por seguridad, regeneramos la sesión para evitar ataques de fijación
             session()->regenerate();
 

@@ -36,6 +36,7 @@ class ConfiguracionGeneral extends Component
     // Propiedades para Configuración de Incidencias
     public $cierre_irreversible = false;
     public $activo_obligatorio = false;
+    public $dashboard_tecnico_ver_global = false;
 
     // Propiedades para Configuración de Perfil
     public $perfil_solicitar_nombre = true;
@@ -65,6 +66,9 @@ class ConfiguracionGeneral extends Component
 
         $configActivo = Configuracion::where('clave', 'incidencias_activo_obligatorio')->first();
         if ($configActivo) $this->activo_obligatorio = (bool)$configActivo->valor;
+
+        $configDash = Configuracion::where('clave', 'dashboard_tecnico_ver_global')->first();
+        if ($configDash) $this->dashboard_tecnico_ver_global = (bool)$configDash->valor;
     }
 
     private function cargarConfigPerfil()
@@ -207,6 +211,7 @@ class ConfiguracionGeneral extends Component
 
         Configuracion::updateOrCreate(['clave' => 'incidencias_cierre_irreversible'], ['valor' => $this->cierre_irreversible ? '1' : '0', 'grupo' => 'incidencias']);
         Configuracion::updateOrCreate(['clave' => 'incidencias_activo_obligatorio'], ['valor' => $this->activo_obligatorio ? '1' : '0', 'grupo' => 'incidencias']);
+        Configuracion::updateOrCreate(['clave' => 'dashboard_tecnico_ver_global'], ['valor' => $this->dashboard_tecnico_ver_global ? '1' : '0', 'grupo' => 'incidencias']);
 
         $this->dispatch('mostrar-toast', mensaje: 'Configuración de incidencias guardada.', tipo: 'success');
     }

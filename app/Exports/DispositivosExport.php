@@ -24,7 +24,7 @@ class DispositivosExport implements FromCollection, WithHeadings, WithMapping, W
 
     public function collection()
     {
-        $query = Dispositivo::with(['marca', 'tipoDispositivo', 'departamento', 'trabajador', 'computador', 'puertos']);
+        $query = Dispositivo::with(['marca', 'tipoDispositivo', 'departamento', 'dependencia', 'trabajador', 'computador', 'puertos']);
 
         if (!empty($this->filters['search'])) {
             $search = $this->filters['search'];
@@ -60,6 +60,7 @@ class DispositivosExport implements FromCollection, WithHeadings, WithMapping, W
             'Tipo',
             'Red (IP)',
             'Departamento',
+            'Dependencia',
             'Responsable',
             'Conectado a PC',
             'Condición',
@@ -86,6 +87,7 @@ class DispositivosExport implements FromCollection, WithHeadings, WithMapping, W
             $item->tipoDispositivo->nombre ?? 'N/A',
             $item->ip ?? 'Directo / N/A',
             $item->departamento->nombre ?? 'STOCK / ALMACÉN',
+            $item->dependencia->nombre ?? 'N/A',
             ($item->trabajador ? ($item->trabajador->nombres . ' ' . $item->trabajador->apellidos) : 'No asignado'),
             $item->computador ? ('BN: ' . $item->computador->bien_nacional) : 'Libre / En Red',
             strtoupper(str_replace('_', ' ', $item->estado)),

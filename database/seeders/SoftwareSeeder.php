@@ -10,7 +10,7 @@ class SoftwareSeeder extends Seeder
     public function run(): void
     {
         $softwareList = [
-            ['nombre_programa' => 'Microsoft Office 2021 Professional Plus', 'tipo_licencia' => 'Privativo', 'serial' => 'XXXXX-XXXXX-XXXXX-XXXXX-XXXXX', 'arquitectura_programa' => '64bits'],
+            ['nombre_programa' => 'MS Office 2021 Pro Plus', 'tipo_licencia' => 'Privativo', 'serial' => 'XXXXX-XXXXX-XXXXX-XXXXX-XXXXX', 'arquitectura_programa' => '64bits'],
             ['nombre_programa' => 'Adobe Acrobat Pro DC', 'tipo_licencia' => 'Privativo', 'serial' => '1234-5678-9012-3456', 'arquitectura_programa' => '64bits'],
             ['nombre_programa' => 'VLC Media Player', 'tipo_licencia' => 'Libre', 'serial' => null, 'arquitectura_programa' => 'Universal'],
             ['nombre_programa' => 'Google Chrome Enterprise', 'tipo_licencia' => 'Libre', 'serial' => null, 'arquitectura_programa' => '64bits'],

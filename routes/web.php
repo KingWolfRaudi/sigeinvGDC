@@ -15,6 +15,7 @@ use App\Livewire\Catalogos\Procesadores;
 use App\Livewire\Catalogos\Gpus;
 use App\Livewire\Asignaciones\Trabajadores;
 use App\Livewire\Asignaciones\Departamentos;
+use App\Livewire\Asignaciones\Dependencias;
 use App\Livewire\Inventario\Computadores;
 use App\Livewire\Inventario\Dispositivos;
 use App\Livewire\Movimientos\PanelComputadores;
@@ -71,6 +72,7 @@ Route::middleware('auth')->group(function () {
 
     // Asignaciones
     Route::get('/asignaciones/departamentos', Departamentos::class)->name('asignaciones.departamentos')->can('ver-departamentos');
+    Route::get('/asignaciones/dependencias', Dependencias::class)->name('asignaciones.dependencias')->can('ver-departamentos');
     Route::get('/asignaciones/trabajadores', Trabajadores::class)->name('asignaciones.trabajadores')->can('ver-trabajadores');
 
     // Módulos de Inventario
@@ -103,6 +105,14 @@ Route::middleware('auth')->group(function () {
 
     // Ruta simple para cerrar sesión
     Route::post('/logout', function () {
+        $user = Auth::user();
+        if ($user) {
+            activity()
+                ->causedBy($user)
+                ->withProperties(['ip' => request()->ip()])
+                ->log('Cierre de sesión');
+        }
+
         Auth::logout();
         session()->invalidate();
         session()->regenerateToken();

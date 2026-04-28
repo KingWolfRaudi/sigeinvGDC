@@ -24,7 +24,7 @@ class InsumosExport implements FromCollection, WithHeadings, WithMapping, WithTi
 
     public function collection()
     {
-        $query = Insumo::with(['marca', 'categoriaInsumo', 'departamento', 'trabajador', 'computador', 'dispositivo']);
+        $query = Insumo::with(['marca', 'categoriaInsumo', 'departamento', 'dependencia', 'trabajador', 'computador', 'dispositivo']);
 
         if (!empty($this->filters['search'])) {
             $search = $this->filters['search'];
@@ -66,6 +66,7 @@ class InsumosExport implements FromCollection, WithHeadings, WithMapping, WithTi
             'Stock Mínimo (Alerta)',
             'Condición Física',
             'Ubicación (Dpto)',
+            'Dependencia',
             'Responsable',
             'Asociado a PC',
             'Asociado a Dispositivo',
@@ -94,6 +95,7 @@ class InsumosExport implements FromCollection, WithHeadings, WithMapping, WithTi
             floatval($item->medida_minima),
             strtoupper(str_replace('_', ' ', $item->estado_fisico)),
             $item->departamento->nombre ?? 'STOCK / ALMACÉN',
+            $item->dependencia->nombre ?? 'N/A',
             $item->trabajador ? ($item->trabajador->nombres . ' ' . $item->trabajador->apellidos) : 'No asignado',
             $item->computador ? ('BN: ' . $item->computador->bien_nacional) : 'N/A',
             $item->dispositivo ? ('BN: ' . $item->dispositivo->bien_nacional) : 'N/A',

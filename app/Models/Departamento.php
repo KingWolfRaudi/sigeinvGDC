@@ -24,6 +24,12 @@ class Departamento extends Model
         return $query->where('activo', true);
     }
 
+    // Relación: Un departamento tiene muchas dependencias
+    public function dependencias()
+    {
+        return $this->hasMany(Dependencia::class);
+    }
+
     // Relación: Un departamento tiene muchos trabajadores
     public function trabajadores()
     {

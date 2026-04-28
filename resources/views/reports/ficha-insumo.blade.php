@@ -26,7 +26,12 @@
         </tr>
         <tr>
             <th>Departamento:</th>
-            <td colspan="3">{{ $insumo->departamento->nombre ?? 'Sin Asignar' }}</td>
+            <td colspan="3">
+                {{ $insumo->departamento->nombre ?? 'Sin Asignar' }}
+                @if($insumo->dependencia)
+                    <br><span style="color: #666; font-size: 0.9em;">&#8627; {{ $insumo->dependencia->nombre }}</span>
+                @endif
+            </td>
         </tr>
     </table>
 
