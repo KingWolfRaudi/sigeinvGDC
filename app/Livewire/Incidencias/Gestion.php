@@ -42,6 +42,7 @@ class Gestion extends Component
     public $cerrado = false;
     public $amerita_movimiento = false;
     public $es_lectura = false;
+    public $incidencia_detalle;
 
     // Listas dinámicas para el formulario
     public $trabajadores = [];
@@ -339,12 +340,27 @@ class Gestion extends Component
         $this->dispatch('abrir-modal', id: 'modalIncidencia');
     }
 
+    public function ver($id)
+    {
+        $this->incidencia_detalle = Incidencia::with([
+            'problema.especialidad', 
+            'departamento', 
+            'dependencia', 
+            'trabajador', 
+            'tecnico', 
+            'modelo', 
+            'creator'
+        ])->findOrFail($id);
+        
+        $this->dispatch('abrir-modal', id: 'modalDetalleIncidencia');
+    }
+
     public function resetForm()
     {
         $this->reset([
             'incidencia_id', 'departamento_id', 'dependencia_id', 'trabajador_id', 'problema_id', 
             'user_id', 'modelo_type', 'modelo_id', 'descripcion', 'nota_resolucion', 
-            'solventado', 'cerrado', 'amerita_movimiento', 'trabajadores', 'dependencias_disponibles', 'activos', 'es_lectura'
+            'solventado', 'cerrado', 'amerita_movimiento', 'trabajadores', 'dependencias_disponibles', 'activos', 'es_lectura', 'incidencia_detalle'
         ]);
     }
 

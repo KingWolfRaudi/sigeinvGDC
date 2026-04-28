@@ -243,7 +243,7 @@
 
     <div class="col-md-4 mb-3">
         <label class="form-label">Dependencia (Opcional)</label>
-        <select class="form-select @error('dependencia_id') is-invalid @enderror" wire:model="dependencia_id" {{ empty($dependencias_disponibles) ? 'disabled' : '' }}>
+        <select class="form-select @error('dependencia_id') is-invalid @enderror" wire:model.live="dependencia_id" {{ empty($dependencias_disponibles) ? 'disabled' : '' }}>
             <option value="">Seleccione una dependencia...</option>
             @foreach($dependencias_disponibles as $depen)
                 <option value="{{ $depen->id }}">{{ $depen->nombre }}</option>

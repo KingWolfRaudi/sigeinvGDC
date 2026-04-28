@@ -78,13 +78,19 @@ class Dispositivos extends Component
 
     public function updatedDepartamentoId($value)
     {
-        $this->trabajador_id = null; // Reseteamos al trabajador para forzar la actualización
+        $this->trabajador_id = null;
         $this->dependencia_id = null;
+        $this->computador_id = null;
         if (!empty($value)) {
             $this->dependencias_disponibles = Dependencia::where('departamento_id', $value)->where('activo', true)->get();
         } else {
             $this->dependencias_disponibles = [];
         }
+    }
+
+    public function updatedDependenciaId($value)
+    {
+        $this->computador_id = null;
     }
     
     public function render()
@@ -162,15 +168,28 @@ class Dispositivos extends Component
         $tipos = TipoDispositivo::where('activo', true)->orderBy('nombre')->get();
         $puertos = Puerto::where('activo', true)->orderBy('nombre')->get();
         $departamentos = Departamento::where('activo', true)->orderBy('nombre')->get();
-        $computadores = Computador::with('marca')->where('activo', true)->get();
+        $computadores = [];
+        if ($this->departamento_id) {
+            $computadores = Computador::with('marca')
+                ->where('activo', true)
+                ->where('departamento_id', $this->departamento_id)
+                ->when($this->dependencia_id, function($q) {
+                    return $q->where('dependencia_id', $this->dependencia_id);
+                })
+                ->orderBy('nombre_equipo')
+                ->get();
+        }
 
-        // Filtramos trabajadores por departamento si hay uno seleccionado
-        $trabajadores = Trabajador::where('activo', true)
-            ->when($this->departamento_id, function($q) {
-                return $q->where('departamento_id', $this->departamento_id);
-            })
-            ->orderBy('nombres')
-            ->get();
+        $trabajadores = [];
+        if ($this->departamento_id) {
+            $trabajadores = Trabajador::where('activo', true)
+                ->where('departamento_id', $this->departamento_id)
+                ->when($this->dependencia_id, function($q) {
+                    return $q->where('dependencia_id', $this->dependencia_id);
+                })
+                ->orderBy('nombres')
+                ->get();
+        }
             
         return view('livewire.inventario.dispositivos', compact(
             'dispositivos', 'marcas', 'tipos', 'trabajadores', 'puertos', 'departamentos', 'computadores'

@@ -54,6 +54,14 @@
         [data-bs-theme="light"] .bg-body-tertiary {
             background-color: #eff1f4 !important;
         }
+
+        /* Corrección de legibilidad para etiquetas amarillas en Modo Oscuro */
+        [data-bs-theme="dark"] .bg-warning, 
+        [data-bs-theme="dark"] .text-bg-warning,
+        [data-bs-theme="dark"] .badge.bg-warning,
+        [data-bs-theme="dark"] .btn-warning {
+            color: #000 !important;
+        }
     </style>
     <script>
         // Evitar el parpadeo blanco aplicando el tema guardado antes de renderizar
@@ -469,6 +477,7 @@
                     
                     // Limpiamos los colores de notificaciones anteriores, incluyendo el texto
                     toastEl.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info', 'bg-secondary', 'text-white', 'text-body');
+                    toastEl.style.color = ''; 
                     
                     // Le ponemos texto blanco por defecto para que se lea bien en fondos oscuros
                     toastEl.classList.add('text-white');
@@ -486,8 +495,8 @@
                         toastEl.classList.add('bg-success');
                     } else if (tipo === 'warning' || tipo === 'alerta') {
                         toastEl.classList.add('bg-warning');
-                        toastEl.classList.remove('text-white'); // El warning se lee mejor con texto oscuro
-                        toastEl.classList.add('text-body');
+                        toastEl.classList.remove('text-white');
+                        toastEl.style.color = '#000'; // Forzamos negro para legibilidad sobre amarillo
                     } else {
                         toastEl.classList.add('bg-info');
                     }

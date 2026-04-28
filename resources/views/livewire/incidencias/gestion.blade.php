@@ -202,13 +202,16 @@
                                                 <i class="bi bi-arrow-left-right"></i>
                                             </button>
                                         @endif
-                                        @if($inc->cerrado)
-                                            <button wire:click="editar({{ $inc->id }})" class="btn btn-sm btn-outline-secondary" title="Ver Historial">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                        @else
-                                            <button wire:click="editar({{ $inc->id }})" class="btn btn-sm btn-outline-primary" title="Editar">
+                                        <button wire:click="ver({{ $inc->id }})" class="btn btn-sm btn-outline-info" title="Ver Detalles">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        @if(!$inc->cerrado)
+                                            <button wire:click="editar({{ $inc->id }})" class="btn btn-sm btn-outline-primary" title="Editar / Gestionar">
                                                 <i class="bi bi-pencil-square"></i>
+                                            </button>
+                                        @elseif(Auth::user()->can('admin-incidencias'))
+                                            <button wire:click="editar({{ $inc->id }})" class="btn btn-sm btn-outline-secondary" title="Historial / Reabrir">
+                                                <i class="bi bi-gear"></i>
                                             </button>
                                         @endif
                                     </div>
@@ -424,6 +427,192 @@
                         @endif
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Detalle -->
+    <div wire:ignore.self class="modal fade" id="modalDetalleIncidencia" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-info text-white border-bottom-0 p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-white bg-opacity-25 p-2 rounded-3 me-3">
+                            <i class="bi bi-eye-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title h6 mb-0">Detalles de la Incidencia</h5>
+                            @if($incidencia_detalle)
+                                <small class="opacity-75">Folio: #{{ str_pad($incidencia_detalle->id, 5, '0', STR_PAD_LEFT) }}</small>
+                            @endif
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" wire:click="resetForm"></button>
+                </div>
+                
+                @if($incidencia_detalle)
+                <div class="modal-body p-0 bg-body-secondary overflow-hidden">
+                    <!-- Banner de Estado -->
+                    <div class="px-4 py-3 bg-body border-bottom d-flex justify-content-between align-items-center">
+                        <div class="d-flex gap-2">
+                            @if($incidencia_detalle->cerrado)
+                                <span class="badge bg-dark rounded-pill px-3"><i class="bi bi-lock-fill me-1"></i> Cerrado</span>
+                            @elseif($incidencia_detalle->solventado)
+                                <span class="badge bg-success rounded-pill px-3"><i class="bi bi-check-circle-fill me-1"></i> Solventado</span>
+                            @else
+                                <span class="badge bg-warning text-dark rounded-pill px-3"><i class="bi bi-clock-history me-1"></i> En Curso</span>
+                            @endif
+
+                            @if($incidencia_detalle->amerita_movimiento)
+                                <span class="badge bg-info text-white rounded-pill px-3"><i class="bi bi-arrow-left-right me-1"></i> Requiere Movimiento</span>
+                            @endif
+                        </div>
+                        <div class="text-muted small">
+                            <i class="bi bi-calendar3 me-1"></i> {{ $incidencia_detalle->created_at->format('d/m/Y H:i') }}
+                        </div>
+                    </div>
+
+                    <div class="p-4">
+                        <div class="row g-4">
+                            <!-- Columna Izquierda: Información General -->
+                            <div class="col-md-7">
+                                <!-- Problema y Descripción -->
+                                <div class="card border-0 shadow-sm rounded-3 mb-4">
+                                    <div class="card-body">
+                                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">
+                                            <i class="bi bi-chat-left-text me-2"></i> Descripción del Caso
+                                        </h6>
+                                        <div class="mb-3">
+                                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 mb-2">
+                                                {{ $incidencia_detalle->problema->nombre }}
+                                            </span>
+                                            <p class="mb-0 text-body" style="white-space: pre-wrap;">{{ $incidencia_detalle->descripcion }}</p>
+                                        </div>
+                                        
+                                        @if($incidencia_detalle->nota_resolucion)
+                                        <div class="mt-4 p-3 bg-success bg-opacity-10 border border-success border-opacity-25 rounded-3">
+                                            <h6 class="text-success fw-bold small mb-2"><i class="bi bi-check2-square me-1"></i> Resolución:</h6>
+                                            <p class="mb-0 text-body small" style="white-space: pre-wrap;">{{ $incidencia_detalle->nota_resolucion }}</p>
+                                        </div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <!-- Ubicación -->
+                                <div class="card border-0 shadow-sm rounded-3">
+                                    <div class="card-body">
+                                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">
+                                            <i class="bi bi-geo-alt me-2"></i> Ubicación y Solicitante
+                                        </h6>
+                                        <div class="row g-3">
+                                            <div class="col-6">
+                                                <label class="text-muted small d-block">Departamento</label>
+                                                <span class="fw-bold">{{ $incidencia_detalle->departamento->nombre }}</span>
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="text-muted small d-block">Dependencia</label>
+                                                <span class="fw-bold">{{ $incidencia_detalle->dependencia->nombre ?? 'N/A' }}</span>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="text-muted small d-block">Solicitante</label>
+                                                @if($incidencia_detalle->trabajador)
+                                                    <span class="fw-bold">{{ $incidencia_detalle->trabajador->nombres }} {{ $incidencia_detalle->trabajador->apellidos }}</span>
+                                                    <small class="text-muted d-block">{{ $incidencia_detalle->trabajador->cargo ?? '' }}</small>
+                                                @else
+                                                    <span class="fw-bold">{{ $incidencia_detalle->creator->name ?? 'N/A' }}</span>
+                                                    <span class="badge bg-secondary ms-1">Externo</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Columna Derecha: Activo y Personal -->
+                            <div class="col-md-5">
+                                <!-- Activo -->
+                                <div class="card border-0 shadow-sm rounded-3 mb-4">
+                                    <div class="card-body">
+                                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">
+                                            <i class="bi bi-laptop me-2"></i> Activo Relacionado
+                                        </h6>
+                                        @if($incidencia_detalle->modelo)
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="bg-light p-3 rounded-3 me-3 text-primary border">
+                                                    <i class="bi bi-{{ $incidencia_detalle->modelo_type == 'App\Models\Computador' ? 'pc-display' : 'router' }} fs-4"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="badge bg-secondary mb-1">{{ class_basename($incidencia_detalle->modelo_type) }}</span>
+                                                    <h6 class="mb-0 fw-bold">
+                                                        {{ $incidencia_detalle->modelo->nombre ?? ($incidencia_detalle->modelo->marca->nombre . ' ' . ($incidencia_detalle->modelo->nombre_equipo ?? '')) }}
+                                                    </h6>
+                                                </div>
+                                            </div>
+                                            <div class="bg-light p-3 rounded-3 border border-dashed">
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span class="text-muted small">Bien Nacional:</span>
+                                                    <span class="fw-bold small">{{ $incidencia_detalle->modelo->bien_nacional ?? 'N/A' }}</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between">
+                                                    <span class="text-muted small">Serial:</span>
+                                                    <span class="fw-bold small text-truncate" style="max-width: 120px;" title="{{ $incidencia_detalle->modelo->serial }}">{{ $incidencia_detalle->modelo->serial ?? 'N/A' }}</span>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <div class="text-center py-4 text-muted">
+                                                <i class="bi bi-slash-circle display-6 d-block mb-2"></i>
+                                                <p class="small mb-0">Sin activo relacionado</p>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <!-- Personal Asignado -->
+                                <div class="card border-0 shadow-sm rounded-3">
+                                    <div class="card-body">
+                                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">
+                                            <i class="bi bi-person-gear me-2"></i> Personal
+                                        </h6>
+                                        <div class="mb-3">
+                                            <label class="text-muted small d-block">Técnico Resolutor</label>
+                                            @if($incidencia_detalle->tecnico)
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px; font-size: 0.7rem;">
+                                                        {{ substr($incidencia_detalle->tecnico->name, 0, 1) }}
+                                                    </div>
+                                                    <span class="fw-bold">{{ $incidencia_detalle->tecnico->name }}</span>
+                                                </div>
+                                            @else
+                                                <span class="text-danger fst-italic small"><i class="bi bi-hourglass-split"></i> Pendiente por Asignar</span>
+                                            @endif
+                                        </div>
+                                        <div>
+                                            <label class="text-muted small d-block">Registrado por</label>
+                                            <span class="small">{{ $incidencia_detalle->creator->name ?? 'N/A' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-body border-top-0 p-4">
+                    <div class="me-auto">
+                        @can('reportes-pdf')
+                            <a href="{{ route('reportes.incidencia.ficha', $incidencia_detalle->id) }}" target="_blank" class="btn btn-outline-danger px-4">
+                                <i class="bi bi-file-pdf me-1"></i> Descargar Ficha PDF
+                            </a>
+                        @endcan
+                    </div>
+                    
+                    @if(!$incidencia_detalle->cerrado)
+                        <button wire:click="editar({{ $incidencia_detalle->id }})" class="btn btn-primary px-4" data-bs-dismiss="modal">
+                            <i class="bi bi-pencil-square me-1"></i> Gestionar Caso
+                        </button>
+                    @endif
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+                @endif
             </div>
         </div>
     </div>

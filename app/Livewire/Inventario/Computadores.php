@@ -136,6 +136,11 @@ class Computadores extends Component
             $this->dependencias_disponibles = [];
         }
     }
+
+    public function updatedDependenciaId($value)
+    {
+        $this->trabajador_id = null;
+    }
     
     public function render()
     {
@@ -230,13 +235,16 @@ class Computadores extends Component
         $puertos = Puerto::where('activo', true)->orderBy('nombre')->get();
         $departamentos = Departamento::where('activo', true)->orderBy('nombre')->get();
 
-        // Filtramos trabajadores por departamento si hay uno seleccionado
-        $trabajadores = Trabajador::where('activo', true)
-            ->when($this->departamento_id, function($q) {
-                return $q->where('departamento_id', $this->departamento_id);
-            })
-            ->orderBy('nombres')
-            ->get();
+        $trabajadores = [];
+        if ($this->departamento_id) {
+            $trabajadores = Trabajador::where('activo', true)
+                ->where('departamento_id', $this->departamento_id)
+                ->when($this->dependencia_id, function($q) {
+                    return $q->where('dependencia_id', $this->dependencia_id);
+                })
+                ->orderBy('nombres')
+                ->get();
+        }
             
         return view('livewire.inventario.computadores', compact(
             'computadores', 'marcas', 'sistemas', 'procesadores', 'gpus', 'trabajadores', 'puertos', 'departamentos'
