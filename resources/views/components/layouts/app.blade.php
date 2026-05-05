@@ -332,6 +332,23 @@
                 </li>
                 @endcanany
 
+
+                @can('ver-usuarios')
+                <li class="nav-item mb-1">
+                    <a href="{{ route('admin.usuarios') }}" class="nav-link {{ request()->routeIs('admin.usuarios') ? 'active' : 'text-white' }} d-flex align-items-center">
+                        <i class="bi bi-people-fill me-2"></i> Usuarios
+                    </a>
+                </li>
+                @endcan
+
+                @canany(['admin-auditoria', 'ver-auditoria-tecnicos', 'ver-auditoria-usuarios'])
+                <li class="nav-item mb-1 mt-3">
+                    <h6 class="sidebar-heading px-3 mt-4 mb-1 text-white-50 text-uppercase" style="font-size: 0.75rem;">
+                        <span>Auditoría</span>
+                    </h6>
+                </li>
+                @endcanany
+
                 @can('admin-auditoria')
                 <li class="nav-item mb-1">
                     <a href="{{ route('admin.auditoria') }}" class="nav-link {{ request()->routeIs('admin.auditoria') ? 'active' : 'text-white' }} d-flex align-items-center">
@@ -339,10 +356,19 @@
                     </a>
                 </li>
                 @endcan
-                @can('ver-usuarios')
+                
+                @can('ver-auditoria-tecnicos')
                 <li class="nav-item mb-1">
-                    <a href="{{ route('admin.usuarios') }}" class="nav-link {{ request()->routeIs('admin.usuarios') ? 'active' : 'text-white' }} d-flex align-items-center">
-                        <i class="bi bi-people-fill me-2"></i> Usuarios
+                    <a href="{{ route('admin.auditoria-tecnicos') }}" class="nav-link {{ request()->routeIs('admin.auditoria-tecnicos') ? 'active' : 'text-white' }} d-flex align-items-center">
+                        <i class="bi bi-user-check me-2"></i> Auditoría de Técnicos
+                    </a>
+                </li>
+                @endcan
+
+                @can('ver-auditoria-usuarios')
+                <li class="nav-item mb-1">
+                    <a href="{{ route('admin.auditoria-usuarios') }}" class="nav-link {{ request()->routeIs('admin.auditoria-usuarios') ? 'active' : 'text-white' }} d-flex align-items-center">
+                        <i class="bi bi-person-lines-fill me-2"></i> Auditoría de Usuarios
                     </a>
                 </li>
                 @endcan

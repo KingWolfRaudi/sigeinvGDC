@@ -102,6 +102,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'admin-solicitudes-perfil' => 'Gestionar y aprobar solicitudes de cambio de perfil técnico de usuarios.',
             
             'admin-auditoria' => 'Acceso total a los registros de auditoría y logs detallados del sistema.',
+            'ver-auditoria-tecnicos' => 'Permite visualizar la vista de auditoría de técnicos.',
+            'ver-auditoria-usuarios' => 'Permite visualizar la vista de auditoría individual de usuarios.',
             'reportes-excel' => 'Permite exportar datos y listados a formato Microsoft Excel.',
             'reportes-pdf' => 'Permite generar y descargar reportes en formato PDF.',
             'reportes-masivos-filtros' => 'Acceso a herramientas de filtrado avanzado para reportes masivos personalizados.'

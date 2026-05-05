@@ -32,11 +32,17 @@ Route::middleware('auth')->group(function () {
     
     // Nuestro nuevo Dashboard
     Route::get('/', MainDashboard::class)->name('dashboard');
-    Route::get('/admin/roles', Roles::class)->name('admin.roles')->can('ver-roles');
-    Route::get('/admin/usuarios', Usuarios::class)->name('admin.usuarios')->can('ver-usuarios');
-    // Configuración General
+
+    // Administración
+    Route::get('/admin/roles', \App\Livewire\Admin\Roles::class)->name('admin.roles')->can('ver-roles');
+    Route::get('/admin/usuarios', \App\Livewire\Admin\Usuarios::class)->name('admin.usuarios')->can('ver-usuarios');
     Route::get('/admin/configuracion', \App\Livewire\Admin\ConfiguracionGeneral::class)->name('admin.configuracion');
+    
+    // Auditoría
     Route::get('/admin/auditoria', \App\Livewire\Admin\Auditoria::class)->name('admin.auditoria');
+    Route::get('/admin/auditoria-tecnicos', \App\Livewire\Admin\AuditoriaTecnicos::class)->name('admin.auditoria-tecnicos');
+    Route::get('/admin/auditoria-usuarios', \App\Livewire\Admin\AuditoriaUsuarios::class)->name('admin.auditoria-usuarios');
+
     // Reportes y Auditoría
     Route::prefix('reportes')->name('reportes.')->group(function() {
         // PDFs
@@ -57,6 +63,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/incidencias/excel', [\App\Http\Controllers\ReporteController::class, 'incidenciasExcel'])->name('incidencias.excel');
         Route::get('/movimientos/{segmento}/excel', [\App\Http\Controllers\ReporteController::class, 'movimientosExcel'])->name('movimientos.excel');
         Route::get('/usuarios/excel', [\App\Http\Controllers\ReporteController::class, 'usuariosExcel'])->name('usuarios.excel');
+        Route::get('/logs/excel', [\App\Http\Controllers\ReporteController::class, 'logsExcel'])->name('logs.excel');
+        Route::get('/logs/pdf', [\App\Http\Controllers\ReporteController::class, 'logsPdf'])->name('logs.pdf');
+        Route::get('/auditoria-usuario/{id}/pdf', [\App\Http\Controllers\ReporteController::class, 'auditoriaUsuarioPdf'])->name('auditoria-usuario.pdf');
 
         // Masivo
         Route::post('/masivo/excel', [\App\Http\Controllers\ReporteController::class, 'reporteMasivo'])->name('masivo.excel');
@@ -118,5 +127,19 @@ Route::middleware('auth')->group(function () {
         session()->regenerateToken();
         return redirect('/login');
     })->name('logout');
+
+    Route::get('/seed-permissions', function () {
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        $p1 = \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'ver-auditoria-tecnicos', 'guard_name' => 'web'], ['descripcion' => 'Permite visualizar la vista de auditoría de técnicos.']);
+        $p2 = \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'ver-auditoria-usuarios', 'guard_name' => 'web'], ['descripcion' => 'Permite visualizar la vista de auditoría individual de usuarios.']);
+        
+        $r1 = \Spatie\Permission\Models\Role::where('name', 'super-admin')->first();
+        if($r1) { $r1->givePermissionTo($p1); $r1->givePermissionTo($p2); }
+        
+        $r2 = \Spatie\Permission\Models\Role::where('name', 'administrador')->first();
+        if($r2) { $r2->givePermissionTo($p1); $r2->givePermissionTo($p2); }
+        
+        return 'Permisos actualizados';
+    });
 
 });
