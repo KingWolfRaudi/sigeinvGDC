@@ -19,6 +19,8 @@ use App\Exports\IncidenciasExport;
 use App\Exports\MovimientosExport;
 use App\Exports\UsersExport;
 use App\Exports\SoftwareExport;
+use App\Exports\LogsExport;
+use Spatie\Activitylog\Models\Activity;
 
 class ReporteController extends Controller
 {
@@ -118,6 +120,96 @@ class ReporteController extends Controller
         activity()->log("Exportó inventario de Computadores a Excel con filtros: " . json_encode($filters));
 
         return Excel::download(new ComputadoresExport($filters), 'Inventario_Computadores_' . now()->format('d-m-Y') . '.xlsx');
+    }
+
+    /**
+     * Exporta la auditoría de logs a Excel.
+     */
+    public function logsExcel(Request $request)
+    {
+        $this->authorize('reportes-excel');
+        
+        $filters = $request->only(['searchUser', 'searchModule', 'dateFrom', 'dateTo']);
+        
+        activity()->log("Exportó Auditoría de Logs a Excel");
+
+        return Excel::download(new LogsExport($filters), 'Auditoria_Logs_' . now()->format('d-m-Y') . '.xlsx');
+    }
+
+    /**
+     * Exporta la auditoría de logs a PDF.
+     */
+    public function logsPdf(Request $request)
+    {
+        $this->authorize('reportes-excel'); // Usamos el mismo permiso base
+        
+        $filters = $request->only(['searchUser', 'searchModule', 'dateFrom', 'dateTo']);
+        
+        $query = Activity::with('causer')->latest();
+
+        if (!empty($filters['searchUser'])) {
+            $query->whereHas('causer', function($q) use ($filters) {
+                $q->where('name', 'like', '%' . $filters['searchUser'] . '%')
+                  ->orWhere('email', 'like', '%' . $filters['searchUser'] . '%');
+            });
+        }
+
+        if (!empty($filters['searchModule'])) {
+            $query->where(function($q) use ($filters) {
+                $q->where('subject_type', 'like', '%' . $filters['searchModule'] . '%')
+                  ->orWhere('description', 'like', '%' . $filters['searchModule'] . '%');
+            });
+        }
+
+        if (!empty($filters['dateFrom'])) {
+            $query->whereDate('created_at', '>=', $filters['dateFrom']);
+        }
+
+        if (!empty($filters['dateTo'])) {
+            $query->whereDate('created_at', '<=', $filters['dateTo']);
+        }
+
+        // Limitamos a 500 registros para PDF para evitar sobrecarga de memoria
+        $logs = $query->take(500)->get();
+
+        activity()->log("Exportó Auditoría de Logs a PDF");
+
+        $pdf = Pdf::loadView('reports.logs-pdf', compact('logs', 'filters'))->setPaper('a4', 'landscape');
+        
+        return $pdf->stream('Auditoria_Logs_' . now()->format('d-m-Y') . '.pdf');
+    }
+
+    /**
+     * Exporta el reporte de auditoría individual de un usuario a PDF.
+     */
+    public function auditoriaUsuarioPdf(Request $request, $id)
+    {
+        $this->authorize('ver-auditoria-usuarios');
+        
+        $user = \App\Models\User::with(['roles', 'especialidad'])->findOrFail($id);
+        
+        $dateFrom = $request->query('dateFrom');
+        $dateTo = $request->query('dateTo');
+        
+        $query = Activity::where('causer_id', $user->id)
+                         ->where('causer_type', \App\Models\User::class)
+                         ->latest();
+
+        if ($dateFrom) {
+            $query->whereDate('created_at', '>=', $dateFrom);
+        }
+        if ($dateTo) {
+            $query->whereDate('created_at', '<=', $dateTo);
+        }
+
+        // Limitamos a 200 registros en PDF
+        $actividades = $query->take(200)->get();
+
+        activity()->log("Generó Reporte PDF de Auditoría del Usuario: {$user->name}");
+
+        $pdf = Pdf::loadView('reports.auditoria-usuario-pdf', compact('user', 'actividades', 'dateFrom', 'dateTo'))->setPaper('a4', 'portrait');
+        
+        return $pdf->stream("Auditoria_Usuario_{$user->username}_" . now()->format('d-m-Y') . ".pdf");
     }
 
     /**

@@ -102,9 +102,13 @@ class RolesAndPermissionsSeeder extends Seeder
             'admin-solicitudes-perfil' => 'Gestionar y aprobar solicitudes de cambio de perfil técnico de usuarios.',
             
             'admin-auditoria' => 'Acceso total a los registros de auditoría y logs detallados del sistema.',
+            'ver-auditoria-tecnicos' => 'Permite visualizar la vista de auditoría de técnicos.',
+            'ver-auditoria-usuarios' => 'Permite visualizar la vista de auditoría individual de usuarios.',
             'reportes-excel' => 'Permite exportar datos y listados a formato Microsoft Excel.',
             'reportes-pdf' => 'Permite generar y descargar reportes en formato PDF.',
-            'reportes-masivos-filtros' => 'Acceso a herramientas de filtrado avanzado para reportes masivos personalizados.'
+            'reportes-masivos-filtros' => 'Acceso a herramientas de filtrado avanzado para reportes masivos personalizados.',
+            'ver-dashboard' => 'Permite visualizar el panel de control principal (Dashboard).',
+            'ver-panel-soporte' => 'Permite visualizar el acceso al panel de soporte en el menú lateral.'
         ];
 
         $permisosFinales = array_merge($permisosFinales, $especiales);
@@ -132,38 +136,90 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // 3. ASIGNAR PERMISOS INICIALES
         $todosLosPermisos = Permission::all();
-        
-        $adminRole = Role::where('name', 'administrador')->first();
-        if ($adminRole) {
-            $adminRole->syncPermissions($todosLosPermisos);
-        }
 
+        // --- SUPER ADMIN: Todo ---
         $superAdminRole = Role::where('name', 'super-admin')->first();
         if ($superAdminRole) {
             $superAdminRole->syncPermissions($todosLosPermisos);
         }
 
+        // --- ADMINISTRADOR: Todo menos eliminar ---
+        $adminRole = Role::where('name', 'administrador')->first();
+        if ($adminRole) {
+            $adminRole->syncPermissions($todosLosPermisos->filter(fn($p) => !str_starts_with($p->name, 'eliminar-')));
+        }
+
+        // Grupos de Slugs para facilitar la asignación
+        $catalogos = ['marcas', 'tipos-dispositivo', 'sistemas-operativos', 'puertos', 'procesadores', 'gpus', 'categorias-insumos', 'problemas'];
+        $asignaciones = ['departamentos', 'trabajadores', 'dependencias'];
+        $inventario = ['computadores', 'dispositivos', 'insumos', 'software'];
+        $catAsigInv = array_merge($catalogos, $asignaciones, $inventario);
+
+        // --- COORDINADOR ---
         $coordinadorRole = Role::where('name', 'coordinador')->first();
         if ($coordinadorRole) {
-            $coordinadorRole->syncPermissions([
-                'ver-incidencias', 'gestionar-incidencias',
-                'ver-departamentos', 'ver-trabajadores', 'ver-computadores', 'ver-dispositivos', 'ver-insumos'
-            ]);
+            $coorPerms = $todosLosPermisos->filter(function($p) use ($catAsigInv) {
+                // Dashboard y Panel de Soporte
+                if (in_array($p->name, ['ver-dashboard', 'ver-panel-soporte'])) return true;
+
+                // Reportes y Auditoría específica
+                if (in_array($p->name, ['reportes-excel', 'reportes-pdf', 'reportes-masivos-filtros', 'ver-auditoria-tecnicos'])) return true;
+                
+                // Incidencias (Especiales)
+                if (in_array($p->name, ['crear-ticket', 'gestionar-incidencias', 'admin-incidencias', 'ver-incidencias', 'admin-solicitudes-perfil'])) return true;
+                
+                // Movimientos (Todos)
+                if (str_starts_with($p->name, 'movimientos-')) return true;
+                
+                // Catálogos, Asignaciones e Inventario (menos eliminar)
+                foreach ($catAsigInv as $slug) {
+                    if (str_ends_with($p->name, "-$slug") && !str_starts_with($p->name, 'eliminar-')) return true;
+                }
+
+                // Especialidades Técnicas (menos eliminar)
+                if (str_ends_with($p->name, '-especialidades') && !str_starts_with($p->name, 'eliminar-')) return true;
+
+                return false;
+            });
+            $coordinadorRole->syncPermissions($coorPerms);
         }
 
+        // --- PERSONAL-TI ---
         $personalTiRole = Role::where('name', 'personal-ti')->first();
         if ($personalTiRole) {
-            $personalTiRole->syncPermissions(['ver-incidencias', 'gestionar-incidencias']);
+            $tiPerms = $todosLosPermisos->filter(function($p) use ($catAsigInv) {
+                // Dashboard y Panel de Soporte
+                if (in_array($p->name, ['ver-dashboard', 'ver-panel-soporte'])) return true;
+
+                // Todos los reportes
+                if (in_array($p->name, ['reportes-excel', 'reportes-pdf', 'reportes-masivos-filtros'])) return true;
+                
+                // Incidencias (Especiales) menos solicitudes de perfil
+                if (in_array($p->name, ['crear-ticket', 'gestionar-incidencias', 'admin-incidencias', 'ver-incidencias'])) return true;
+                
+                // Todos los movimientos
+                if (str_starts_with($p->name, 'movimientos-')) return true;
+                
+                // Catálogos, Asignaciones e Inventario (menos eliminar)
+                foreach ($catAsigInv as $slug) {
+                    if (str_ends_with($p->name, "-$slug") && !str_starts_with($p->name, 'eliminar-')) return true;
+                }
+
+                return false;
+            });
+            $personalTiRole->syncPermissions($tiPerms);
         }
 
+        // --- RESOLUTOR-INCIDENCIA ---
         $resolutorRole = Role::where('name', 'resolutor-incidencia')->first();
         if ($resolutorRole) {
-            $resolutorRole->syncPermissions(['ver-incidencias', 'gestionar-incidencias']);
+            $resolutorRole->syncPermissions(['ver-incidencias', 'gestionar-incidencias', 'ver-dashboard', 'ver-panel-soporte']);
         }
 
+        // --- TRABAJADOR ---
         $trabajadorRole = Role::where('name', 'trabajador')->first();
         if ($trabajadorRole) {
-            $trabajadorRole->syncPermissions(['crear-ticket']);
+            $trabajadorRole->syncPermissions(['crear-ticket', 'ver-dashboard', 'ver-panel-soporte']);
         }
 
         // 4. CREAR EL USUARIO SUPERADMIN (Tu código original mejorado)

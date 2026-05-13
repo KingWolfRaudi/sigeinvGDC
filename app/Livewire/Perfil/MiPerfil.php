@@ -83,7 +83,7 @@ class MiPerfil extends Component
         $user = Auth::user();
         
         // Generar nombre: nombre-completo-slug.ext
-        $filename = Str::slug($user->name) . '.' . $this->nueva_foto->getClientOriginalExtension();
+        $filename = Str::slug($user->name) . '.' . $this->nueva_foto->extension();
 
         // Si ya tenía una foto con el mismo nombre o diferente, la borramos si existe (opcional, pero limpio)
         if ($user->avatar) {

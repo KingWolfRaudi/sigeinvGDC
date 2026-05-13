@@ -54,7 +54,15 @@ class Login extends Component
             return redirect()->intended('/');
         }
 
-        // 4. Si falla, mostramos un error en el campo identificador
+        // 4. Si falla, mostramos un error y registramos el intento fallido
+        activity()
+            ->withProperties([
+                'identificador_intentado' => $this->identificador,
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent()
+            ])
+            ->log('Intento fallido de inicio de sesión');
+
         $this->addError('identificador', 'Las credenciales no coinciden o tu cuenta está inactiva.');
     }
 

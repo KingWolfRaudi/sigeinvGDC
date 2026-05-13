@@ -90,11 +90,73 @@
     @if(!$esTrabajador)
     <!-- Fase 3: Analítica de Hardware -->
     <div class="row g-4 mb-4">
-        ...
+        <!-- Gráficos -->
+        <div class="col-12 col-xl-8">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-body border-bottom-0 pt-4 pb-0 px-4">
+                    <h5 class="fw-bold text-body"><i class="bi bi-cpu text-primary me-2"></i>Composición de Hardware</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <!-- RAM -->
+                        <div class="col-md-6 text-center">
+                            <h6 class="text-muted mb-3 fw-bold">Distribución de Memoria RAM</h6>
+                            <div style="height: 250px; position: relative;">
+                                <canvas id="ramChart"></canvas>
+                            </div>
+                        </div>
+                        <!-- Discos -->
+                        <div class="col-md-6 text-center mt-4 mt-md-0 border-start-md">
+                            <h6 class="text-muted mb-3 fw-bold">Modernización de Almacenamiento</h6>
+                            <div style="height: 250px; position: relative;">
+                                <canvas id="discoChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Totales de Capacidad -->
+        <div class="col-12 col-xl-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-body border-bottom-0 pt-4 pb-0 px-4">
+                    <h5 class="fw-bold text-body"><i class="bi bi-server text-success me-2"></i>Capacidad Bruta Gestionada</h5>
+                </div>
+                <div class="card-body p-4 d-flex flex-column justify-content-center">
+                    
+                    <div class="d-flex align-items-center mb-4 bg-body-secondary p-3 rounded-4">
+                        <div class="bg-success bg-opacity-10 text-success p-3 rounded-circle me-3">
+                            <i class="bi bi-database fs-2"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted mb-0 fw-bold small text-uppercase">Total Almacenamiento</p>
+                            <h2 class="fw-bold mb-0 text-body">
+                                {{ $totalAlmacenamientoGB >= 1024 ? number_format($totalAlmacenamientoGB / 1024, 2) . ' TB' : number_format($totalAlmacenamientoGB, 0) . ' GB' }}
+                            </h2>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center bg-body-secondary p-3 rounded-4">
+                        <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle me-3">
+                            <i class="bi bi-memory fs-2"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted mb-0 fw-bold small text-uppercase">Memoria RAM Instalada</p>
+                            <h2 class="fw-bold mb-0 text-body">
+                                {{ $totalRamGB >= 1024 ? number_format($totalRamGB / 1024, 2) . ' TB' : number_format($totalRamGB, 0) . ' GB' }}
+                            </h2>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
     </div>
     @endif
 
     <!-- Fase 4: Listado de Acción Rápida y Resueltos -->
+    @can('ver-panel-soporte')
     <div class="d-flex justify-content-between align-items-center mb-3 mt-5">
         <h4 class="fw-bold text-body mb-0">
             <i class="bi bi-briefcase-fill text-primary me-2"></i>Mesa de Ayuda (HelpDesk)
@@ -238,6 +300,7 @@
             </div>
         </div>
     </div>
+    @endcan
 
     <!-- Scripts de Gráficos (Fase 4) -->
     <style>

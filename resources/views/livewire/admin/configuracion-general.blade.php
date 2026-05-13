@@ -56,7 +56,7 @@
 
                         <div class="row g-4">
                             <div class="col-md-6">
-                                <div class="card border border-light p-3 h-100">
+                                <div class="card border border-secondary-subtle p-3 h-100">
                                     <div class="form-check form-switch mb-2">
                                         <input class="form-check-input" type="checkbox" wire:model="cierre_irreversible" id="cierre_irreversible">
                                         <label class="form-check-label fw-bold" for="cierre_irreversible">Cierre Irreversible</label>
@@ -66,7 +66,7 @@
                             </div>
 
                             <div class="col-md-6">
-                                <div class="card border border-light p-3 h-100">
+                                <div class="card border border-secondary-subtle p-3 h-100">
                                     <div class="form-check form-switch mb-2">
                                         <input class="form-check-input" type="checkbox" wire:model="activo_obligatorio" id="activo_obligatorio">
                                         <label class="form-check-label fw-bold" for="activo_obligatorio">Activo Fijo Obligatorio</label>
@@ -76,7 +76,7 @@
                             </div>
 
                             <div class="col-md-12">
-                                <div class="card border border-light p-3 h-100 bg-light bg-opacity-50">
+                                <div class="card border border-secondary-subtle p-3 h-100 bg-body-tertiary">
                                     <div class="form-check form-switch mb-2">
                                         <input class="form-check-input" type="checkbox" wire:model="dashboard_tecnico_ver_global" id="dashboard_tecnico_ver_global">
                                         <label class="form-check-label fw-bold" for="dashboard_tecnico_ver_global">Técnicos ven todos los tickets pendientes en Dashboard</label>

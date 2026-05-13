@@ -1,6 +1,6 @@
 # Manual de Usuario — SIGEINV
 ### Sistema de Gestión de Inventario Tecnológico y Mesa de Ayuda
-**Versión 1.0 | Área de Tecnología de la Información**
+**Versión 2.0 | Área de Tecnología de la Información**
 
 ---
 
@@ -16,144 +16,129 @@
 8. [Panel de Soporte e Incidencias](#8-panel-de-soporte-e-incidencias)
 9. [Panel de Movimientos](#9-panel-de-movimientos)
 10. [Catálogos del Sistema](#10-catálogos-del-sistema)
-11. [Asignaciones (Trabajadores y Departamentos)](#11-asignaciones-trabajadores-y-departamentos)
+11. [Asignaciones (Trabajadores, Departamentos y Dependencias)](#11-asignaciones)
 12. [Administración del Sistema](#12-administración-del-sistema)
-13. [Mi Perfil](#13-mi-perfil)
-14. [Reportes y Exportaciones](#14-reportes-y-exportaciones)
-15. [Tema Oscuro y Personalización Visual](#15-tema-oscuro-y-personalización-visual)
-16. [Glosario de Términos](#16-glosario-de-términos)
+13. [Auditoría](#13-auditoría)
+14. [Mi Perfil](#14-mi-perfil)
+15. [Reportes y Exportaciones](#15-reportes-y-exportaciones)
+16. [Tema Oscuro y Personalización Visual](#16-tema-oscuro-y-personalización-visual)
+17. [Glosario de Términos](#17-glosario-de-términos)
 
 ---
 
 ## 1. Introducción y Acceso al Sistema
 
-**SIGEINV** es el Sistema de Gestión de Inventario Tecnológico y Mesa de Ayuda de la organización. Permite registrar, controlar y dar seguimiento a todos los activos tecnológicos (computadores, dispositivos, insumos y software), así como gestionar las solicitudes de soporte técnico (incidencias) con trazabilidad completa.
+**SIGEINV** es el Sistema de Gestión de Inventario Tecnológico y Mesa de Ayuda. Permite registrar, controlar y dar seguimiento a todos los activos tecnológicos (computadores, dispositivos, insumos y software), gestionar solicitudes de soporte técnico con trazabilidad completa, y auditar la actividad de todos los usuarios del sistema.
 
 ### 1.1 Cómo Iniciar Sesión
 
 1. Abre tu navegador (Chrome, Firefox, Edge) y dirígete a la dirección del sistema.
-2. En la pantalla de inicio verás el formulario de autenticación:
-   - **Usuario o Correo Electrónico:** Ingresa tu nombre de usuario o correo institucional.
-   - **Contraseña:** Ingresa tu contraseña. Haz clic en el ícono 👁 para visualizarla.
-   - **Mantener sesión iniciada:** Activa esta opción si deseas que el sistema recuerde tu sesión.
-3. Haz clic en **"Entrar al Sistema"**.
+2. Ingresa tu **nombre de usuario** o **correo electrónico** y tu **contraseña**.
+3. Activa **"Mantener sesión iniciada"** si deseas que el sistema recuerde tu acceso.
+4. Haz clic en **"Entrar al Sistema"**.
 
-> **Nota:** Si el botón dice "Verificando...", el sistema está procesando tu solicitud. Espera unos instantes.
+> Cada inicio de sesión exitoso queda registrado en el sistema de auditoría con tu dirección IP. Los intentos fallidos también son registrados.
 
 ### 1.2 Cómo Cerrar Sesión
 
-1. En la barra lateral izquierda, haz clic en tu **nombre de usuario** (parte inferior del menú).
-2. En el menú desplegable, selecciona **"Cerrar Sesión"**.
+En la barra lateral izquierda, haz clic en tu nombre de usuario (parte inferior) y selecciona **"Cerrar Sesión"**.
 
 ---
 
 ## 2. Roles y Permisos
 
-SIGEINV utiliza un sistema de roles y permisos que determina qué secciones y acciones están disponibles para cada usuario.
+SIGEINV usa un sistema de roles y permisos que determina qué secciones y acciones están disponibles para cada usuario.
 
 | Rol | Descripción |
 |-----|-------------|
-| **Super Administrador** | Acceso total sin restricciones. Único rol ineditable desde la interfaz. |
-| **Administrador** | Gestión completa de inventario, incidencias, movimientos y usuarios. |
-| **Técnico Resolutor** | Gestiona y atiende incidencias asignadas. Acceso a movimientos relacionados. |
-| **Inventariador** | Registra y actualiza activos del inventario tecnológico. |
-| **Usuario Estándar** | Puede crear tickets de soporte y consultar su perfil. |
+| **Super Administrador** | Acceso total sin restricciones. Rol ineditable desde la interfaz. |
+| **Administrador** | Gestión completa de inventario, incidencias, movimientos, usuarios y auditoría. |
+| **Coordinador** | Supervisión: ve incidencias, trabajadores y equipos. No puede modificar inventario. |
+| **Personal TI** | Accede a la gestión de incidencias (mesa de soporte). |
+| **Resolutor de Incidencia** | Atiende y cierra tickets asignados a su especialidad. |
+| **Trabajador** | Puede crear tickets de soporte y consultar su perfil. |
 
-> Los permisos específicos se configuran desde **Administración > Roles y Permisos**.
+> Los permisos específicos de cada rol se configuran desde **Administración > Roles y Permisos**.
 
 ---
 
 ## 3. Panel de Control (Dashboard)
 
-Pantalla principal al iniciar sesión. Proporciona una vista consolidada del estado operativo en tiempo real.
+Pantalla principal al iniciar sesión. Muestra el estado operativo en tiempo real.
 
-### 3.1 Métricas Operativas
+### 3.1 Métricas Operativas (Tarjetas superiores)
 
 | Tarjeta | Descripción |
 |---------|-------------|
-| 🔴 **Tickets sin Asignar** | Incidencias sin técnico asignado. Requieren atención inmediata. |
-| 🟡 **En Curso** | Casos activos con técnico trabajando en la solución. |
-| 🟠 **Movimientos Solicitados** | Solicitudes de movimiento de activos pendientes de aprobación. |
-| ⚠️ **Insumos Críticos** | Insumos con stock igual o inferior al mínimo establecido. |
+| 🔴 **Tickets sin Asignar** | Incidencias abiertas sin técnico asignado. |
+| 🟡 **En Curso** | Casos activos con técnico trabajando. |
+| 🟠 **Movimientos Solicitados** | Solicitudes pendientes de aprobación. |
+| ⚠️ **Insumos Críticos** | Stock igual o inferior al mínimo establecido. |
 
 ### 3.2 Panel de Composición de Hardware
 
-Dos gráficos interactivos basados en datos reales del inventario:
-- **Distribución de RAM:** Clasifica equipos por capacidad (4GB o menos, 8GB, 16GB, más de 16GB).
-- **Tecnología de Almacenamiento:** Compara equipos con SSD/NVME frente a HDD mecánicos.
+Gráficos interactivos basados en el inventario real:
+- **Distribución de RAM:** Clasifica equipos por capacidad (≤4GB, 8GB, 16GB, >16GB).
+- **Tecnología de Almacenamiento:** SSD/NVME vs. HDD mecánicos.
 
 Indicadores laterales muestran la **capacidad total de RAM** y **almacenamiento total** gestionado.
 
-### 3.3 Mesa de Ayuda (Sección Inferior)
+### 3.3 Mesa de Ayuda
 
-Dos paneles en paralelo:
-
-**Panel Izquierdo — Atención Rápida:**
-- **Técnico resolutor:** Muestra tus casos asignados pendientes.
-- **Administrador:** Muestra los últimos tickets abiertos del sistema.
-
-**Panel Derecho — Historial de Resoluciones:**
-- **Técnico resolutor:** Tus casos resueltos recientemente.
-- **Administrador:** Historial global de incidencias resueltas.
-
-El botón **"Ir al Panel de Gestión"** te lleva directamente al módulo completo de incidencias.
+Dos paneles paralelos en la parte inferior:
+- **Atención Rápida:** Técnicos ven sus casos asignados; administradores ven los últimos tickets del sistema.
+- **Historial de Resoluciones:** Casos resueltos recientes (del técnico o globales según el rol).
 
 ---
 
 ## 4. Inventario de Computadores
 
-Gestión de todos los equipos de computación: desktops, laptops y servidores.
+Gestión de desktops, laptops y servidores.
 
-### 4.1 Información en la Tabla Principal
+### 4.1 Información en la Tabla
 
-- **Identificación:** Bien Nacional y Serial del equipo.
-- **Tipo/Equipo:** Tipo de computador y nombre asignado.
-- **Marca/Hardware:** Marca, RAM total y almacenamiento total.
-- **Red:** Dirección IP y MAC.
-- **Ubicación:** Departamento asignado.
-- **Condición:** Estado físico (Operativo / Dañado / En Revisión).
-- **Estado:** Activo o Inactivo *(visible según permisos)*.
+- Bien Nacional, Serial, Tipo, Nombre del equipo, Marca, RAM total, Almacenamiento total, IP, MAC, Departamento, Estado físico y Estado (Activo/Inactivo).
 
-**Indicadores especiales:**
-- 🟡 **"En revisión":** Equipo con movimiento pendiente de aprobación.
-- 🔵 **"Borrador":** Tienes un borrador de cambio no enviado para ese equipo.
+**Indicadores especiales en la fila:**
+- 🟡 **"En revisión":** Tiene un movimiento pendiente de aprobación.
+- 🔵 **"Borrador":** Hay un borrador de cambio sin enviar para ese equipo.
 
-### 4.2 Barra de Búsqueda y Filtros
+### 4.2 Filtros y Búsqueda
 
-- **Buscador:** Busca por Bien Nacional, Serial o dirección IP.
-- **Filtro de Estado:** Todos / Solo Activos / Solo Inactivos *(según permisos)*.
+- **Buscador:** Por Bien Nacional, Serial o IP.
+- **Filtro de Estado:** Todos / Solo Activos / Solo Inactivos.
+- **Filtro de Departamento:** Restringe por ubicación.
 
 ### 4.3 Registrar un Nuevo Computador
 
-1. Haz clic en **"+ Nuevo"**.
-2. Completa el formulario:
-   - Datos de identificación (tipo, nombre, Bien Nacional, serial).
-   - Asignación (departamento y trabajador responsable).
-   - Hardware (sistema operativo, procesador, GPU, módulos de RAM y discos).
-   - Conectividad (IP, MAC, tipo de conexión, puertos).
-   - Estado físico y observaciones.
-3. Haz clic en **"Guardar Computador"**.
+1. Clic en **"+ Nuevo"**.
+2. Completa: identificación (tipo, nombre, BN, serial), asignación (departamento, dependencia, trabajador), hardware (SO, procesador, GPU, RAM, discos), conectividad (IP, MAC, tipo conexión, puertos) y estado físico.
+3. Clic en **"Guardar Computador"**.
 
-### 4.4 Ver Detalles de un Equipo
+### 4.4 Ver Detalles
 
-Clic en el ícono **👁 (Ver)**. Se abre una ficha completa con toda la información técnica. Desde aquí puedes acceder al botón **"Asociaciones"** para ver los dispositivos vinculados.
+Clic en **👁 (Ver)**. Ficha completa con toda la información técnica. Desde aquí accedes al botón **"Asociaciones"** para ver dispositivos e insumos vinculados.
 
 ### 4.5 Editar un Equipo
 
-1. Clic en el ícono **✏️ (Editar)**.
+1. Clic en **✏️ (Editar)**.
 2. Modifica los campos necesarios.
-3. **Obligatorio:** Ingresa una **Justificación del Cambio** (mínimo 10 caracteres).
+3. **Obligatorio:** Ingresa una **Justificación del Cambio** (mín. 10 caracteres).
 4. Clic en **"Guardar Computador"**.
 
-> El cambio queda en estado **"Borrador"** hasta que un administrador lo apruebe desde el Panel de Movimientos.
+> El cambio queda en estado **"Borrador"** hasta que un administrador lo apruebe en el Panel de Movimientos.
 
 ### 4.6 Cambiar Estado Activo/Inactivo
 
-Clic en el botón de palanca (🟢/⚫) en las acciones. Esto genera un movimiento de "Cambio de Estatus" que requiere aprobación.
+Clic en el botón de palanca (🟢/⚫). Genera un movimiento de "Cambio de Estatus" que requiere aprobación.
 
 ### 4.7 Descargar Ficha PDF
 
-Clic en el ícono **📄 (PDF)** en las acciones del registro para descargar la ficha técnica *(según permisos)*.
+Clic en **📄 (PDF)** en las acciones del registro *(requiere permiso `reportes-pdf`)*.
+
+### 4.8 Vista de Asociaciones
+
+Muestra todos los activos vinculados al computador: dispositivos periféricos e insumos instalados, con sus datos de identificación y estado.
 
 ---
 
@@ -161,18 +146,19 @@ Clic en el ícono **📄 (PDF)** en las acciones del registro para descargar la 
 
 Gestión de periféricos y equipos de red: impresoras, routers, switches, monitores, proyectores, etc.
 
-Funciona de manera similar al módulo de Computadores con estas particularidades:
+Funciona igual al módulo de Computadores con estas particularidades:
 - **Tipo de Dispositivo:** Se selecciona de un catálogo predefinido.
-- **Asociación a Computador:** Un dispositivo puede vincularse a un equipo host.
+- **Asociación a Computador:** Un dispositivo puede vincularse opcionalmente a un equipo host.
+- **Asociación a Dependencia:** Se puede especificar la subdivisión del departamento.
 - No lleva módulos de hardware interno (RAM/discos).
 
-Las acciones disponibles son las mismas: Ver, Editar, Cambiar Estado, Descargar PDF y Exportar Excel.
+Las acciones disponibles son las mismas: Ver, Editar, Cambiar Estado, Descargar PDF, Exportar Excel y Vista de Asociaciones.
 
 ---
 
 ## 6. Almacén de Insumos y Herramientas
 
-Control de stock de consumibles y herramientas: cartuchos, papel, cables, repuestos, herramientas, etc.
+Control de stock de consumibles, repuestos y herramientas.
 
 ### 6.1 Campos Principales
 
@@ -180,36 +166,36 @@ Control de stock de consumibles y herramientas: cartuchos, papel, cables, repues
 |-------|-------------|
 | **Nombre** | Nombre descriptivo del insumo. |
 | **Categoría** | Grupo al que pertenece (Tóner, Herramienta, Cable, etc.). |
-| **Unidad de Medida** | Unidades, metros, litros, etc. |
+| **Unidad de Medida** | Unidades, metros, litros, cajas, pares. |
 | **Medida Actual** | Stock disponible actualmente. |
 | **Medida Mínima** | Nivel de alerta de stock crítico. |
 | **Reutilizable** | Si debe ser devuelto tras su uso (ej. herramientas). |
-| **Ubicación** | Departamento y responsable asignado. |
+| **Instalable en Equipo** | Si el insumo se instala físicamente en un equipo. |
+| **Ubicación** | Departamento, dependencia y responsable asignado. |
 
 ### 6.2 Alertas de Stock Crítico
 
-Cuando el stock actual cae al nivel mínimo, el sistema:
-1. Destaca el registro en el inventario.
-2. Aumenta el contador de **"Insumos Críticos"** en el Dashboard.
+Cuando el stock cae al nivel mínimo, el sistema destaca el registro en la tabla y aumenta el contador de **"Insumos Críticos"** en el Dashboard.
 
 ---
 
 ## 7. Catálogo de Software
 
-Inventario de licencias de software instaladas en los equipos de la organización.
+Inventario de licencias de software corporativo.
 
 ### 7.1 Información Registrada
 
-- Nombre y versión del software.
-- Tipo de licencia: **Libre** o **Privativo**.
-- Arquitectura: 32-bit o 64-bit.
-- Serial/Clave de activación (mostrada en formato protegido).
-- Equipo asignado donde está instalado.
-- Registro de auditoría (quién registró y cuándo).
+- Nombre del programa, arquitectura (32/64-bit), tipo de licencia (Libre/Privativo).
+- Serial/Clave de activación.
+- Estado (Activo/Inactivo).
+- Auditoría: quién registró y cuándo.
 
-### 7.2 Filtrado
+### 7.2 Acciones
 
-Puedes filtrar por texto libre (nombre) o por tipo de licencia.
+- **Ver:** Detalle completo incluyendo serial.
+- **Editar:** Modifica cualquier campo.
+- **PDF:** Descarga ficha individual del software.
+- **Excel:** Exporta el catálogo completo o filtrado.
 
 ---
 
@@ -221,38 +207,33 @@ Sistema de dos niveles: usuarios reportan fallas, técnicos las atienden.
 
 Accede desde **Panel de Soporte > Reportar**.
 
-1. **Departamento:** Se asigna automáticamente si tu usuario está vinculado a un trabajador. Caso contrario, selecciónalo manualmente.
+1. **Departamento:** Se asigna automáticamente si tu usuario está vinculado a un trabajador.
 2. **Tipo de Activo Afectado:** Computador, Dispositivo u Otro.
-3. **Activo Específico:** Equipo afectado del listado.
+3. **Activo Específico:** Selecciona el equipo afectado.
 4. **Tipo de Problema:** Categoría del inconveniente.
 5. **Descripción Detallada:** Explica la falla con el mayor detalle posible.
 6. Clic en **"Enviar Reporte"**.
 
-Recibirás confirmación con el número de folio único (`#00001`).
+Recibirás confirmación con el **número de folio único** (`#00001`).
 
-### 8.2 Gestión de Incidencias (Vista Técnico/Administrador)
+### 8.2 Gestión de Incidencias (Técnico/Administrador)
 
 Accede desde **Panel de Soporte > Gestión**.
 
-**Información en la tabla:**
-- Folio, Solicitante, Activo Afectado (tipo y BN/nombre), Categoría del Problema, Técnico Asignado, Estado.
+**Filtros disponibles:** Texto libre, Técnico Asignado, Estado y Departamento.
 
 **Acciones sobre una incidencia:**
 
 | Acción | Descripción |
 |--------|-------------|
-| **Ver Detalle (👁)** | Abre el modal con toda la información del caso. |
-| **Asignar Técnico** | Asigna un técnico resolutor al caso. |
+| **Ver Detalle (👁)** | Modal completo con toda la información del caso. |
+| **Asignar Técnico** | Asigna un técnico resolutor. |
 | **Registrar Diagnóstico** | Documenta el análisis técnico realizado. |
 | **Marcar Solventado** | Indica que el problema fue resuelto. |
 | **Cerrar Incidencia** | Cierre definitivo *(puede ser irreversible según configuración)*. |
 | **¿Amerita Movimiento?** | Activa el flag para crear un movimiento de inventario desde esta incidencia. |
-| **Registrar Movimiento** | Aparece solo si el caso está guardado y tiene el flag activo. Redirige al panel de movimientos con datos precargados. |
-| **Descargar PDF** | Genera la ficha técnica de la incidencia *(según permisos)*. |
-
-> **Botón de Movimiento en Tabla:** Cuando una incidencia tiene el flag "¿Amerita Movimiento?" activo, aparece un botón directo en la fila de la tabla para agilizar el proceso sin abrir el modal.
-
-**Filtros disponibles:** Texto libre, Técnico Asignado, Estado y Departamento.
+| **Registrar Movimiento** | Aparece solo si el flag está activo. Redirige al panel de movimientos con datos precargados. |
+| **Descargar PDF** | Genera la ficha técnica de la incidencia *(requiere permiso)*. |
 
 ---
 
@@ -277,26 +258,21 @@ Borrador → Solicitado → Aprobado / Rechazado
 |--------|-------------|
 | **Borrador** | Creado pero no enviado. Solo visible para su creador. |
 | **Solicitado** | Enviado para aprobación. Visible para administradores. |
-| **Aprobado** | Validado y aplicado al inventario. |
-| **Rechazado** | Denegado con justificación. |
+| **Aprobado** | Validado y aplicado automáticamente al inventario. |
+| **Rechazado** | Denegado con justificación del administrador. |
+| **Ejecutado Directo** | Aplicado sin pasar por aprobación (requiere permiso especial). |
 
-### 9.3 Registrar un Movimiento
+### 9.3 Tipos de Operación Disponibles
 
-1. Clic en **"+ Nuevo Movimiento"**.
-2. Selecciona el **Tipo de Operación:**
-   - Actualización de Datos
-   - Cambio de Departamento
-   - Reasignación de Trabajador
-   - Cambio de Estado Físico
-   - Cambio de Estatus (Activo/Inactivo)
-3. Selecciona el activo afectado.
-4. Completa los nuevos valores.
-5. Ingresa la **Justificación** obligatoria.
-6. Clic en **"Guardar como Borrador"** o **"Enviar para Aprobación"**.
+- **Actualización de Datos:** Cambio en cualquier campo descriptivo del activo.
+- **Cambio de Departamento:** Reasignación de ubicación.
+- **Reasignación de Trabajador:** Cambio de custodio/responsable.
+- **Cambio de Estado Físico:** Operativo / Dañado / En Reparación / Baja.
+- **Cambio de Estatus:** Activar o desactivar el activo.
 
 ### 9.4 Movimientos desde Incidencias
 
-Al originarse desde una incidencia, el sistema:
+Cuando se origina desde una incidencia, el sistema:
 - Pre-selecciona el activo vinculado.
 - Precarga la justificación: *"Vinculado a la incidencia #XXXXX"*.
 - Registra el Folio de Incidencia para trazabilidad cruzada.
@@ -305,53 +281,52 @@ Al originarse desde una incidencia, el sistema:
 
 *(Requiere permiso de aprobación)*
 
-1. Localiza el movimiento "Solicitado" en la tabla.
-2. Clic en **Ver Cambio (👁)**.
+1. Localiza el movimiento en estado "Solicitado".
+2. Clic en **"Ver Cambio (👁)"**.
 3. Revisa el comparativo (valores anteriores vs. propuestos).
-4. Clic en **"Aprobar"** o **"Rechazar"**.
+4. Clic en **"Aprobar"** o **"Rechazar"** (con motivo obligatorio si se rechaza).
 
 ### 9.6 Solicitudes de Perfil
 
-Gestiona peticiones de cambio de datos personales de trabajadores (nombre, cédula, correo). Pasan por flujo de aprobación con vigencia de **180 días**.
+Gestiona peticiones de cambio de datos personales de trabajadores (nombre, cédula, correo, username). Pasan por flujo de aprobación con vigencia de **180 días**. Vencida la vigencia, la solicitud expira automáticamente.
 
 ---
 
 ## 10. Catálogos del Sistema
 
-Tablas de referencia que alimentan los formularios del inventario. Se acceden desde el menú **Catálogos**.
+Tablas de referencia que alimentan los formularios del inventario. Accede desde el menú **Catálogos**.
 
 | Catálogo | Descripción |
 |----------|-------------|
 | **Marcas** | Fabricantes de equipos (Dell, HP, Lenovo, etc.). |
-| **Tipos de Dispositivo** | Clasificaciones de periféricos. |
-| **Sistemas Operativos** | SO para asignar a computadores. |
-| **Puertos de Conexión** | USB, HDMI, RJ45, etc. |
-| **Procesadores** | Modelos de CPU disponibles. |
-| **GPUs** | Modelos de tarjetas gráficas. |
+| **Tipos de Dispositivo** | Clasificaciones de periféricos (Impresora, Monitor, etc.). |
+| **Sistemas Operativos** | SO disponibles para asignar a computadores. |
+| **Puertos de Conexión** | USB, HDMI, RJ45, DisplayPort, etc. |
+| **Procesadores** | Modelos de CPU con socket y marca. |
+| **GPUs** | Modelos de tarjetas gráficas con puertos disponibles. |
 
-Todos permiten **crear, editar y activar/desactivar** registros. Los inactivos no aparecen en formularios pero se conservan en base de datos.
+Todos permiten **crear, editar y activar/desactivar** registros. Los inactivos no aparecen en formularios pero se conservan en la base de datos para trazabilidad histórica.
 
 ---
 
-## 11. Asignaciones (Trabajadores y Departamentos)
+## 11. Asignaciones
 
 ### 11.1 Departamentos
 
 Gestiona la estructura organizativa. Cada activo y trabajador debe estar adscrito a un departamento.
 
-- **Crear:** Botón "+ Nuevo".
-- **Editar:** Ícono ✏️ en la tabla.
-- **Desactivar:** Queda inactivo preservando la integridad de registros vinculados.
+### 11.2 Dependencias
 
-### 11.2 Trabajadores
+Subdivisionamiento dentro de un departamento (ej. una sección o unidad interna). Permite mayor precisión en la ubicación de activos y trabajadores.
+
+### 11.3 Trabajadores
 
 Registro del personal de la institución. Campos principales:
-- Nombres y Apellidos
-- Cédula de Identidad
-- Departamento
-- Correo institucional (generado automáticamente con el formato institucional configurado)
+- Nombres, Apellidos, Cédula, Cargo.
+- Departamento y Dependencia (subdivisión).
+- Correo institucional (generado automáticamente con el dominio configurado).
 
-> Los trabajadores pueden vincularse a cuentas de usuario para que sus incidencias se asocien automáticamente a su perfil y departamento.
+> Los trabajadores pueden vincularse a cuentas de usuario del sistema para que sus incidencias se asocien automáticamente.
 
 ---
 
@@ -364,103 +339,188 @@ Registro del personal de la institución. Campos principales:
 Desde **Administración > Usuarios**:
 - Crear nuevos usuarios del sistema.
 - Editar datos de acceso (nombre, correo, username, contraseña).
-- Asignar roles a cada usuario.
+- Asignar roles.
 - Activar/Desactivar cuentas.
-- Vincular usuario a un trabajador.
+- Vincular usuario a un trabajador y asignar especialidad técnica.
+- Establecer disponibilidad para asignación de tickets.
 
 > El usuario `super-admin` no puede ser modificado ni eliminado desde la interfaz.
 
 ### 12.2 Roles y Permisos
 
 Desde **Administración > Roles y Permisos**:
-- Crear roles personalizados.
+- Crear roles personalizados con nombre y descripción.
 - Asignar permisos individuales mediante casillas de verificación agrupadas por módulo.
-- Ver qué usuarios tienen cada rol.
-
-Los permisos están organizados por categorías: Inventario, Incidencias, Movimientos, Reportes, Administración.
+- Ver qué usuarios tienen cada rol asignado.
 
 ### 12.3 Configuración General
 
-Desde **Administración > Configuración General**:
+Desde **Administración > Configuración General** (organizada en pestañas):
+
+**Pestaña: Ajustes de Incidencias**
 
 | Parámetro | Descripción |
 |-----------|-------------|
-| **Cierre Irreversible de Incidencias** | Una incidencia cerrada no puede reabrirse. |
-| **Activo Obligatorio en Incidencias** | Obliga a asociar un activo al crear una incidencia. |
+| **Cierre Irreversible** | Si activo, las incidencias cerradas no pueden reabrirse. |
+| **Activo Obligatorio** | Obliga a asociar un activo al crear una incidencia. |
+| **Técnicos ven todos los tickets pendientes** | Si desactivado, los técnicos solo ven en el dashboard los tickets que coinciden con su especialidad técnica. |
 
-### 12.4 Auditoría de Logs
+**Pestaña: Catálogo de Problemas**
 
-Desde **Administración > Auditoría de Logs**:
+Gestiona los tipos de problemas disponibles al crear un ticket. Cada problema puede vincularse a una especialidad técnica para el enrutamiento automático.
 
-Registro histórico de todas las acciones en el sistema. Permite:
-- Filtrar por módulo, usuario, tipo de acción y rango de fechas.
-- Ver el **Diff** de cada cambio: estado "Antes" y "Después".
+**Pestaña: Especialidades Técnicas**
+
+Define las áreas de especialización del personal técnico (Redes, Hardware, Software, etc.).
+
+**Pestaña: Perfil de Usuario**
+
+Permite al usuario autenticado actualizar su avatar y datos básicos de su cuenta desde la misma sección de configuración.
 
 ---
 
-## 13. Mi Perfil
+## 13. Auditoría
 
-Accede haciendo clic en tu nombre en la barra lateral, o desde el menú desplegable de usuario.
+Sección exclusiva para administradores y supervisores. Accede desde el menú **Auditoría** en la barra lateral.
 
-### 13.1 Información del Perfil
+### 13.1 Auditoría de Logs (Sistema General)
+
+Registro histórico de **todas** las acciones realizadas en el sistema por cualquier usuario.
+
+**Filtros disponibles:**
+- Responsable (nombre o correo)
+- Módulo / Acción
+- Rango de fechas (Desde / Hasta)
+
+**Información por registro:**
+- ID, Responsable, Tipo de Acción (badge de color), Módulo Afectado, Fecha/Hora.
+- Botón **"Detalle"**: abre un modal con el comparativo completo de campos modificados (valor anterior tachado en rojo → valor nuevo en verde).
+
+**Exportaciones disponibles:**
+- **Excel:** Exporta los logs con los filtros aplicados.
+- **PDF:** Genera un reporte en hoja horizontal con los mismos filtros (máximo 500 registros).
+- **Generador Pro:** Herramienta avanzada para crear reportes Excel multi-módulo con selección individualizada de módulos y filtros.
+
+### 13.2 Auditoría de Técnicos
+
+Vista enfocada en el **rendimiento operativo** del personal técnico.
+
+**Filtros:** Técnico específico y rango de fechas (por defecto el mes actual).
+
+**KPIs mostrados:**
+
+| Indicador | Descripción |
+|-----------|-------------|
+| **Tickets Asignados** | Total de tickets que tuvo asignados en el período. |
+| **Tickets Resueltos** | Casos marcados como solventados. |
+| **Tickets Abiertos** | Casos sin resolver aún en el período. |
+| **Tasa de Resolución** | Porcentaje de casos resueltos sobre asignados. |
+| **Tiempo Promedio** | Tiempo promedio entre creación y resolución. |
+
+Debajo de los KPIs, una tabla detalla el **historial completo de actividad de tickets** del técnico en el período.
+
+### 13.3 Auditoría de Usuarios
+
+Vista para inspeccionar exhaustivamente la actividad de un usuario específico.
+
+**Cómo usarla:**
+1. Usa el buscador para encontrar al usuario (por nombre, username o correo).
+2. Filtra por estado (Activos / Inactivos / Todos).
+3. Haz clic en **"Detalle y Auditoría"**.
+
+**Modal de detalle:**
+- **Perfil del usuario:** nombre, correo, username, roles asignados y especialidad técnica.
+- **Historial de actividad:** tabla con sus últimas 100 acciones en el sistema, filtrable por rango de fechas. Cada registro muestra:
+  - Fecha/Hora, Tipo de Acción, Módulo Afectado.
+  - **Detalles adicionales:** lista de campos modificados con valor anterior (tachado en rojo) y valor nuevo (en verde). Los campos booleanos se muestran como Sí/No y los campos de relación como "ID X".
+
+**Reporte PDF:** Botón dentro del modal que genera un PDF con el perfil completo del usuario y su historial de actividad filtrado por fechas (máximo 200 registros).
+
+---
+
+## 14. Mi Perfil
+
+Accede haciendo clic en tu nombre en la barra lateral o desde el menú desplegable de usuario.
+
+### 14.1 Información del Perfil
 
 - Nombre completo, username y correo electrónico.
-- **Avatar / Foto de Perfil:** Haz clic sobre el avatar para subir una imagen (JPG, PNG).
+- **Avatar:** Haz clic sobre tu foto para subir una nueva imagen (JPG, PNG).
 
-### 13.2 Cambiar Contraseña
+### 14.2 Cambiar Contraseña
 
 Ingresa tu contraseña actual y la nueva (dos veces para confirmar).
 
-### 13.3 Solicitud de Cambio de Datos de Trabajador
+### 14.3 Solicitud de Cambio de Datos
 
-Si estás vinculado a un trabajador, puedes solicitar cambios en tus datos personales. Estas solicitudes requieren aprobación administrativa con vigencia de **180 días**.
+Si estás vinculado a un trabajador, puedes solicitar cambios en nombre, username, correo o contraseña. Estas solicitudes requieren aprobación de un administrador y tienen vigencia de **180 días**.
 
-### 13.4 Activos Asignados
+### 14.4 Activos Asignados
 
-Sección que muestra los activos tecnológicos que tienes asignados actualmente.
+Sección que muestra los activos tecnológicos que tienes actualmente asignados (computadores e insumos).
 
 ---
 
-## 14. Reportes y Exportaciones
+## 15. Reportes y Exportaciones
 
-### 14.1 Exportación Excel
+### 15.1 Exportación Excel
 
-Disponible en módulos de Inventario y Movimientos *(según permiso `reportes-excel`)*. Botón **"Excel"** en la barra de acciones superior.
+Disponible en los módulos de Inventario, Incidencias, Movimientos, Usuarios y Auditoría *(requiere permiso `reportes-excel`)*. Botón **"Excel"** en la barra de acciones superior.
 
-**Opciones:**
-- **Vista Actual:** Solo los registros con los filtros activos.
-- **Todo el Inventario:** Sin filtros, exportación completa.
+Todos los Excel exportan los datos con los **filtros activos en pantalla** en ese momento.
 
 **Contenido incluido:**
-- Todos los campos y relaciones (nombre del departamento en lugar del ID).
+- Todos los campos y relaciones (nombres en lugar de IDs).
 - Columnas de auditoría: Creado Por, Modificado Por, Fechas.
 - En movimientos: Folio de Incidencia vinculada (si aplica).
 
-### 14.2 Fichas PDF
+### 15.2 Fichas PDF Individuales
 
-Disponibles en módulos de Inventario e Incidencias *(según permiso `reportes-pdf`)*. Se abren en una nueva pestaña del navegador.
+Disponibles en Inventario e Incidencias *(requiere permiso `reportes-pdf`)*. Se abren en nueva pestaña del navegador.
 
-**Fichas disponibles:**
-- **Ficha Técnica de Computador:** Hardware, asignación, red e historial de movimientos.
-- **Ficha Técnica de Dispositivo:** Datos del periférico, asignación y trazabilidad.
-- **Ficha de Incidencia:** Detalle del caso, diagnóstico, resolución y movimientos asociados.
+| Ficha | Contenido |
+|-------|-----------|
+| **Computador** | Hardware, asignación, red, historial de movimientos. |
+| **Dispositivo** | Datos del periférico, asignación, puertos y movimientos. |
+| **Insumo** | Stock, categoría, responsable y movimientos. |
+| **GPU** | Especificaciones técnicas y puertos disponibles. |
+| **Incidencia** | Detalle del caso, diagnóstico, resolución y movimientos asociados. |
+| **Software** | Datos de la licencia y serial de activación. |
+
+### 15.3 Reportes de Auditoría PDF
+
+| Reporte | Acceso | Descripción |
+|---------|--------|-------------|
+| **Logs del Sistema** | Auditoría > Logs > Botón PDF | Registros filtrados en hoja horizontal (máx. 500). |
+| **Auditoría de Usuario** | Auditoría > Usuarios > Modal > Botón PDF | Perfil + actividad de un usuario (máx. 200 registros). |
+
+### 15.4 Generador Pro (Reporte Masivo)
+
+*(Requiere permiso `reportes-masivos-filtros`)*
+
+Accesible desde **Auditoría de Logs > "Generador Pro"**. Permite crear un archivo Excel con múltiples hojas:
+
+1. Selecciona los módulos a incluir (Computadores, Dispositivos, Insumos, Incidencias, etc.).
+2. Por módulo, elige entre **"Todo el Inventario"** o **"Vista con Filtros"**.
+3. Si eliges filtros, puedes seleccionar Estado y Departamento por módulo.
+4. Haz clic en **"Generar Reporte"**.
+
+El archivo descargado tendrá una hoja separada por cada módulo seleccionado.
 
 ---
 
-## 15. Tema Oscuro y Personalización Visual
+## 16. Tema Oscuro y Personalización Visual
 
-### 15.1 Activar el Modo Oscuro
+En la barra superior derecha encontrarás el botón de cambio de tema:
 
-En la barra superior derecha del sistema encontrarás un botón circular con ícono de **🌙 luna**.
+- **Clic (ícono 🌙):** Activa el **Modo Oscuro**.
+- **Clic de nuevo (ícono ☀️):** Vuelve al **Modo Claro**.
 
-- **Clic:** Activa el **Modo Oscuro** (interfaz en tonos oscuros, ícono cambia a ☀️).
-- **Clic de nuevo:** Vuelve al **Modo Claro**.
-
-Tu preferencia se guarda automáticamente en el navegador y se aplica en tu próxima visita.
+Tu preferencia se guarda automáticamente en el navegador y se aplica en tu próxima visita. Todos los módulos del sistema, incluyendo tablas, filtros, modales y formularios, se adaptan completamente al tema seleccionado.
 
 ---
 
-## 16. Glosario de Términos
+## 17. Glosario de Términos
 
 | Término | Definición |
 |---------|------------|
@@ -468,13 +528,17 @@ Tu preferencia se guarda automáticamente en el navegador y se aplica en tu pró
 | **Folio** | Número único de identificación de una incidencia (formato `#00001`). |
 | **Movimiento** | Registro formal de un cambio en datos, custodia o estado de un activo. |
 | **Borrador** | Movimiento creado pero no enviado para aprobación. Solo visible para su creador. |
-| **Trazabilidad** | Capacidad del sistema de rastrear el historial completo de cambios. |
+| **Trazabilidad** | Capacidad del sistema de rastrear el historial completo de cambios de un activo o usuario. |
 | **Insumo Crítico** | Insumo con stock actual menor o igual al nivel mínimo configurado. |
 | **Resolutor** | Técnico con permisos para atender y cerrar incidencias. |
 | **SoftDelete** | El dato se oculta de la interfaz pero se conserva en la base de datos para auditoría. |
 | **Diff** | Comparativo visual de los valores "Antes" y "Después" de un cambio registrado. |
+| **Dependencia** | Subdivisión interna de un departamento (sección, unidad o área específica). |
+| **KPI** | Indicador clave de rendimiento. En Auditoría de Técnicos mide la productividad operativa. |
+| **Especialidad Técnica** | Área de conocimiento de un técnico (Redes, Hardware, Software) que determina el enrutamiento de tickets. |
+| **Log** | Registro automático de una acción realizada en el sistema, con fecha, usuario y detalle del cambio. |
 
 ---
 
-*Manual de Usuario SIGEINV — Versión 1.0*
+*Manual de Usuario SIGEINV — Versión 2.0 (Actualizado: Mayo 2026)*
 *Para soporte técnico sobre el sistema, contacte al Área de Tecnología de la Información.*

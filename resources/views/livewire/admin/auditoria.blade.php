@@ -10,9 +10,17 @@
                 <p class="text-muted mb-0">Trazabilidad total de acciones, cambios y auditoría de datos.</p>
             </div>
         </div>
-        <div class="col-md-3 text-end">
+        <div class="col-md-5 d-flex justify-content-end gap-2">
+            @can('reportes-excel')
+                <a href="{{ route('reportes.logs.excel', ['searchUser' => $searchUser, 'searchModule' => $searchModule, 'dateFrom' => $dateFrom, 'dateTo' => $dateTo]) }}" class="btn btn-success shadow-sm border-0 fw-bold d-flex align-items-center">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                </a>
+                <a href="{{ route('reportes.logs.pdf', ['searchUser' => $searchUser, 'searchModule' => $searchModule, 'dateFrom' => $dateFrom, 'dateTo' => $dateTo]) }}" target="_blank" class="btn btn-danger shadow-sm border-0 fw-bold d-flex align-items-center">
+                    <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+                </a>
+            @endcan
             @can('reportes-masivos-filtros')
-                <button wire:click="abrirReporte" class="btn btn-primary w-100 shadow-sm border-0 py-2 fw-bold">
+                <button wire:click="abrirReporte" class="btn btn-primary shadow-sm border-0 fw-bold d-flex align-items-center">
                     <i class="bi bi-file-earmark-plus me-1"></i> Generador Pro
                 </button>
             @endcan
@@ -120,7 +128,7 @@
                                     <div>{{ $log->created_at->format('h:i:s A') }}</div>
                                 </td>
                                 <td class="text-end pe-4">
-                                    <button wire:click="verDetalle({{ $log->id }})" class="btn btn-sm btn-outline-dark rounded-pill shadow-sm">
+                                    <button wire:click="verDetalle({{ $log->id }})" class="btn btn-sm btn-outline-secondary rounded-pill shadow-sm text-body">
                                         <i class="bi bi-eye"></i> Detalle
                                     </button>
                                 </td>
@@ -191,16 +199,29 @@
                                         <tbody class="small">
                                             @foreach($new as $key => $value)
                                                 @php
-                                                    $oldValue = $old[$key] ?? 'N/A';
-                                                    $isChanged = $oldValue != $value && $oldValue !== 'N/A';
+                                                    $formatValue = function($k, $v) {
+                                                        if ($v === null || $v === '') return 'N/A';
+                                                        if (is_array($v)) return json_encode($v);
+                                                        if (is_bool($v)) return $v ? 'Sí' : 'No';
+                                                        $lk = strtolower($k);
+                                                        if (in_array($lk, ['activo', 'solventado', 'disponible'])) return $v == 1 ? 'Sí' : 'No';
+                                                        if (str_ends_with($lk, '_id') || str_ends_with($lk, '_by')) return 'ID ' . $v;
+                                                        return (string)$v;
+                                                    };
+                                                    
+                                                    $oldValueRaw = $old[$key] ?? 'N/A';
+                                                    $oldValue = $oldValueRaw !== 'N/A' ? $formatValue($key, $oldValueRaw) : 'N/A';
+                                                    $newValue = $formatValue($key, $value);
+                                                    
+                                                    $isChanged = $oldValueRaw != $value && $oldValueRaw !== 'N/A';
                                                 @endphp
                                                 <tr class="{{ $isChanged ? 'table-info' : '' }}">
-                                                    <td class="ps-3 py-2 fw-bold text-muted">{{ ucfirst($key) }}</td>
+                                                    <td class="ps-3 py-2 fw-bold text-muted">{{ ucfirst(str_replace('_', ' ', $key)) }}</td>
                                                     <td class="py-2 text-decoration-line-through text-danger opacity-75">
-                                                        {{ is_array($oldValue) ? json_encode($oldValue) : $oldValue }}
+                                                        {{ $oldValue }}
                                                     </td>
                                                     <td class="py-2 fw-bold text-success">
-                                                        {{ is_array($value) ? json_encode($value) : $value }}
+                                                        {{ $newValue }}
                                                     </td>
                                                 </tr>
                                             @endforeach
