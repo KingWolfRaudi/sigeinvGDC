@@ -9,23 +9,14 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            // 1. Roles, Permisos y Usuario Super Admin
             RolesAndPermissionsSeeder::class,
-            // UserSeeder::class, <- (Si lo tienes separado, si no, omítelo)
             
-            // Agregamos nuestro nuevo seeder de catálogos
+            // 2. Catálogos base (Marcas, Tipos, SO, Departamentos, etc.)
             CatalogosSeeder::class,
             
-            // Agregamos semillas para el inventario real (Equipos y Dispositivos)
-            InventarioSeeder::class,
-
-            // Agregamos seeder de Software
-            SoftwareSeeder::class,
-            
-            // Agregamos el seeder de Incidencias y Perfil
+            // 3. Configuraciones de Incidencias, Perfil y Especialidades
             IncidenciasSeeder::class,
-            
-            // Agregamos Demo Data para Incidentes
-            DemoTicketsSeeder::class,
         ]);
     }
 }

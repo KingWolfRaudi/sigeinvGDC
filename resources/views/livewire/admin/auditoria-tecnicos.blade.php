@@ -1,7 +1,7 @@
 <div>
     <!-- Encabezado de la Página -->
     <div class="mb-4">
-        <h2 class="h3 mb-0 text-gray-800">
+        <h2 class="h3 mb-0 text-body">
             <i class="fas fa-user-clock text-primary me-2"></i> Auditoría de Técnicos
         </h2>
         <p class="text-muted mt-2">
@@ -11,7 +11,7 @@
 
     <!-- Panel de Filtros -->
     <div class="card shadow-sm border-0 mb-4 rounded-3">
-        <div class="card-body bg-light rounded-3">
+        <div class="card-body bg-body-tertiary rounded-3">
             <div class="row g-3 align-items-end">
                 <div class="col-md-4">
                     <label class="form-label text-muted small fw-bold">Técnico (Resolutor)</label>
@@ -47,10 +47,10 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Tickets Asignados</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $kpis['asignados'] }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-body">{{ $kpis['asignados'] }}</div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-ticket-alt fa-2x text-gray-300" style="opacity: 0.4;"></i>
+                            <i class="fas fa-ticket-alt fa-2x text-muted" style="opacity: 0.4;"></i>
                         </div>
                     </div>
                 </div>
@@ -63,10 +63,10 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Tickets Resueltos</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $kpis['resueltos'] }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-body">{{ $kpis['resueltos'] }}</div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-check-circle fa-2x text-gray-300" style="opacity: 0.4;"></i>
+                            <i class="fas fa-check-circle fa-2x text-muted" style="opacity: 0.4;"></i>
                         </div>
                     </div>
                 </div>
@@ -79,10 +79,10 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Tickets Abiertos</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $kpis['abiertos'] }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-body">{{ $kpis['abiertos'] }}</div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-hourglass-half fa-2x text-gray-300" style="opacity: 0.4;"></i>
+                            <i class="fas fa-hourglass-half fa-2x text-muted" style="opacity: 0.4;"></i>
                         </div>
                     </div>
                 </div>
@@ -97,7 +97,7 @@
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Tasa de Resolución</div>
                             <div class="row no-gutters align-items-center">
                                 <div class="col-auto">
-                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{ $kpis['tasa_resolucion'] }}%</div>
+                                    <div class="h5 mb-0 mr-3 font-weight-bold text-body">{{ $kpis['tasa_resolucion'] }}%</div>
                                 </div>
                                 <div class="col">
                                     <div class="progress progress-sm mr-2" style="height: 5px;">
@@ -107,7 +107,7 @@
                             </div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-chart-line fa-2x text-gray-300" style="opacity: 0.4;"></i>
+                            <i class="fas fa-chart-line fa-2x text-muted" style="opacity: 0.4;"></i>
                         </div>
                     </div>
                 </div>
@@ -120,10 +120,10 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Tiempo Promedio</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $kpis['tiempo_promedio'] }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-body">{{ $kpis['tiempo_promedio'] }}</div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-gray-300" style="opacity: 0.4;"></i>
+                            <i class="fas fa-clock fa-2x text-muted" style="opacity: 0.4;"></i>
                         </div>
                     </div>
                 </div>
@@ -133,13 +133,13 @@
 
     <!-- Tabla de Actividad Detallada -->
     <div class="card shadow-sm border-0 rounded-3 mb-4">
-        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+        <div class="card-header bg-body border-bottom py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-primary">Historial de Actividad de Tickets</h6>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
+                    <thead class="bg-body-secondary">
                         <tr>
                             <th class="ps-4">Fecha / Hora</th>
                             <th>Responsable / IP</th>
@@ -156,7 +156,7 @@
                                 </td>
                                 <td>
                                     @if($log->causer)
-                                        <div class="fw-bold text-dark">{{ $log->causer->name }}</div>
+                                        <div class="fw-bold text-body">{{ $log->causer->name }}</div>
                                         <div class="text-muted small">{{ $log->causer->email }}</div>
                                     @else
                                         <div class="fw-bold text-danger">No Autenticado</div>
@@ -165,7 +165,7 @@
                                         @endif
                                     @endif
                                     @if(isset($log->properties['ip']))
-                                        <span class="badge bg-light text-dark border mt-1">IP: {{ $log->properties['ip'] }}</span>
+                                        <span class="badge bg-body-tertiary text-body border mt-1">IP: {{ $log->properties['ip'] }}</span>
                                     @endif
                                 </td>
                                 <td>
@@ -195,7 +195,7 @@
                                 </td>
                                 <td>
                                     @if($log->subject_type)
-                                        <span class="fw-bold text-dark">{{ class_basename($log->subject_type) }}</span>
+                                        <span class="fw-bold text-body">{{ class_basename($log->subject_type) }}</span>
                                         <span class="text-muted small">(ID: {{ $log->subject_id }})</span>
                                     @else
                                         <span class="text-muted">-</span>
@@ -205,7 +205,7 @@
                         @empty
                             <tr>
                                 <td colspan="4" class="text-center py-5 text-muted">
-                                    <i class="fas fa-clipboard-list fa-3x mb-3 text-light"></i><br>
+                                    <i class="fas fa-clipboard-list fa-3x mb-3 text-secondary-emphasis opacity-25"></i><br>
                                     No se encontraron registros para los filtros seleccionados.
                                 </td>
                             </tr>
@@ -215,7 +215,7 @@
             </div>
         </div>
         @if($actividades->hasPages())
-            <div class="card-footer bg-white border-top py-3">
+            <div class="card-footer bg-body border-top py-3">
                 {{ $actividades->links() }}
             </div>
         @endif
