@@ -52,13 +52,15 @@ SIGEINV usa un sistema de roles y permisos que determina qué secciones y accion
 | Rol | Descripción |
 |-----|-------------|
 | **Super Administrador** | Acceso total sin restricciones. Rol ineditable desde la interfaz. |
-| **Administrador** | Gestión completa de inventario, incidencias, movimientos, usuarios y auditoría. |
-| **Coordinador** | Supervisión: ve incidencias, trabajadores y equipos. No puede modificar inventario. |
-| **Personal TI** | Accede a la gestión de incidencias (mesa de soporte). |
-| **Resolutor de Incidencia** | Atiende y cierra tickets asignados a su especialidad. |
-| **Trabajador** | Puede crear tickets de soporte y consultar su perfil. |
+| **Administrador** | Gestión completa de inventario, incidencias, movimientos, usuarios y auditoría. Sin permiso de eliminación permanente. |
+| **Coordinador** | Supervisión total: reportes, auditoría de técnicos, incidencias completas, movimientos y consulta de inventario. |
+| **Personal TI** | Acceso operativo: incidencias (menos solicitudes de perfil), movimientos y consulta/edición de inventario. |
+| **Resolutor de Incidencia** | Atiende y cierra tickets asignados a su especialidad. Acceso al Dashboard. |
+| **Trabajador** | Puede crear tickets de soporte y consultar su perfil. Acceso al Dashboard. |
 
 > Los permisos específicos de cada rol se configuran desde **Administración > Roles y Permisos**.
+
+> **Usuario sin rol:** Un usuario autenticado sin ningún rol asignado no tiene acceso al Dashboard. Al iniciar sesión será redirigido automáticamente a su Perfil, donde puede gestionar sus datos mientras espera que un administrador le asigne un rol.
 
 ---
 
@@ -77,7 +79,7 @@ Pantalla principal al iniciar sesión. Muestra el estado operativo en tiempo rea
 
 ### 3.2 Panel de Composición de Hardware
 
-Gráficos interactivos basados en el inventario real:
+Gráficos interactivos basados en el inventario real (visible solo para roles técnicos, no para Trabajadores):
 - **Distribución de RAM:** Clasifica equipos por capacidad (≤4GB, 8GB, 16GB, >16GB).
 - **Tecnología de Almacenamiento:** SSD/NVME vs. HDD mecánicos.
 
@@ -85,7 +87,7 @@ Indicadores laterales muestran la **capacidad total de RAM** y **almacenamiento 
 
 ### 3.3 Mesa de Ayuda
 
-Dos paneles paralelos en la parte inferior:
+Dos paneles paralelos en la parte inferior (visible solo para Administrador, Coordinador y Personal TI):
 - **Atención Rápida:** Técnicos ven sus casos asignados; administradores ven los últimos tickets del sistema.
 - **Historial de Resoluciones:** Casos resueltos recientes (del técnico o globales según el rol).
 

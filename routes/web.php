@@ -109,7 +109,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Dashboard de Asociaciones y Perfil
-    Route::get('/asociaciones/{tipo}/{id}', \App\Livewire\AsociacionesDashboard::class)->name('asociaciones');
+    Route::get('/asociaciones/{tipo}/{id}', \App\Livewire\AsociacionesDashboard::class)->name('asociaciones')->can('ver-dashboard');
     Route::get('/perfil', \App\Livewire\Perfil\MiPerfil::class)->name('perfil');
 
     // Ruta simple para cerrar sesión

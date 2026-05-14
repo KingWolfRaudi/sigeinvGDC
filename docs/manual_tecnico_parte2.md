@@ -271,11 +271,11 @@ Las vistas de auditoría aplican un formateador automático sobre los valores de
 | Rol | Descripción | Permisos base |
 |---|---|---|
 | `super-admin` | Control total del sistema | Todos los permisos |
-| `administrador` | Gestión completa de inventario y personal | Todos los permisos |
-| `coordinador` | Supervisión de equipos y movimientos | `ver-incidencias`, `gestionar-incidencias`, ver inventario básico |
-| `personal-ti` | Gestión operativa de equipos técnicos | `ver-incidencias`, `gestionar-incidencias` |
-| `resolutor-incidencia` | Especialista en resolución de fallas | `ver-incidencias`, `gestionar-incidencias` |
-| `trabajador` | Usuario estándar | `crear-ticket` |
+| `administrador` | Gestión completa de inventario y personal | Todos los permisos menos `eliminar-*` |
+| `coordinador` | Supervisión de equipos, movimientos e incidencias | Reportes, auditoría de técnicos, incidencias completas, movimientos, catálogos/asignaciones/inventario (sin eliminar), especialidades |
+| `personal-ti` | Gestión operativa de equipos técnicos | Reportes, incidencias (sin solicitudes de perfil), movimientos, catálogos/asignaciones/inventario (sin eliminar) |
+| `resolutor-incidencia` | Especialista en resolución de fallas | `ver-incidencias`, `gestionar-incidencias`, `ver-dashboard` |
+| `trabajador` | Usuario estándar | `crear-ticket`, `ver-dashboard` |
 
 ### 11.2 Permisos Definidos por Módulo
 
@@ -314,8 +314,8 @@ Los permisos CRUD de entidades se generan automáticamente en el Seeder con el p
 - `reportes-masivos-filtros` — Generador de reportes multi-módulo (Generador Pro)
 
 **Dashboard:**
-- `ver-dashboard` — Acceso al panel principal
-- `ver-panel-soporte` — Panel de soporte simplificado
+- `ver-dashboard` — Acceso al panel principal. Todos los roles lo tienen. Si un usuario autenticado no tiene este permiso (sin rol), es redirigido automáticamente a su Perfil.
+- `ver-panel-soporte` — Muestra la sección de Mesa de Ayuda (HelpDesk) dentro del Dashboard. Asignado exclusivamente a Administrador, Coordinador y Personal TI.
 
 ## 12. Exportaciones Excel
 
@@ -405,7 +405,7 @@ $this->cierre_irreversible = $config ? (bool)$config->valor : false;
 
 ### 15.1 Requisitos del Servidor
 
-- PHP 8.3+ con extensiones: `pdo_mysql`, `mbstring`, `openssl`, `xml`, `json`, `gd` (para PDF)
+- PHP 8.1+ con extensiones: `pdo_mysql`, `mbstring`, `openssl`, `xml`, `json`, `gd` (para PDF)
 - Composer 2.x
 - Node.js 18+ y NPM (para compilar assets)
 - MariaDB 10.6+ / MySQL 8+
@@ -445,17 +445,18 @@ php artisan storage:link
 php artisan optimize
 ```
 
-### 15.3 Orden de Seeders
+### 15.3 Orden de Seeders de Producción
 
 ```
-DatabaseSeeder
-  └─► RolesAndPermissionsSeeder  → Crea permisos, roles y usuario superadmin
-  └─► ConfiguracionSeeder        → Valores por defecto de configuraciones
-  └─► CatalogosSeeder            → Datos maestros de catálogos (marcas, tipos, etc.)
-  └─► InventarioSeeder           → Datos de ejemplo (solo para desarrollo)
+DatabaseSeeder (seeder maestro de producción)
+  └► RolesAndPermissionsSeeder  → Crea permisos, roles, usuario sistema y superadmin
+  └► CatalogosSeeder            → Datos maestros: marcas, tipos, SO, dptos, procesadores, GPUs
+  └► IncidenciasSeeder          → Especialidades técnicas, tipos de problemas y configuraciones
 ```
 
 > **Importante:** `RolesAndPermissionsSeeder` es idempotente (`updateOrCreate` y `firstOrCreate`). Se puede re-ejecutar sin riesgo de duplicar datos. Siempre limpiar la caché de permisos tras correrlo: `php artisan permission:cache-reset`.
+
+> Los seeders `InventarioSeeder`, `SoftwareSeeder` y `DemoTicketsSeeder` existen en el repositorio pero **no se incluyen en el `DatabaseSeeder` de producción**. Son exclusivamente para entornos de desarrollo.
 
 ### 15.4 Variables de Entorno Personalizadas
 
@@ -502,8 +503,12 @@ Esta ruta crea los permisos `ver-auditoria-tecnicos` y `ver-auditoria-usuarios` 
 - **Base de datos:** Realizar backup diario de MariaDB con `mysqldump`.
 - **Archivos:** Hacer backup del directorio `storage/app/public/` (avatares).
 - **Variables sensibles:** Nunca versionar el archivo `.env`.
+- **`APP_DEBUG`:** Asegurarse de que en producción esté en `false`. Tenerlo en `true` expone trazas del stack, credenciales y variables de entorno en pantalla cuando ocurre un error.
+- **`APP_ENV`:** Debe ser `production` en el servidor final.
 - **Permisos de carpetas:** `storage/` y `bootstrap/cache/` deben tener permisos `775`.
 - **Auditoría de acceso:** Todo inicio/cierre de sesión queda registrado en `activity_log` con la IP del cliente.
+- **Subida de archivos:** El módulo de avatar usa `extension()` (inferido por MIME) en lugar de `getClientOriginalExtension()`, para prevenir suplantación de extensiones.
+- **Ruta `/home`:** La constante `HOME` del `RouteServiceProvider` apunta a `/`. Los usuarios autenticados sin rol son redirigidos automáticamente a `/perfil` por la lógica del `MainDashboard`.
 
 ---
 *Manual Técnico SIGEINV — Versión 2.0 (Actualizado: Mayo 2026)*
