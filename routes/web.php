@@ -128,6 +128,21 @@ Route::middleware(['auth', 'nocache'])->group(function () {
         return redirect('/login');
     })->name('logout');
 
+    // Ruta de emergencia para deslogueo estricto por cambio/cierre de pestaña
+    Route::get('/force-logout-tab', function () {
+        $user = Auth::user();
+        if ($user) {
+            activity()
+                ->causedBy($user)
+                ->withProperties(['ip' => request()->ip()])
+                ->log('Cierre de sesión (Pestaña cerrada o no autorizada)');
+        }
+        Auth::logout();
+        session()->invalidate();
+        session()->regenerateToken();
+        return redirect('/login')->withErrors(['identificador' => 'Sesión cerrada por seguridad al detectar cambio de pestaña o ventana.']);
+    })->name('force-logout-tab');
+
     Route::get('/seed-permissions', function () {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
         $p1 = \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'ver-auditoria-tecnicos', 'guard_name' => 'web'], ['descripcion' => 'Permite visualizar la vista de auditoría de técnicos.']);
