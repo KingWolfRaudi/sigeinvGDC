@@ -28,7 +28,7 @@ Route::middleware('guest')->group(function () {
 });
 
 // Rutas protegidas (Solo usuarios autenticados)
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'nocache'])->group(function () {
     
     // Nuestro nuevo Dashboard
     Route::get('/', MainDashboard::class)->name('dashboard');

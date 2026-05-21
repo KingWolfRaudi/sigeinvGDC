@@ -498,6 +498,154 @@
             </main>
 
         </div>
+
+        <!-- Modal de Advertencia de Expiración de Sesión -->
+        <div class="modal fade" id="sessionTimeoutModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="sessionTimeoutModalLabel" aria-hidden="true" style="z-index: 1060;">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content shadow-lg border-0">
+                    <div class="modal-header bg-warning text-dark border-bottom-0 py-3">
+                        <h5 class="modal-title d-flex align-items-center fw-bold" id="sessionTimeoutModalLabel">
+                            <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
+                            Tu sesión está a punto de expirar
+                        </h5>
+                    </div>
+                    <div class="modal-body p-4 text-center">
+                        <p class="fs-5 mb-3">Has estado inactivo por un tiempo.</p>
+                        <p class="text-muted">Por tu seguridad, la sesión se cerrará automáticamente en:</p>
+                        <div class="d-flex justify-content-center align-items-center my-4">
+                            <div class="bg-light rounded px-4 py-3 shadow-sm border">
+                                <span class="fs-1 fw-bold text-danger" id="sessionCountdown">120</span>
+                                <span class="fs-4 text-muted ms-2">segundos</span>
+                            </div>
+                        </div>
+                        <p class="mb-0 text-muted">¿Deseas continuar en la plataforma y extender tu sesión?</p>
+                    </div>
+                    <div class="modal-footer justify-content-center border-top-0 pb-4">
+                        <button type="button" class="btn btn-secondary px-4 py-2 me-2" onclick="logoutSession()">
+                            <i class="bi bi-box-arrow-right me-1"></i> Cerrar Sesión
+                        </button>
+                        <button type="button" class="btn btn-primary px-4 py-2" id="extendSessionBtn" onclick="extendSession()">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Extender Sesión
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                // Configuración de tiempos (en milisegundos)
+                // 30 minutos de inactividad total. Advertencia a los 28 minutos.
+                const TIEMPO_INACTIVIDAD_TOTAL = 30 * 60 * 1000; 
+                const TIEMPO_ADVERTENCIA = 28 * 60 * 1000; 
+                const TIEMPO_COUNTDOWN = (30 - 28) * 60; // 120 segundos
+
+                let inactivityTimer;
+                let warningTimer;
+                let countdownInterval;
+                let secondsRemaining = TIEMPO_COUNTDOWN;
+                let modalInstance = null;
+
+                const modalElement = document.getElementById('sessionTimeoutModal');
+                if (modalElement) {
+                    modalInstance = new bootstrap.Modal(modalElement, {
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                }
+
+                // Función para reiniciar todos los temporizadores
+                function resetTimers() {
+                    // Limpiar temporizadores previos
+                    clearTimeout(inactivityTimer);
+                    clearTimeout(warningTimer);
+                    clearInterval(countdownInterval);
+
+                    // Ocultar modal si está abierto
+                    if (modalInstance && modalElement.classList.contains('show')) {
+                        modalInstance.hide();
+                    }
+
+                    // Iniciar temporizador para mostrar la advertencia
+                    warningTimer = setTimeout(showWarning, TIEMPO_ADVERTENCIA);
+
+                    // Iniciar temporizador para el logout definitivo
+                    inactivityTimer = setTimeout(logoutSession, TIEMPO_INACTIVIDAD_TOTAL);
+                }
+
+                // Mostrar el modal de advertencia e iniciar la cuenta regresiva
+                function showWarning() {
+                    if (!modalInstance) return;
+
+                    secondsRemaining = TIEMPO_COUNTDOWN;
+                    document.getElementById('sessionCountdown').innerText = secondsRemaining;
+                    modalInstance.show();
+
+                    countdownInterval = setInterval(() => {
+                        secondsRemaining--;
+                        document.getElementById('sessionCountdown').innerText = secondsRemaining;
+
+                        if (secondsRemaining <= 0) {
+                            clearInterval(countdownInterval);
+                            logoutSession();
+                        }
+                    }, 1000);
+                }
+
+                // Función para cerrar la sesión (logout definitivo)
+                window.logoutSession = function() {
+                    const logoutForm = document.querySelector('form[action="{{ route('logout') }}"]');
+                    if (logoutForm) {
+                        logoutForm.submit();
+                    } else {
+                        window.location.href = '/logout';
+                    }
+                }
+
+                // Función para extender la sesión
+                window.extendSession = function() {
+                    const extendBtn = document.getElementById('extendSessionBtn');
+                    if (extendBtn) {
+                        extendBtn.disabled = true;
+                        extendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Extendiendo...';
+                    }
+
+                    // Petición AJAX ligera para refrescar la sesión del lado del servidor (PHP/Laravel)
+                    fetch('{{ route("dashboard") }}', {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        if (extendBtn) {
+                            extendBtn.disabled = false;
+                            extendBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i> Extender Sesión';
+                        }
+                        resetTimers();
+                    })
+                    .catch(error => {
+                        console.error('Error al extender la sesión:', error);
+                        resetTimers();
+                    });
+                }
+
+                // Escuchar eventos de interacción para reiniciar timers de inactividad
+                // Solo si el modal NO está visible (si está visible, el usuario debe elegir extender o salir)
+                const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+                
+                activityEvents.forEach(eventType => {
+                    document.addEventListener(eventType, () => {
+                        if (modalElement && !modalElement.classList.contains('show')) {
+                            resetTimers();
+                        }
+                    }, { passive: true });
+                });
+
+                // Inicializar
+                resetTimers();
+            });
+        </script>
     @else
         <div class="d-flex vh-100 align-items-center justify-content-center">
             <div class="container">

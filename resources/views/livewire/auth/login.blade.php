@@ -50,10 +50,7 @@
                         });
                     </script>
 
-                    <div class="mb-4 form-check">
-                        <input type="checkbox" class="form-check-input" id="remember" wire:model="remember">
-                        <label class="form-check-label" for="remember">Mantener sesión iniciada</label>
-                    </div>
+
 
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary btn-lg">

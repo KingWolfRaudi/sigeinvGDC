@@ -509,6 +509,13 @@ Esta ruta crea los permisos `ver-auditoria-tecnicos` y `ver-auditoria-usuarios` 
 - **Auditoría de acceso:** Todo inicio/cierre de sesión queda registrado en `activity_log` con la IP del cliente.
 - **Subida de archivos:** El módulo de avatar usa `extension()` (inferido por MIME) en lugar de `getClientOriginalExtension()`, para prevenir suplantación de extensiones.
 - **Ruta `/home`:** La constante `HOME` del `RouteServiceProvider` apunta a `/`. Los usuarios autenticados sin rol son redirigidos automáticamente a `/perfil` por la lógica del `MainDashboard`.
+- **Cierre de sesión al cerrar navegador/pestaña:** Se ha establecido `'expire_on_close' => true` en `config/session.php` y se ha removido por completo la opción de "Mantener sesión iniciada" (remember me) en el backend y frontend. Esto garantiza que las cookies de sesión expiren tan pronto como el usuario cierre su navegador o pestaña.
+- **Control de Caché e Historial del Navegador:** Se implementó el middleware `PreventBackHistory` registrado bajo el alias `nocache` que inyecta encabezados HTTP (`Cache-Control: no-cache, no-store, must-revalidate`, `Pragma: no-cache`, `Expires: 0`). Este middleware está acoplado al grupo de rutas `auth`, impidiendo que el navegador almacene copias locales de las páginas del dashboard o inventarios. Así, si un usuario intenta navegar con el botón de atrás/adelante tras haber cerrado sesión, el navegador se ve obligado a solicitar la página al servidor, resultando en una redirección inmediata al login.
+- **Sistema de Cierre Automático por Inactividad (Banca Estilo UX):** Se implementó un sistema de control de inactividad dual en `app.blade.php`. 
+  - *Monitoreo del Cliente:* Un temporizador JavaScript global registra la interacción física (clic, movimiento, scroll, teclado).
+  - *Advertencia Previa:* Tras **28 minutos** de inactividad continua, se despliega de forma programática un modal de Bootstrap (`#sessionTimeoutModal`) con una cuenta regresiva visual en tiempo real de **120 segundos (2 minutos)**.
+  - *Extensión Transparente:* Si el usuario hace clic en *"Extender Sesión"*, se realiza una consulta HTTP asíncrona (`fetch()`) en segundo plano a la ruta `/` (`dashboard`) con cabecera `X-Requested-With: XMLHttpRequest` para restablecer el ciclo de vida de la sesión de Laravel y renovar las cookies sin refrescar la vista ni perder el estado de Livewire.
+  - *Logout Forzado:* Si la cuenta llega a `0` sin acción del usuario, se envía el formulario `logout` de manera inmediata para invalidar la sesión y redirigir al login. Esto anula totalmente el bypass de restauración de sesión ("Seguir donde lo dejaste") de los navegadores.
 
 ---
 *Manual Técnico SIGEINV — Versión 2.0 (Actualizado: Mayo 2026)*
