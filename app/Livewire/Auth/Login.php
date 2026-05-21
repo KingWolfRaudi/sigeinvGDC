@@ -49,6 +49,9 @@ class Login extends Component
             // Por seguridad, regeneramos la sesión para evitar ataques de fijación
             session()->regenerate();
 
+            // Marcador crítico para vinculación de sesión a la pestaña actual
+            session()->flash('just_logged_in', true);
+
             // Redirigimos al inicio (que pronto será nuestro Dashboard)
             return redirect()->intended('/');
         }

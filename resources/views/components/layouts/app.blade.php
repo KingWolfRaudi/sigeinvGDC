@@ -87,6 +87,26 @@
         const savedTheme = localStorage.getItem('sigeinv-theme') || 'light';
         document.documentElement.setAttribute('data-bs-theme', savedTheme);
     </script>
+
+    @auth
+    <script>
+        // SEGURIDAD DE PESTAÑA ESTRICTA: Vincular sesión del servidor a la pestaña actual
+        const justLoggedIn = {{ session('just_logged_in') ? 'true' : 'false' }};
+        if (justLoggedIn) {
+            // Recién logueado, inicializamos la firma de la pestaña
+            sessionStorage.setItem('sigeinv_tab_session', 'active');
+        } else {
+            // Ya está logueado. Verificamos si la pestaña actual tiene la firma.
+            if (!sessionStorage.getItem('sigeinv_tab_session')) {
+                // Si sessionStorage está vacío, significa que el usuario abrió una pestaña nueva
+                // copiando la URL manualmente, o que cerró la pestaña y volvió a abrirla.
+                // Detenemos la visualización del contenido inmediatamente por seguridad.
+                document.documentElement.style.display = 'none';
+                window.location.replace("{{ route('force-logout-tab') }}");
+            }
+        }
+    </script>
+    @endauth
 </head>
 
 <body class="bg-body-tertiary">
