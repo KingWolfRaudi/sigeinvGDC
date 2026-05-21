@@ -42,6 +42,9 @@ class MainDashboard extends Component
 
     public function mount()
     {
+        if (\Illuminate\Support\Facades\Gate::denies('ver-dashboard')) {
+            return redirect()->route('perfil');
+        }
         $user = Auth::user();
         $this->esTecnico = $user->hasRole('resolutor-incidencia') && !$user->hasRole(['super-admin', 'administrador', 'coordinador']);
         $this->esTrabajador = $user->hasRole('trabajador') && !$user->hasRole(['super-admin', 'administrador', 'coordinador', 'resolutor-incidencia']);

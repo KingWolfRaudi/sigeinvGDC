@@ -13,7 +13,6 @@ class Login extends Component
     // Variables ligadas al formulario
     public $identificador = ''; // Puede ser email o username
     public $password = '';
-    public $remember = false;
 
     // Reglas de validación básicas
     protected $rules = [
@@ -38,7 +37,7 @@ class Login extends Component
         ];
 
         // 3. Intentar autenticar
-        if (Auth::attempt($credenciales, $this->remember)) {
+        if (Auth::attempt($credenciales, false)) {
             $user = Auth::user();
             
             // Registrar auditoría de inicio de sesión

@@ -213,13 +213,13 @@ class RolesAndPermissionsSeeder extends Seeder
         // --- RESOLUTOR-INCIDENCIA ---
         $resolutorRole = Role::where('name', 'resolutor-incidencia')->first();
         if ($resolutorRole) {
-            $resolutorRole->syncPermissions(['ver-incidencias', 'gestionar-incidencias', 'ver-dashboard', 'ver-panel-soporte']);
+            $resolutorRole->syncPermissions(['ver-incidencias', 'gestionar-incidencias', 'ver-dashboard']);
         }
 
         // --- TRABAJADOR ---
         $trabajadorRole = Role::where('name', 'trabajador')->first();
         if ($trabajadorRole) {
-            $trabajadorRole->syncPermissions(['crear-ticket', 'ver-dashboard', 'ver-panel-soporte']);
+            $trabajadorRole->syncPermissions(['crear-ticket', 'ver-dashboard']);
         }
 
         // 4. CREAR EL USUARIO SUPERADMIN (Tu código original mejorado)

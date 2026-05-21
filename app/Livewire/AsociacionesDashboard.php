@@ -22,6 +22,7 @@ class AsociacionesDashboard extends Component
 
     public function mount($tipo, $id)
     {
+        abort_if(\Illuminate\Support\Facades\Gate::denies('ver-dashboard'), 403);
         $this->tipo = $tipo;
         $this->modelo_id = $id;
 

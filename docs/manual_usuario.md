@@ -34,14 +34,26 @@
 
 1. Abre tu navegador (Chrome, Firefox, Edge) y dirígete a la dirección del sistema.
 2. Ingresa tu **nombre de usuario** o **correo electrónico** y tu **contraseña**.
-3. Activa **"Mantener sesión iniciada"** si deseas que el sistema recuerde tu acceso.
-4. Haz clic en **"Entrar al Sistema"**.
+3. Haz clic en **"Entrar al Sistema"**.
 
-> Cada inicio de sesión exitoso queda registrado en el sistema de auditoría con tu dirección IP. Los intentos fallidos también son registrados.
+> Por motivos de seguridad y control de acceso, la sesión del sistema expira automáticamente al cerrar el navegador o la pestaña activa. No se guardan cookies persistentes de inicio de sesión de larga duración. Asimismo, la navegación de atrás/adelante del navegador no permitirá visualizar datos si ya has cerrado tu sesión.
 
 ### 1.2 Cómo Cerrar Sesión
 
-En la barra lateral izquierda, haz clic en tu nombre de usuario (parte inferior) y selecciona **"Cerrar Sesión"**.
+Para cerrar sesión de manera manual y segura en cualquier momento:
+1. En la barra lateral izquierda, haz clic en tu nombre de usuario (en la parte inferior).
+2. Selecciona la opción **"Cerrar Sesión"** (marcada en color rojo).
+3. Serás redirigido inmediatamente a la pantalla de inicio de sesión y tus cookies de sesión temporal se destruirán por completo.
+
+### 1.3 Cierre de Sesión Automático por Inactividad (Protección de Datos)
+
+Por motivos de seguridad y resguardo de la información institucional del Gobierno del Distrito Capital (GDC):
+*   **Monitoreo en Vivo:** El sistema detecta si estás utilizando la plataforma. Si permaneces completamente inactivo (sin mover el mouse, usar el teclado o hacer scroll) durante **28 minutos**, se activará una alerta en pantalla.
+*   **Alerta de Advertencia:** Aparecerá una ventana flotante con una cuenta regresiva de **120 segundos (2 minutos)** en tiempo real.
+*   **Opciones del Usuario:**
+    *   **Botón "Extender Sesión":** Al hacer clic, el sistema renovará de forma transparente tu sesión con el servidor (PHP/Laravel) en segundo plano y reiniciará los temporizadores. Podrás continuar trabajando de inmediato sin perder datos ni recargar la página.
+    *   **Botón "Cerrar Sesión":** Cerrará tu sesión de inmediato de forma manual y segura.
+*   **Cierre Automático Forzado:** Si la cuenta regresiva llega a `0` sin interacción, el sistema te deslogueará automáticamente de inmediato, destruyendo cualquier cookie local de acceso y redirigiéndote a la pantalla de Login. Esto evita accesos no autorizados si dejas tu computador desatendido.
 
 ---
 
@@ -52,13 +64,15 @@ SIGEINV usa un sistema de roles y permisos que determina qué secciones y accion
 | Rol | Descripción |
 |-----|-------------|
 | **Super Administrador** | Acceso total sin restricciones. Rol ineditable desde la interfaz. |
-| **Administrador** | Gestión completa de inventario, incidencias, movimientos, usuarios y auditoría. |
-| **Coordinador** | Supervisión: ve incidencias, trabajadores y equipos. No puede modificar inventario. |
-| **Personal TI** | Accede a la gestión de incidencias (mesa de soporte). |
-| **Resolutor de Incidencia** | Atiende y cierra tickets asignados a su especialidad. |
-| **Trabajador** | Puede crear tickets de soporte y consultar su perfil. |
+| **Administrador** | Gestión completa de inventario, incidencias, movimientos, usuarios y auditoría. Sin permiso de eliminación permanente. |
+| **Coordinador** | Supervisión total: reportes, auditoría de técnicos, incidencias completas, movimientos y consulta de inventario. |
+| **Personal TI** | Acceso operativo: incidencias (menos solicitudes de perfil), movimientos y consulta/edición de inventario. |
+| **Resolutor de Incidencia** | Atiende y cierra tickets asignados a su especialidad. Acceso al Dashboard. |
+| **Trabajador** | Puede crear tickets de soporte y consultar su perfil. Acceso al Dashboard. |
 
 > Los permisos específicos de cada rol se configuran desde **Administración > Roles y Permisos**.
+
+> **Usuario sin rol:** Un usuario autenticado sin ningún rol asignado no tiene acceso al Dashboard. Al iniciar sesión será redirigido automáticamente a su Perfil, donde puede gestionar sus datos mientras espera que un administrador le asigne un rol.
 
 ---
 
@@ -77,7 +91,7 @@ Pantalla principal al iniciar sesión. Muestra el estado operativo en tiempo rea
 
 ### 3.2 Panel de Composición de Hardware
 
-Gráficos interactivos basados en el inventario real:
+Gráficos interactivos basados en el inventario real (visible solo para roles técnicos, no para Trabajadores):
 - **Distribución de RAM:** Clasifica equipos por capacidad (≤4GB, 8GB, 16GB, >16GB).
 - **Tecnología de Almacenamiento:** SSD/NVME vs. HDD mecánicos.
 
@@ -85,7 +99,7 @@ Indicadores laterales muestran la **capacidad total de RAM** y **almacenamiento 
 
 ### 3.3 Mesa de Ayuda
 
-Dos paneles paralelos en la parte inferior:
+Dos paneles paralelos en la parte inferior (visible solo para Administrador, Coordinador y Personal TI):
 - **Atención Rápida:** Técnicos ven sus casos asignados; administradores ven los últimos tickets del sistema.
 - **Historial de Resoluciones:** Casos resueltos recientes (del técnico o globales según el rol).
 

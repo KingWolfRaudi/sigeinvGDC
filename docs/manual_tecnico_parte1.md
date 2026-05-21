@@ -4,8 +4,8 @@
 
 | Componente | Tecnología |
 |---|---|
-| Lenguaje | PHP 8.3+ |
-| Framework | Laravel 10/12 |
+| Lenguaje | PHP 8.1+ |
+| Framework | Laravel 10 |
 | Frontend | Livewire 3 + Bootstrap 5.3 |
 | Base de Datos | MariaDB 10.6+ / MySQL 8+ |
 | Auth/Permisos | Spatie Laravel-Permission |
@@ -35,10 +35,13 @@ app/
 database/
 ├── migrations/
 └── seeders/
-    ├── RolesAndPermissionsSeeder.php  # Permisos, roles y superadmin
-    ├── CatalogosSeeder.php
-    ├── ConfiguracionSeeder.php
-    └── InventarioSeeder.php
+    ├── RolesAndPermissionsSeeder.php  # Permisos, roles y superadmin (seeder maestro)
+    ├── CatalogosSeeder.php            # Datos base de catálogos (marcas, tipos, SO, etc.)
+    ├── IncidenciasSeeder.php          # Especialidades, tipos de problemas y configuraciones
+    ├── DatabaseSeeder.php             # Orquestador (solo los 3 seeders de producción)
+    ├── InventarioSeeder.php           # Datos de ejemplo (solo desarrollo)
+    ├── SoftwareSeeder.php             # Software de ejemplo (solo desarrollo)
+    └── DemoTicketsSeeder.php          # Tickets de ejemplo (solo desarrollo)
 resources/views/
 ├── components/layouts/app.blade.php  # Layout principal con sidebar reactivo
 ├── livewire/         # Vistas de componentes Livewire
