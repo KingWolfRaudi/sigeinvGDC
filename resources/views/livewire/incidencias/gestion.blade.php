@@ -385,7 +385,7 @@
 
                             <div class="col-6">
                                 <div class="form-check form-switch p-3 border rounded bg-body">
-                                    <input class="form-check-input ms-0 me-3" type="checkbox" id="solventCheck" wire:model.live="solventado" @disabled($es_lectura)>
+                                    <input class="form-check-input ms-0 me-3" type="checkbox" id="solventCheck" wire:model.live="solventado" @disabled($es_lectura || !Auth::user()->can('resolver-incidencias'))>
                                     <label class="form-check-label fw-bold" for="solventCheck">¿Caso Solventado?</label>
                                 </div>
                             </div>
@@ -400,7 +400,7 @@
 
                             <div class="col-6">
                                 <div class="form-check form-switch p-3 border rounded bg-body border-danger shadow-sm">
-                                    <input class="form-check-input ms-0 me-3" type="checkbox" id="cerrarCheck" wire:model="cerrado" @disabled(!$solventado || $es_lectura)>
+                                    <input class="form-check-input ms-0 me-3" type="checkbox" id="cerrarCheck" wire:model="cerrado" @disabled(!$solventado || $es_lectura || !Auth::user()->can('resolver-incidencias'))>
                                     <label class="form-check-label fw-bold text-danger" for="cerrarCheck text-danger">¿CERRAR INCIDENCIA?</label>
                                     <div class="small text-muted mt-1">Bloqueo de edición.</div>
                                 </div>

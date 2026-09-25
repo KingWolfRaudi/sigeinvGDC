@@ -99,6 +99,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'gestionar-incidencias' => 'Acceso a la mesa de soporte para atender, asignar y resolver tickets.',
             'admin-incidencias' => 'Configuraciones globales y administración avanzada del módulo de incidencias.',
             'ver-incidencias' => 'Permite visualizar el histórico detallado de incidencias.',
+            'resolver-incidencias' => 'Permite marcar incidencias y tickets como resueltos/solventados.',
+            'admin-configuracion-global' => 'Acceso exclusivo para alterar configuraciones y reglas globales del sistema.',
             'admin-solicitudes-perfil' => 'Gestionar y aprobar solicitudes de cambio de perfil técnico de usuarios.',
             
             'admin-auditoria' => 'Acceso total a los registros de auditoría y logs detallados del sistema.',
@@ -194,8 +196,9 @@ class RolesAndPermissionsSeeder extends Seeder
                 // Todos los reportes
                 if (in_array($p->name, ['reportes-excel', 'reportes-pdf', 'reportes-masivos-filtros'])) return true;
                 
-                // Incidencias (Especiales) menos solicitudes de perfil
-                if (in_array($p->name, ['crear-ticket', 'gestionar-incidencias', 'admin-incidencias', 'ver-incidencias'])) return true;
+                // Incidencias (Especiales)
+                // Se removió 'admin-incidencias' y 'resolver-incidencias' para seguridad.
+                if (in_array($p->name, ['crear-ticket', 'gestionar-incidencias', 'ver-incidencias'])) return true;
                 
                 // Todos los movimientos
                 if (str_starts_with($p->name, 'movimientos-')) return true;
@@ -213,7 +216,7 @@ class RolesAndPermissionsSeeder extends Seeder
         // --- RESOLUTOR-INCIDENCIA ---
         $resolutorRole = Role::where('name', 'resolutor-incidencia')->first();
         if ($resolutorRole) {
-            $resolutorRole->syncPermissions(['ver-incidencias', 'gestionar-incidencias', 'ver-dashboard']);
+            $resolutorRole->syncPermissions(['ver-incidencias', 'gestionar-incidencias', 'resolver-incidencias', 'ver-dashboard']);
         }
 
         // --- TRABAJADOR ---

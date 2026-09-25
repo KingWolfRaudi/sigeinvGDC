@@ -265,6 +265,13 @@ class Gestion extends Component
 
         $this->validate($rules);
 
+        // BLOQUEO DE SEGURIDAD: Evitar que alteren el estado de resolución si no tienen permiso
+        if (!Auth::user()->can('resolver-incidencias')) {
+            $checkInc = $this->incidencia_id ? Incidencia::find($this->incidencia_id) : null;
+            $this->solventado = $checkInc ? $checkInc->solventado : false;
+            $this->cerrado = $checkInc ? $checkInc->cerrado : false;
+        }
+
         Incidencia::updateOrCreate(
             ['id' => $this->incidencia_id],
             [

@@ -46,8 +46,11 @@ class ConfiguracionGeneral extends Component
 
     public function mount()
     {
+        // Abortar si no tiene ninguno de los permisos administrativos necesarios
+        abort_if(Gate::denies('admin-incidencias') && Gate::denies('admin-solicitudes-perfil') && Gate::denies('admin-configuracion-global'), 403, 'No tienes permisos para acceder a las configuraciones globales.');
+
         // Determinar pestaña inicial según permisos
-        if (Gate::denies('admin-incidencias')) {
+        if (Gate::denies('admin-incidencias') && Gate::denies('admin-configuracion-global')) {
             $this->activeTab = 'perfil-ajustes';
         }
 
@@ -207,7 +210,7 @@ class ConfiguracionGeneral extends Component
     // --- LÓGICA DE GUARDADO DE CONFIGURACIÓN ---
     public function guardarConfigIncidencias()
     {
-        abort_if(Gate::denies('admin-incidencias'), 403);
+        abort_if(Gate::denies('admin-configuracion-global'), 403);
 
         Configuracion::updateOrCreate(['clave' => 'incidencias_cierre_irreversible'], ['valor' => $this->cierre_irreversible ? '1' : '0', 'grupo' => 'incidencias']);
         Configuracion::updateOrCreate(['clave' => 'incidencias_activo_obligatorio'], ['valor' => $this->activo_obligatorio ? '1' : '0', 'grupo' => 'incidencias']);
