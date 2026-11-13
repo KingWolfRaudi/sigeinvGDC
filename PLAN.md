@@ -57,6 +57,22 @@
 | **W1** | Dominio E — secretos nunca commiteados | `encriptar.py` contiene contraseña real en disco local. **Verificado 2026-11-13: el archivo NUNCA estuvo en git** (excluido por `*.py` del `.gitignore`, sin historial, ausente del repo público de GitHub) → el riesgo de filtración pública **no existió** | Riesgo residual: fichero local con contraseña en claro. Acción: borrar `encriptar.py` del disco local y rotar `superpassword26*` si se usa en algún servicio (backlog) | **2026-12-13** |
 | **W2** | Dominio A — MFA en superficie administrativa | MFA (TOTP) fuera de alcance de este ciclo | Rate limiting + bcrypt ≥12 + auditoría de permisos por endpoint + registro en `SECURITY.md` | **2027-02-13** |
 
+## 6.b Baseline de SCA (F2, 2026-11-13)
+
+`composer audit --locked` → **65 avisos en 16 paquetes** (gate del CI en rojo hasta F3):
+
+| Paquete | Avisos | Severidad máxima | Nota |
+|---|---|---|---|
+| `laravel/framework` | 5 | **critical** (CVE-2026-114509 TokenGuard auth bypass, afecta <10.50.4 y 13.0–13.26) | Resuelto al instalar 13.42.x |
+| `phpoffice/phpspreadsheet` | 8 | critical | Transitive de maatwebsite/excel |
+| `league/commonmark` | 12 | high | Transitive (mary/dompdf) |
+| `guzzlehttp/guzzle` | 9 | high | |
+| `dompdf/dompdf` | 6 | medium | |
+| `symfony/*` (7 paquetes) | 18 | high | Transitive de laravel/framework |
+| Otros (`livewire`, `maatwebsite/excel`, `flysystem`, `polyfill`) | 7 | high | |
+
+**Objetivo F3:** `composer audit --locked` → exit 0 tras el update. Cualquier aviso residual se evalúa (fix por bump o waiver §7 con compensación).
+
 ## 7. Fuera de alcance (confirmado con el usuario)
 
 - Servidor de producción (código, nginx, phpMyAdmin, TLS, logs).
