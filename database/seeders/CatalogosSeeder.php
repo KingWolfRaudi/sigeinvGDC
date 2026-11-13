@@ -2,16 +2,16 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Marca; // <-- No olvides importar el modelo de Marca
-use App\Models\TipoDispositivo;
-use App\Models\SistemaOperativo;
-use App\Models\Puerto;
-use App\Models\Departamento;
-use App\Models\Dependencia;
-use App\Models\Procesador;
-use App\Models\Gpu;
 use App\Models\CategoriaInsumo;
+use App\Models\Departamento; // <-- No olvides importar el modelo de Marca
+use App\Models\Dependencia;
+use App\Models\Gpu;
+use App\Models\Marca;
+use App\Models\Procesador;
+use App\Models\Puerto;
+use App\Models\SistemaOperativo;
+use App\Models\TipoDispositivo;
+use Illuminate\Database\Seeder;
 
 class CatalogosSeeder extends Seeder
 {
@@ -27,18 +27,18 @@ class CatalogosSeeder extends Seeder
             'Cisco', 'TP-Link', 'Ubiquiti', 'MikroTik', // Redes
             'Epson', 'Canon', 'Brother', 'Kyocera', // Impresoras
             'APC', 'Forza', // Energía/UPS
-            'Genérica' // Siempre es bueno tener una opción genérica
+            'Genérica', // Siempre es bueno tener una opción genérica
         ];
-        
+
         foreach ($marcas as $marca) {
             Marca::firstOrCreate(['nombre' => $marca], ['activo' => true]);
         }
 
         // 1. Tipos de Dispositivos (Tu código actual)
         $tipos = [
-            'Laptop', 'Computadora de Escritorio', 'Monitor', 'Impresora', 
+            'Laptop', 'Computadora de Escritorio', 'Monitor', 'Impresora',
             'Teléfono Móvil', 'Tablet', 'Servidor', 'Router', 'Switch', 'UPS',
-            'Cámara de Seguridad', 'Escáner', 'Proyector'
+            'Cámara de Seguridad', 'Escáner', 'Proyector',
         ];
         foreach ($tipos as $tipo) {
             TipoDispositivo::firstOrCreate(['nombre' => $tipo], ['activo' => true]);
@@ -46,10 +46,10 @@ class CatalogosSeeder extends Seeder
 
         // 2. Sistemas Operativos (Tu código actual)
         $sistemas = [
-            'Windows 10', 'Windows 11', 'Windows Server 2022', 
-            'Ubuntu 22.04 LTS', 'Ubuntu 24.04 LTS', 
-            'macOS Sonoma', 'macOS Ventura', 'Android 14', 'iOS 17', 
-            'Debian 12', 'Red Hat Enterprise Linux 9', 'Sin Sistema Operativo'
+            'Windows 10', 'Windows 11', 'Windows Server 2022',
+            'Ubuntu 22.04 LTS', 'Ubuntu 24.04 LTS',
+            'macOS Sonoma', 'macOS Ventura', 'Android 14', 'iOS 17',
+            'Debian 12', 'Red Hat Enterprise Linux 9', 'Sin Sistema Operativo',
         ];
         foreach ($sistemas as $sistema) {
             SistemaOperativo::firstOrCreate(['nombre' => $sistema], ['activo' => true]);
@@ -57,9 +57,9 @@ class CatalogosSeeder extends Seeder
 
         // 3. Puertos y Conexiones (Tu código actual)
         $puertos = [
-            'USB-A 2.0', 'USB-A 3.0', 'USB-C', 'HDMI', 'DisplayPort', 
+            'USB-A 2.0', 'USB-A 3.0', 'USB-C', 'HDMI', 'DisplayPort',
             'VGA', 'Ethernet (RJ45)', 'Jack Audio 3.5mm', 'Thunderbolt 4',
-            'DVI', 'Serial (RS-232)', 'Paralelo (LPT)'
+            'DVI', 'Serial (RS-232)', 'Paralelo (LPT)',
         ];
         foreach ($puertos as $puerto) {
             Puerto::firstOrCreate(['nombre' => $puerto], ['activo' => true]);
@@ -67,11 +67,11 @@ class CatalogosSeeder extends Seeder
 
         // 4. Departamentos (Tu código actual)
         $departamentos = [
-            'Tecnología de la Información (TI)', 'Recursos Humanos', 
-            'Contabilidad y Finanzas', 'Administración', 'Ventas', 
+            'Tecnología de la Información (TI)', 'Recursos Humanos',
+            'Contabilidad y Finanzas', 'Administración', 'Ventas',
             'Marketing', 'Operaciones', 'Dirección General',
             'Servicios Generales', 'Seguridad Integral', 'Auditoría Interna',
-            'Logística y Transporte'
+            'Logística y Transporte',
         ];
         foreach ($departamentos as $departamento) {
             Departamento::firstOrCreate(['nombre' => $departamento], ['activo' => true]);
@@ -120,10 +120,10 @@ class CatalogosSeeder extends Seeder
             ['marca_id' => $marcaApple ?? 4, 'modelo' => 'Apple M1', 'generacion' => 'N/A', 'hilos' => 8],
             ['marca_id' => $marcaApple ?? 4, 'modelo' => 'Apple M2 Pro', 'generacion' => 'N/A', 'hilos' => 12],
         ];
-        
+
         foreach ($procesadores as $proc) {
             Procesador::firstOrCreate(
-                ['modelo' => $proc['modelo']], 
+                ['modelo' => $proc['modelo']],
                 ['marca_id' => $proc['marca_id'], 'generacion' => $proc['generacion'], 'hilos' => $proc['hilos'], 'activo' => true]
             );
         }
@@ -145,10 +145,10 @@ class CatalogosSeeder extends Seeder
             ['marca_id' => $marcaGenerica, 'modelo' => 'Tarjeta Genérica Básica', 'memoria' => '1GB'],
             ['marca_id' => $marcaGenerica, 'modelo' => 'Chipset SVGA Estándar', 'memoria' => '512MB'],
         ];
-        
+
         foreach ($gpus as $gpu) {
             Gpu::firstOrCreate(
-                ['modelo' => $gpu['modelo']], 
+                ['modelo' => $gpu['modelo']],
                 ['marca_id' => $gpu['marca_id'], 'memoria' => $gpu['memoria'], 'activo' => true]
             );
         }
@@ -165,7 +165,7 @@ class CatalogosSeeder extends Seeder
             'Material de Oficina Asociado',
             'Equipos de Medición',
             'Organización de Cableado (Racks, PDU)',
-            'Adaptadores y Conversiones'
+            'Adaptadores y Conversiones',
         ];
         foreach ($categoriasInsumo as $cat) {
             CategoriaInsumo::firstOrCreate(['nombre' => $cat], ['activo' => true]);

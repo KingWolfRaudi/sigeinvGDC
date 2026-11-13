@@ -2,15 +2,15 @@
 
 namespace Database\Seeders;
 
+use App\Models\Computador;
+use App\Models\Departamento;
+use App\Models\EspecialidadTecnica;
+use App\Models\Incidencia;
+use App\Models\Problema;
+use App\Models\Trabajador;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
-use App\Models\EspecialidadTecnica;
-use App\Models\Trabajador;
-use App\Models\Departamento;
-use App\Models\Problema;
-use App\Models\Incidencia;
-use App\Models\Computador;
 
 class DemoTicketsSeeder extends Seeder
 {
@@ -18,26 +18,28 @@ class DemoTicketsSeeder extends Seeder
     {
         // 2. Crear 11 Trabajadores y Usuarios
         $deptos = Departamento::where('activo', true)->take(11)->get();
-        if ($deptos->isEmpty()) return;
+        if ($deptos->isEmpty()) {
+            return;
+        }
 
         for ($i = 1; $i <= 11; $i++) {
             $deptoId = $deptos[($i - 1) % $deptos->count()]->id;
-            
+
             $trab = Trabajador::create([
-                'nombres' => 'Trabajador ' . $i,
-                'apellidos' => 'Demo ' . $i,
-                'cedula' => 'V-' . (25000000 + $i),
-                'cargo' => 'Cargo Demo ' . $i,
+                'nombres' => 'Trabajador '.$i,
+                'apellidos' => 'Demo '.$i,
+                'cedula' => 'V-'.(25000000 + $i),
+                'cargo' => 'Cargo Demo '.$i,
                 'departamento_id' => $deptoId,
-                'activo' => true
+                'activo' => true,
             ]);
 
             // Crear un usuario para algunos trabajadores
             if ($i <= 11) {
                 $user = User::create([
-                    'name' => $trab->nombres . ' ' . $trab->apellidos,
-                    'username' => 'user' . $i,
-                    'email' => 'trabajador' . $i . '@sigeinv.test',
+                    'name' => $trab->nombres.' '.$trab->apellidos,
+                    'username' => 'user'.$i,
+                    'email' => 'trabajador'.$i.'@sigeinv.test',
                     'password' => Hash::make('password'),
                     'activo' => true,
                     'trabajador_id' => $trab->id,
@@ -51,9 +53,9 @@ class DemoTicketsSeeder extends Seeder
         for ($i = 1; $i <= 11; $i++) {
             $esp = $especialidades[($i - 1) % $especialidades->count()];
             $tec = User::create([
-                'name' => 'Técnico ' . $i . ' (' . $esp->nombre . ')',
-                'username' => 'tecnico' . $i,
-                'email' => 'tecnico' . $i . '@sigeinv.test',
+                'name' => 'Técnico '.$i.' ('.$esp->nombre.')',
+                'username' => 'tecnico'.$i,
+                'email' => 'tecnico'.$i.'@sigeinv.test',
                 'password' => Hash::make('password'),
                 'activo' => true,
                 'disponible_asignacion' => true,
@@ -80,11 +82,11 @@ class DemoTicketsSeeder extends Seeder
                 'departamento_id' => $userSolicitante->trabajador?->departamento_id ?? $fallbackDepto,
                 'dependencia_id' => $userSolicitante->trabajador?->dependencia_id ?? null,
                 'trabajador_id' => $userSolicitante->trabajador_id,
-                'user_id' => ($i % 3 != 0) ? $tec->id : null, 
+                'user_id' => ($i % 3 != 0) ? $tec->id : null,
                 'modelo_id' => ($i % 2 == 0) ? $comp->id : null,
                 'modelo_type' => ($i % 2 == 0) ? Computador::class : null,
-                'descripcion' => 'Descripción de la incidencia demo #' . $i . ': Fallo reportado por el usuario.',
-                'nota_resolucion' => ($i % 2 == 0) ? 'Resolución técnica aplicada para el ticket #' . $i : null,
+                'descripcion' => 'Descripción de la incidencia demo #'.$i.': Fallo reportado por el usuario.',
+                'nota_resolucion' => ($i % 2 == 0) ? 'Resolución técnica aplicada para el ticket #'.$i : null,
                 'solventado' => ($i % 2 == 0),
                 'cerrado' => ($i % 4 == 0),
             ]);

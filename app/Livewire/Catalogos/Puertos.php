@@ -2,23 +2,33 @@
 
 namespace App\Livewire\Catalogos;
 
-use Livewire\Component;
 use App\Models\Puerto;
-use Livewire\WithPagination;
 use Illuminate\Support\Facades\Gate;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class Puertos extends Component
 {
     use WithPagination;
+
     protected $paginationTheme = 'bootstrap';
 
-    public $puerto_id, $nombre, $puerto_detalle;
+    public $puerto_id;
+
+    public $nombre;
+
+    public $puerto_detalle;
+
     public bool $activo = true;
+
     public $tituloModal = 'Nuevo Puerto';
 
     public $search = '';
+
     public $sortField = 'nombre';
+
     public $sortAsc = true;
+
     public $filtro_estado = 'todos';
 
     public function updatingSearch()
@@ -29,7 +39,7 @@ class Puertos extends Component
     public function sortBy($field)
     {
         if ($this->sortField === $field) {
-            $this->sortAsc = !$this->sortAsc;
+            $this->sortAsc = ! $this->sortAsc;
         } else {
             $this->sortAsc = true;
             $this->sortField = $field;
@@ -42,7 +52,7 @@ class Puertos extends Component
         $query = Puerto::query();
 
         // 2. LÓGICA DE ESTADOS Y VISIBILIDAD (Data Scoping)
-        if (\Illuminate\Support\Facades\Gate::allows('ver-estado-puertos')) {
+        if (Gate::allows('ver-estado-puertos')) {
             if ($this->filtro_estado === 'activos') {
                 $query->where('activo', true);
             } elseif ($this->filtro_estado === 'inactivos') {
@@ -54,10 +64,10 @@ class Puertos extends Component
         }
 
         // 3. Búsqueda y Paginación
-        $puertos = $query->where('nombre', 'like', '%' . $this->search . '%')
-                         ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
-                         ->paginate(10);
-                       
+        $puertos = $query->where('nombre', 'like', '%'.$this->search.'%')
+            ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
+            ->paginate(10);
+
         return view('livewire.catalogos.puertos', compact('puertos'));
     }
 
@@ -75,19 +85,19 @@ class Puertos extends Component
         abort_if(Gate::denies($this->puerto_id ? 'editar-puertos' : 'crear-puertos'), 403);
 
         $this->validate([
-            'nombre' => 'required|min:2|unique:puertos,nombre,' . $this->puerto_id,
+            'nombre' => 'required|min:2|unique:puertos,nombre,'.$this->puerto_id,
         ]);
 
         Puerto::updateOrCreate(
             ['id' => $this->puerto_id],
             [
                 'nombre' => $this->nombre,
-                'activo' => $this->activo ? 1 : 0
+                'activo' => $this->activo ? 1 : 0,
             ]
         );
 
         $this->dispatch('cerrar-modal', id: 'modalPuerto');
-        $this->dispatch('mostrar-toast', mensaje: $this->puerto_id ? 'Puerto actualizado.' : 'Puerto creado.', tipo:'success');
+        $this->dispatch('mostrar-toast', mensaje: $this->puerto_id ? 'Puerto actualizado.' : 'Puerto creado.', tipo: 'success');
         $this->resetCampos();
     }
 
@@ -99,8 +109,8 @@ class Puertos extends Component
         $puerto = Puerto::findOrFail($id);
         $this->puerto_id = $puerto->id;
         $this->nombre = $puerto->nombre;
-        $this->activo = (bool) $puerto->activo; 
-        
+        $this->activo = (bool) $puerto->activo;
+
         $this->tituloModal = 'Editar Puerto';
         $this->dispatch('abrir-modal', id: 'modalPuerto');
     }
@@ -110,15 +120,15 @@ class Puertos extends Component
         abort_if(Gate::denies('cambiar-estatus-puertos'), 403);
 
         $puerto = Puerto::findOrFail($id);
-        $puerto->activo = !$puerto->activo;
+        $puerto->activo = ! $puerto->activo;
         $puerto->save();
-        $this->dispatch('mostrar-toast', mensaje: "Estado cambiado.", tipo:'success');
+        $this->dispatch('mostrar-toast', mensaje: 'Estado cambiado.', tipo: 'success');
     }
 
     public function ver($id)
     {
         abort_if(Gate::denies('ver-puertos'), 403);
-        
+
         $this->puerto_detalle = Puerto::findOrFail($id);
         $this->dispatch('abrir-modal', id: 'modalDetalle');
     }
@@ -130,6 +140,7 @@ class Puertos extends Component
         // Protección de integridad en tabla pivote
         if ($puerto->gpus()->exists()) {
             $this->dispatch('toast', mensaje: 'No se puede eliminar: Existen Tarjetas de Video (GPUs) usando este puerto.', tipo: 'error');
+
             return;
         }
 

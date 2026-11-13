@@ -39,7 +39,7 @@ class SolicitudesPerfilExport implements FromCollection, WithHeadings, WithMappi
             'Motivo Rechazo',
             'Fecha Solicitud',
             'Atendido Por',
-            'Fecha Revisión'
+            'Fecha Revisión',
         ];
     }
 

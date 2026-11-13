@@ -15,6 +15,6 @@ class Role extends SpatieRole
         'guard_name',
         'descripcion',
         'updated_at',
-        'created_at'
+        'created_at',
     ];
 }

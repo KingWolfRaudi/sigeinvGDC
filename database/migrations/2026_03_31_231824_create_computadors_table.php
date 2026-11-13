@@ -10,12 +10,12 @@ return new class extends Migration
     {
         Schema::create('computadores', function (Blueprint $table) {
             $table->id();
-            
+
             // Identificadores (Únicos y obligatorios)
             $table->string('bien_nacional')->unique();
             $table->string('serial')->unique();
             $table->string('nombre_equipo', 15); // Campo obligatorio, máx 15 chars
-            
+
             // Relaciones Foráneas (con restrict según V2.5)
             $table->foreignId('marca_id')->constrained('marcas')->onDelete('restrict');
             $table->string('tipo_computador'); // Computador de escritorio, Laptop, Mini Laptop
@@ -24,7 +24,7 @@ return new class extends Migration
             $table->foreignId('gpu_id')->nullable()->constrained('gpus')->onDelete('restrict');
             $table->foreignId('departamento_id')->nullable()->constrained('departamentos')->onDelete('restrict');
             $table->foreignId('trabajador_id')->nullable()->constrained('trabajadores')->onDelete('restrict');
-            
+
             // Especificaciones
             $table->enum('tipo_ram', ['DDR2', 'DDR3', 'DDR4', 'DDR5', 'DDR6']);
             $table->string('mac')->nullable()->unique();
@@ -34,7 +34,7 @@ return new class extends Migration
             $table->boolean('fuente_poder')->default(true);
             $table->enum('estado_fisico', ['operativo', 'danado', 'indeterminado', 'en_reparacion', 'baja'])->default('operativo');
             $table->text('observaciones')->nullable();
-            
+
             // Estándares V2.5
             $table->boolean('activo')->default(true);
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');

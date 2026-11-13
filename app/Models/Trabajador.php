@@ -2,22 +2,21 @@
 
 namespace App\Models;
 
+use App\Traits\RecordSignature;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-use App\Traits\RecordSignature;
-
 class Trabajador extends Model
 {
-    use HasFactory, SoftDeletes, RecordSignature;
+    use HasFactory, RecordSignature, SoftDeletes;
 
     protected $table = 'trabajadores';
 
     // 1. Agrega 'user_id' aquí:
     protected $fillable = [
-        'nombres', 'apellidos', 'cedula', 'cargo', 
-        'departamento_id', 'dependencia_id', 'user_id', 'activo'
+        'nombres', 'apellidos', 'cedula', 'cargo',
+        'departamento_id', 'dependencia_id', 'user_id', 'activo',
     ];
 
     protected $casts = [

@@ -1,26 +1,40 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\ReporteController;
+use App\Livewire\Admin\Auditoria;
+use App\Livewire\Admin\AuditoriaTecnicos;
+use App\Livewire\Admin\AuditoriaUsuarios;
+use App\Livewire\Admin\ConfiguracionGeneral;
 use App\Livewire\Admin\Roles;
-use App\Livewire\Auth\Login;
 use App\Livewire\Admin\Usuarios;
-use App\Livewire\Admin\IncidenciasConfig;
-use App\Livewire\Dashboard\MainDashboard;
-use App\Livewire\Catalogos\Marcas;
-use App\Livewire\Catalogos\TiposDispositivo;
-use App\Livewire\Catalogos\SistemasOperativos;
-use App\Livewire\Catalogos\Puertos;
-use App\Livewire\Catalogos\Procesadores;
-use App\Livewire\Catalogos\Gpus;
-use App\Livewire\Asignaciones\Trabajadores;
 use App\Livewire\Asignaciones\Departamentos;
 use App\Livewire\Asignaciones\Dependencias;
+use App\Livewire\Asignaciones\Trabajadores;
+use App\Livewire\AsociacionesDashboard;
+use App\Livewire\Auth\Login;
+use App\Livewire\Catalogos\Gpus;
+use App\Livewire\Catalogos\Marcas;
+use App\Livewire\Catalogos\Procesadores;
+use App\Livewire\Catalogos\Puertos;
+use App\Livewire\Catalogos\SistemasOperativos;
+use App\Livewire\Catalogos\TiposDispositivo;
+use App\Livewire\Dashboard\MainDashboard;
+use App\Livewire\Incidencias\CrearTicket;
+use App\Livewire\Incidencias\Gestion;
 use App\Livewire\Inventario\Computadores;
 use App\Livewire\Inventario\Dispositivos;
+use App\Livewire\Inventario\Insumos;
+use App\Livewire\Inventario\Software;
 use App\Livewire\Movimientos\PanelComputadores;
 use App\Livewire\Movimientos\PanelDispositivos;
 use App\Livewire\Movimientos\PanelInsumos;
+use App\Livewire\Movimientos\SolicitudesPerfil;
+use App\Livewire\Perfil\MiPerfil;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 // Ruta para invitados (Login)
 Route::middleware('guest')->group(function () {
@@ -29,46 +43,46 @@ Route::middleware('guest')->group(function () {
 
 // Rutas protegidas (Solo usuarios autenticados)
 Route::middleware(['auth', 'nocache'])->group(function () {
-    
+
     // Nuestro nuevo Dashboard
     Route::get('/', MainDashboard::class)->name('dashboard');
 
     // Administración
-    Route::get('/admin/roles', \App\Livewire\Admin\Roles::class)->name('admin.roles')->can('ver-roles');
-    Route::get('/admin/usuarios', \App\Livewire\Admin\Usuarios::class)->name('admin.usuarios')->can('ver-usuarios');
-    Route::get('/admin/configuracion', \App\Livewire\Admin\ConfiguracionGeneral::class)->name('admin.configuracion');
-    
+    Route::get('/admin/roles', Roles::class)->name('admin.roles')->can('ver-roles');
+    Route::get('/admin/usuarios', Usuarios::class)->name('admin.usuarios')->can('ver-usuarios');
+    Route::get('/admin/configuracion', ConfiguracionGeneral::class)->name('admin.configuracion');
+
     // Auditoría
-    Route::get('/admin/auditoria', \App\Livewire\Admin\Auditoria::class)->name('admin.auditoria');
-    Route::get('/admin/auditoria-tecnicos', \App\Livewire\Admin\AuditoriaTecnicos::class)->name('admin.auditoria-tecnicos');
-    Route::get('/admin/auditoria-usuarios', \App\Livewire\Admin\AuditoriaUsuarios::class)->name('admin.auditoria-usuarios');
+    Route::get('/admin/auditoria', Auditoria::class)->name('admin.auditoria');
+    Route::get('/admin/auditoria-tecnicos', AuditoriaTecnicos::class)->name('admin.auditoria-tecnicos');
+    Route::get('/admin/auditoria-usuarios', AuditoriaUsuarios::class)->name('admin.auditoria-usuarios');
 
     // Reportes y Auditoría
-    Route::prefix('reportes')->name('reportes.')->group(function() {
+    Route::prefix('reportes')->name('reportes.')->group(function () {
         // PDFs
-        Route::get('/computador/{id}/ficha', [\App\Http\Controllers\ReporteController::class, 'computadorFicha'])->name('computador.ficha');
-        Route::get('/dispositivo/{id}/ficha', [\App\Http\Controllers\ReporteController::class, 'dispositivoFicha'])->name('dispositivo.ficha');
-        Route::get('/insumo/{id}/ficha', [\App\Http\Controllers\ReporteController::class, 'insumoFicha'])->name('insumo.ficha');
-        Route::get('/gpu/{id}/ficha', [\App\Http\Controllers\ReporteController::class, 'gpuFicha'])->name('gpu.ficha');
-        Route::get('/incidencia/{id}/ficha', [\App\Http\Controllers\ReporteController::class, 'incidenciaFicha'])->name('incidencia.ficha');
+        Route::get('/computador/{id}/ficha', [ReporteController::class, 'computadorFicha'])->name('computador.ficha');
+        Route::get('/dispositivo/{id}/ficha', [ReporteController::class, 'dispositivoFicha'])->name('dispositivo.ficha');
+        Route::get('/insumo/{id}/ficha', [ReporteController::class, 'insumoFicha'])->name('insumo.ficha');
+        Route::get('/gpu/{id}/ficha', [ReporteController::class, 'gpuFicha'])->name('gpu.ficha');
+        Route::get('/incidencia/{id}/ficha', [ReporteController::class, 'incidenciaFicha'])->name('incidencia.ficha');
 
         // Excels Inventario
-        Route::get('/inventario/computadores/excel', [\App\Http\Controllers\ReporteController::class, 'computadoresExcel'])->name('inventario.computadores.excel');
-        Route::get('/inventario/dispositivos/excel', [\App\Http\Controllers\ReporteController::class, 'dispositivosExcel'])->name('inventario.dispositivos.excel');
-        Route::get('/inventario/insumos/excel', [\App\Http\Controllers\ReporteController::class, 'insumosExcel'])->name('inventario.insumos.excel');
-        Route::get('/inventario/software/excel', [\App\Http\Controllers\ReporteController::class, 'softwareExcel'])->name('inventario.software.excel');
-        
+        Route::get('/inventario/computadores/excel', [ReporteController::class, 'computadoresExcel'])->name('inventario.computadores.excel');
+        Route::get('/inventario/dispositivos/excel', [ReporteController::class, 'dispositivosExcel'])->name('inventario.dispositivos.excel');
+        Route::get('/inventario/insumos/excel', [ReporteController::class, 'insumosExcel'])->name('inventario.insumos.excel');
+        Route::get('/inventario/software/excel', [ReporteController::class, 'softwareExcel'])->name('inventario.software.excel');
+
         // Excels Operativos y Catálogos
-        Route::get('/catalogo/{tipo}/excel', [\App\Http\Controllers\ReporteController::class, 'catalogoExcel'])->name('catalogo.excel');
-        Route::get('/incidencias/excel', [\App\Http\Controllers\ReporteController::class, 'incidenciasExcel'])->name('incidencias.excel');
-        Route::get('/movimientos/{segmento}/excel', [\App\Http\Controllers\ReporteController::class, 'movimientosExcel'])->name('movimientos.excel');
-        Route::get('/usuarios/excel', [\App\Http\Controllers\ReporteController::class, 'usuariosExcel'])->name('usuarios.excel');
-        Route::get('/logs/excel', [\App\Http\Controllers\ReporteController::class, 'logsExcel'])->name('logs.excel');
-        Route::get('/logs/pdf', [\App\Http\Controllers\ReporteController::class, 'logsPdf'])->name('logs.pdf');
-        Route::get('/auditoria-usuario/{id}/pdf', [\App\Http\Controllers\ReporteController::class, 'auditoriaUsuarioPdf'])->name('auditoria-usuario.pdf');
+        Route::get('/catalogo/{tipo}/excel', [ReporteController::class, 'catalogoExcel'])->name('catalogo.excel');
+        Route::get('/incidencias/excel', [ReporteController::class, 'incidenciasExcel'])->name('incidencias.excel');
+        Route::get('/movimientos/{segmento}/excel', [ReporteController::class, 'movimientosExcel'])->name('movimientos.excel');
+        Route::get('/usuarios/excel', [ReporteController::class, 'usuariosExcel'])->name('usuarios.excel');
+        Route::get('/logs/excel', [ReporteController::class, 'logsExcel'])->name('logs.excel');
+        Route::get('/logs/pdf', [ReporteController::class, 'logsPdf'])->name('logs.pdf');
+        Route::get('/auditoria-usuario/{id}/pdf', [ReporteController::class, 'auditoriaUsuarioPdf'])->name('auditoria-usuario.pdf');
 
         // Masivo
-        Route::post('/masivo/excel', [\App\Http\Controllers\ReporteController::class, 'reporteMasivo'])->name('masivo.excel');
+        Route::post('/masivo/excel', [ReporteController::class, 'reporteMasivo'])->name('masivo.excel');
     });
 
     // Catalogos
@@ -89,15 +103,15 @@ Route::middleware(['auth', 'nocache'])->group(function () {
         // NUEVA: Ruta para el módulo de Computadores
         Route::get('/computadores', Computadores::class)->name('computadores')->can('ver-computadores');
         Route::get('/dispositivos', Dispositivos::class)->name('dispositivos')->can('ver-dispositivos');
-        Route::get('/insumos', \App\Livewire\Inventario\Insumos::class)->name('insumos')->can('ver-insumos');
+        Route::get('/insumos', Insumos::class)->name('insumos')->can('ver-insumos');
         // NUEVA: Ruta para Software
-        Route::get('/software', \App\Livewire\Inventario\Software::class)->name('software')->can('ver-software');
+        Route::get('/software', Software::class)->name('software')->can('ver-software');
     });
 
     // Módulo de Incidencias (Operativo)
     Route::prefix('incidencias')->name('incidencias.')->group(function () {
-        Route::get('/reportar', \App\Livewire\Incidencias\CrearTicket::class)->name('crear')->can('crear-ticket');
-        Route::get('/gestion', \App\Livewire\Incidencias\Gestion::class)->name('gestion')->can('ver-incidencias');
+        Route::get('/reportar', CrearTicket::class)->name('crear')->can('crear-ticket');
+        Route::get('/gestion', Gestion::class)->name('gestion')->can('ver-incidencias');
     });
 
     // Módulo de Movimientos
@@ -105,12 +119,12 @@ Route::middleware(['auth', 'nocache'])->group(function () {
         Route::get('/computadores', PanelComputadores::class)->name('computadores')->can('movimientos-computadores-ver');
         Route::get('/dispositivos', PanelDispositivos::class)->name('dispositivos')->can('movimientos-dispositivos-ver');
         Route::get('/insumos', PanelInsumos::class)->name('insumos')->can('movimientos-insumos-ver');
-        Route::get('/solicitudes-perfil', \App\Livewire\Movimientos\SolicitudesPerfil::class)->name('solicitudes-perfil')->can('admin-solicitudes-perfil');
+        Route::get('/solicitudes-perfil', SolicitudesPerfil::class)->name('solicitudes-perfil')->can('admin-solicitudes-perfil');
     });
 
     // Dashboard de Asociaciones y Perfil
-    Route::get('/asociaciones/{tipo}/{id}', \App\Livewire\AsociacionesDashboard::class)->name('asociaciones')->can('ver-dashboard');
-    Route::get('/perfil', \App\Livewire\Perfil\MiPerfil::class)->name('perfil');
+    Route::get('/asociaciones/{tipo}/{id}', AsociacionesDashboard::class)->name('asociaciones')->can('ver-dashboard');
+    Route::get('/perfil', MiPerfil::class)->name('perfil');
 
     // Ruta simple para cerrar sesión
     Route::post('/logout', function () {
@@ -125,6 +139,7 @@ Route::middleware(['auth', 'nocache'])->group(function () {
         Auth::logout();
         session()->invalidate();
         session()->regenerateToken();
+
         return redirect('/login');
     })->name('logout');
 
@@ -140,20 +155,27 @@ Route::middleware(['auth', 'nocache'])->group(function () {
         Auth::logout();
         session()->invalidate();
         session()->regenerateToken();
+
         return redirect('/login')->withErrors(['identificador' => 'Sesión cerrada por seguridad al detectar cambio de pestaña o ventana.']);
     })->name('force-logout-tab');
 
     Route::get('/seed-permissions', function () {
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-        $p1 = \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'ver-auditoria-tecnicos', 'guard_name' => 'web'], ['descripcion' => 'Permite visualizar la vista de auditoría de técnicos.']);
-        $p2 = \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'ver-auditoria-usuarios', 'guard_name' => 'web'], ['descripcion' => 'Permite visualizar la vista de auditoría individual de usuarios.']);
-        
-        $r1 = \Spatie\Permission\Models\Role::where('name', 'super-admin')->first();
-        if($r1) { $r1->givePermissionTo($p1); $r1->givePermissionTo($p2); }
-        
-        $r2 = \Spatie\Permission\Models\Role::where('name', 'administrador')->first();
-        if($r2) { $r2->givePermissionTo($p1); $r2->givePermissionTo($p2); }
-        
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+        $p1 = Permission::firstOrCreate(['name' => 'ver-auditoria-tecnicos', 'guard_name' => 'web'], ['descripcion' => 'Permite visualizar la vista de auditoría de técnicos.']);
+        $p2 = Permission::firstOrCreate(['name' => 'ver-auditoria-usuarios', 'guard_name' => 'web'], ['descripcion' => 'Permite visualizar la vista de auditoría individual de usuarios.']);
+
+        $r1 = Role::where('name', 'super-admin')->first();
+        if ($r1) {
+            $r1->givePermissionTo($p1);
+            $r1->givePermissionTo($p2);
+        }
+
+        $r2 = Role::where('name', 'administrador')->first();
+        if ($r2) {
+            $r2->givePermissionTo($p1);
+            $r2->givePermissionTo($p2);
+        }
+
         return 'Permisos actualizados';
     });
 

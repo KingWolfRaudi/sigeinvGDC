@@ -26,20 +26,24 @@ class SoftwareExport implements FromCollection, WithHeadings, WithMapping, WithT
     {
         $query = Software::query();
 
-        if (!empty($this->filters['search'])) {
+        if (! empty($this->filters['search'])) {
             $search = $this->filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('nombre_programa', 'like', "%$search%")
-                  ->orWhere('arquitectura_programa', 'like', "%$search%")
-                  ->orWhere('tipo_licencia', 'like', "%$search%")
-                  ->orWhere('serial', 'like', "%$search%")
-                  ->orWhere('descripcion_programa', 'like', "%$search%");
+                    ->orWhere('arquitectura_programa', 'like', "%$search%")
+                    ->orWhere('tipo_licencia', 'like', "%$search%")
+                    ->orWhere('serial', 'like', "%$search%")
+                    ->orWhere('descripcion_programa', 'like', "%$search%");
             });
         }
 
         if (isset($this->filters['estado'])) {
-            if ($this->filters['estado'] === 'activos') $query->where('activo', true);
-            if ($this->filters['estado'] === 'inactivos') $query->where('activo', false);
+            if ($this->filters['estado'] === 'activos') {
+                $query->where('activo', true);
+            }
+            if ($this->filters['estado'] === 'inactivos') {
+                $query->where('activo', false);
+            }
         }
 
         return $query->orderBy('nombre_programa', 'asc')->get();
@@ -58,7 +62,7 @@ class SoftwareExport implements FromCollection, WithHeadings, WithMapping, WithT
             'Creado Por',
             'Última Modif. Por',
             'Fecha de Registro',
-            'Última Modificación'
+            'Última Modificación',
         ];
     }
 
@@ -75,7 +79,7 @@ class SoftwareExport implements FromCollection, WithHeadings, WithMapping, WithT
             $software->creator->name ?? 'Sistema',
             $software->updater->name ?? 'N/A',
             $software->created_at->format('d/m/Y H:i'),
-            $software->updated_at->format('d/m/Y H:i')
+            $software->updated_at->format('d/m/Y H:i'),
         ];
     }
 }

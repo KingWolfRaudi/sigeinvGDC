@@ -2,34 +2,44 @@
 
 namespace App\Livewire\Inventario;
 
+use App\Models\Software as SoftwareModel;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Illuminate\Support\Facades\Gate;
-use App\Models\Software as SoftwareModel;
-use App\Exports\SoftwareExport;
-use Maatwebsite\Excel\Facades\Excel;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class Software extends Component
 {
     use WithPagination;
+
     protected $paginationTheme = 'bootstrap';
 
     // Propiedades del formulario
     public $software_id;
+
     public $nombre_programa;
+
     public $arquitectura_programa = '';
+
     public $tipo_licencia = '';
+
     public $serial;
+
     public $descripcion_programa;
+
     public $activo = true;
 
     // Propiedades de la vista
     public $search = '';
+
     public $filtro_estado = 'todos';
+
     public $sortField = 'id';
+
     public $sortAsc = false;
+
     public $tituloModal = 'Nuevo Software';
+
     public $software_detalle = null;
 
     public function updatingSearch()
@@ -56,14 +66,14 @@ class Software extends Component
         }
 
         // Búsqueda profunda en todos los campos
-        if (!empty($this->search)) {
+        if (! empty($this->search)) {
             $query->where(function ($q) {
-                $search = '%' . $this->search . '%';
+                $search = '%'.$this->search.'%';
                 $q->where('nombre_programa', 'like', $search)
-                  ->orWhere('arquitectura_programa', 'like', $search)
-                  ->orWhere('tipo_licencia', 'like', $search)
-                  ->orWhere('serial', 'like', $search)
-                  ->orWhere('descripcion_programa', 'like', $search);
+                    ->orWhere('arquitectura_programa', 'like', $search)
+                    ->orWhere('tipo_licencia', 'like', $search)
+                    ->orWhere('serial', 'like', $search)
+                    ->orWhere('descripcion_programa', 'like', $search);
             });
         }
 
@@ -73,8 +83,9 @@ class Software extends Component
     public function render()
     {
         $softwares = $this->query->paginate(10);
+
         return view('livewire.inventario.software', [
-            'softwares' => $softwares
+            'softwares' => $softwares,
         ])->layout('components.layouts.app');
     }
 
@@ -90,7 +101,7 @@ class Software extends Component
     {
         abort_if(Gate::denies('editar-software'), 403);
         $this->resetCampos();
-        
+
         $software = SoftwareModel::findOrFail($id);
         $this->software_id = $software->id;
         $this->nombre_programa = $software->nombre_programa;
@@ -125,7 +136,7 @@ class Software extends Component
                 'tipo_licencia' => $this->tipo_licencia,
                 'serial' => $this->tipo_licencia === 'Libre' && empty($this->serial) ? null : $this->serial,
                 'descripcion_programa' => empty($this->descripcion_programa) ? null : $this->descripcion_programa,
-                'activo' => $this->activo
+                'activo' => $this->activo,
             ]
         );
 
@@ -145,7 +156,7 @@ class Software extends Component
     {
         abort_if(Gate::denies('cambiar-estatus-software'), 403);
         $software = SoftwareModel::findOrFail($id);
-        $software->activo = !$software->activo;
+        $software->activo = ! $software->activo;
         $software->save();
 
         $estado = $software->activo ? 'activado' : 'inactivado';
@@ -157,7 +168,7 @@ class Software extends Component
         abort_if(Gate::denies('eliminar-software'), 403);
         $software = SoftwareModel::findOrFail($id);
         $software->delete(); // Uso de SoftDeletes
-        
+
         $this->dispatch('mostrar-toast', mensaje: 'Software eliminado con éxito.', tipo: 'success');
     }
 
@@ -165,7 +176,7 @@ class Software extends Component
     {
         $this->reset([
             'software_id', 'nombre_programa', 'arquitectura_programa', 'tipo_licencia',
-            'serial', 'descripcion_programa', 'software_detalle'
+            'serial', 'descripcion_programa', 'software_detalle',
         ]);
         $this->activo = true;
         $this->resetValidation();
@@ -177,11 +188,11 @@ class Software extends Component
         abort_if(Gate::denies('reportes-pdf'), 403);
         $software = SoftwareModel::findOrFail($id);
         $pdf = Pdf::loadView('reports.pdf_software_ficha', [
-            'software' => $software
+            'software' => $software,
         ]);
 
-        return response()->streamDownload(function() use ($pdf) {
+        return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
-        }, 'ficha_software_' . $software->id . '_' . now()->format('Ymd_His') . '.pdf');
+        }, 'ficha_software_'.$software->id.'_'.now()->format('Ymd_His').'.pdf');
     }
 }

@@ -2,12 +2,11 @@
 
 namespace App\Models;
 
+use App\Traits\RecordSignature;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
-
-use App\Traits\RecordSignature;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class SolicitudPerfil extends Model
 {
@@ -24,8 +23,8 @@ class SolicitudPerfil extends Model
     protected $table = 'solicitudes_perfil';
 
     protected $fillable = [
-        'user_id', 'tipo', 'valor_nuevo', 'estado', 
-        'motivo_rechazo', 'revisado_por'
+        'user_id', 'tipo', 'valor_nuevo', 'estado',
+        'motivo_rechazo', 'revisado_por',
     ];
 
     public function user()
@@ -50,7 +49,9 @@ class SolicitudPerfil extends Model
             ->where('estado', 'pendiente')
             ->exists();
 
-        if ($hasPending) return false;
+        if ($hasPending) {
+            return false;
+        }
 
         // Verificar la regla de los 180 días (Solo para aprobadas)
         $lastApproved = self::where('user_id', $userId)
@@ -59,7 +60,9 @@ class SolicitudPerfil extends Model
             ->latest()
             ->first();
 
-        if (!$lastApproved) return true;
+        if (! $lastApproved) {
+            return true;
+        }
 
         return $lastApproved->created_at->addDays(180)->isPast();
     }
@@ -75,11 +78,15 @@ class SolicitudPerfil extends Model
             ->latest()
             ->first();
 
-        if (!$lastApproved) return 0;
+        if (! $lastApproved) {
+            return 0;
+        }
 
         $nextDate = $lastApproved->created_at->addDays(180);
-        
-        if ($nextDate->isPast()) return 0;
+
+        if ($nextDate->isPast()) {
+            return 0;
+        }
 
         return now()->diffInDays($nextDate);
     }

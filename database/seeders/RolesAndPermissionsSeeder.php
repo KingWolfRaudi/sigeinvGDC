@@ -2,27 +2,30 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Role; 
+use App\Models\Role;
 use App\Models\User;
-use Spatie\Permission\Models\Permission; // <-- IMPORTANTE: Importamos el modelo de Permisos
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB; // <-- IMPORTANTE: Importamos el modelo de Permisos
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
     public function run(): void
     {
         // Resetear la caché de roles y permisos
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         // 1. CREAR EL USUARIO SISTEMA (DEBE SER ID 1 PARA EL TRAIT)
-        if (!\Illuminate\Support\Facades\DB::table('users')->where('id', 1)->exists()) {
-            \Illuminate\Support\Facades\DB::table('users')->insert([
+        if (! DB::table('users')->where('id', 1)->exists()) {
+            DB::table('users')->insert([
                 'id' => 1,
                 'name' => 'Sistema',
                 'username' => 'sistema',
                 'email' => 'sistema@sigeinv.test',
-                'password' => Hash::make(\Illuminate\Support\Str::random(32)),
+                'password' => Hash::make(Str::random(32)),
                 'activo' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -66,9 +69,11 @@ class RolesAndPermissionsSeeder extends Seeder
             foreach ($acciones as $accion => $descBase) {
                 $name = "{$accion}-{$slug}";
                 // Algunos casos especiales de nombres
-                if ($slug === 'roles' && in_array($accion, ['cambiar-estatus', 'ver-estado'])) continue;
-                
-                $permisosFinales[$name] = $descBase . $nombre . '.';
+                if ($slug === 'roles' && in_array($accion, ['cambiar-estatus', 'ver-estado'])) {
+                    continue;
+                }
+
+                $permisosFinales[$name] = $descBase.$nombre.'.';
             }
         }
 
@@ -102,7 +107,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'resolver-incidencias' => 'Permite marcar incidencias y tickets como resueltos/solventados.',
             'admin-configuracion-global' => 'Acceso exclusivo para alterar configuraciones y reglas globales del sistema.',
             'admin-solicitudes-perfil' => 'Gestionar y aprobar solicitudes de cambio de perfil técnico de usuarios.',
-            
+
             'admin-auditoria' => 'Acceso total a los registros de auditoría y logs detallados del sistema.',
             'ver-auditoria-tecnicos' => 'Permite visualizar la vista de auditoría de técnicos.',
             'ver-auditoria-usuarios' => 'Permite visualizar la vista de auditoría individual de usuarios.',
@@ -110,7 +115,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'reportes-pdf' => 'Permite generar y descargar reportes en formato PDF.',
             'reportes-masivos-filtros' => 'Acceso a herramientas de filtrado avanzado para reportes masivos personalizados.',
             'ver-dashboard' => 'Permite visualizar el panel de control principal (Dashboard).',
-            'ver-panel-soporte' => 'Permite visualizar el acceso al panel de soporte en el menú lateral.'
+            'ver-panel-soporte' => 'Permite visualizar el acceso al panel de soporte en el menú lateral.',
         ];
 
         $permisosFinales = array_merge($permisosFinales, $especiales);
@@ -148,7 +153,7 @@ class RolesAndPermissionsSeeder extends Seeder
         // --- ADMINISTRADOR: Todo menos eliminar ---
         $adminRole = Role::where('name', 'administrador')->first();
         if ($adminRole) {
-            $adminRole->syncPermissions($todosLosPermisos->filter(fn($p) => !str_starts_with($p->name, 'eliminar-')));
+            $adminRole->syncPermissions($todosLosPermisos->filter(fn ($p) => ! str_starts_with($p->name, 'eliminar-')));
         }
 
         // Grupos de Slugs para facilitar la asignación
@@ -160,26 +165,38 @@ class RolesAndPermissionsSeeder extends Seeder
         // --- COORDINADOR ---
         $coordinadorRole = Role::where('name', 'coordinador')->first();
         if ($coordinadorRole) {
-            $coorPerms = $todosLosPermisos->filter(function($p) use ($catAsigInv) {
+            $coorPerms = $todosLosPermisos->filter(function ($p) use ($catAsigInv) {
                 // Dashboard y Panel de Soporte
-                if (in_array($p->name, ['ver-dashboard', 'ver-panel-soporte'])) return true;
+                if (in_array($p->name, ['ver-dashboard', 'ver-panel-soporte'])) {
+                    return true;
+                }
 
                 // Reportes y Auditoría específica
-                if (in_array($p->name, ['reportes-excel', 'reportes-pdf', 'reportes-masivos-filtros', 'ver-auditoria-tecnicos'])) return true;
-                
+                if (in_array($p->name, ['reportes-excel', 'reportes-pdf', 'reportes-masivos-filtros', 'ver-auditoria-tecnicos'])) {
+                    return true;
+                }
+
                 // Incidencias (Especiales)
-                if (in_array($p->name, ['crear-ticket', 'gestionar-incidencias', 'admin-incidencias', 'ver-incidencias', 'admin-solicitudes-perfil'])) return true;
-                
+                if (in_array($p->name, ['crear-ticket', 'gestionar-incidencias', 'admin-incidencias', 'ver-incidencias', 'admin-solicitudes-perfil'])) {
+                    return true;
+                }
+
                 // Movimientos (Todos)
-                if (str_starts_with($p->name, 'movimientos-')) return true;
-                
+                if (str_starts_with($p->name, 'movimientos-')) {
+                    return true;
+                }
+
                 // Catálogos, Asignaciones e Inventario (menos eliminar)
                 foreach ($catAsigInv as $slug) {
-                    if (str_ends_with($p->name, "-$slug") && !str_starts_with($p->name, 'eliminar-')) return true;
+                    if (str_ends_with($p->name, "-$slug") && ! str_starts_with($p->name, 'eliminar-')) {
+                        return true;
+                    }
                 }
 
                 // Especialidades Técnicas (menos eliminar)
-                if (str_ends_with($p->name, '-especialidades') && !str_starts_with($p->name, 'eliminar-')) return true;
+                if (str_ends_with($p->name, '-especialidades') && ! str_starts_with($p->name, 'eliminar-')) {
+                    return true;
+                }
 
                 return false;
             });
@@ -189,23 +206,33 @@ class RolesAndPermissionsSeeder extends Seeder
         // --- PERSONAL-TI ---
         $personalTiRole = Role::where('name', 'personal-ti')->first();
         if ($personalTiRole) {
-            $tiPerms = $todosLosPermisos->filter(function($p) use ($catAsigInv) {
+            $tiPerms = $todosLosPermisos->filter(function ($p) use ($catAsigInv) {
                 // Dashboard y Panel de Soporte
-                if (in_array($p->name, ['ver-dashboard', 'ver-panel-soporte'])) return true;
+                if (in_array($p->name, ['ver-dashboard', 'ver-panel-soporte'])) {
+                    return true;
+                }
 
                 // Todos los reportes
-                if (in_array($p->name, ['reportes-excel', 'reportes-pdf', 'reportes-masivos-filtros'])) return true;
-                
+                if (in_array($p->name, ['reportes-excel', 'reportes-pdf', 'reportes-masivos-filtros'])) {
+                    return true;
+                }
+
                 // Incidencias (Especiales)
                 // Se removió 'admin-incidencias' y 'resolver-incidencias' para seguridad.
-                if (in_array($p->name, ['crear-ticket', 'gestionar-incidencias', 'ver-incidencias'])) return true;
-                
+                if (in_array($p->name, ['crear-ticket', 'gestionar-incidencias', 'ver-incidencias'])) {
+                    return true;
+                }
+
                 // Todos los movimientos
-                if (str_starts_with($p->name, 'movimientos-')) return true;
-                
+                if (str_starts_with($p->name, 'movimientos-')) {
+                    return true;
+                }
+
                 // Catálogos, Asignaciones e Inventario (menos eliminar)
                 foreach ($catAsigInv as $slug) {
-                    if (str_ends_with($p->name, "-$slug") && !str_starts_with($p->name, 'eliminar-')) return true;
+                    if (str_ends_with($p->name, "-$slug") && ! str_starts_with($p->name, 'eliminar-')) {
+                        return true;
+                    }
                 }
 
                 return false;

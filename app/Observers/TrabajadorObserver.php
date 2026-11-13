@@ -13,19 +13,19 @@ class TrabajadorObserver
         // 1. Limpiamos nombres y apellidos (quitar espacios y a minúsculas)
         $nombres = Str::slug($trabajador->nombres, '');
         $apellidos = Str::slug($trabajador->apellidos, '');
-        
+
         // 2. Obtenemos el dominio del .env
         $dominio = env('DOMINIO_ORGANIZACION', '@organizacion.com');
 
         // 3. Generamos el correo: nombres + apellidos + # + id + dominio
-        $emailGenerado = $nombres . $apellidos . '#' . $trabajador->id . $dominio;
+        $emailGenerado = $nombres.$apellidos.'#'.$trabajador->id.$dominio;
 
         // 4. Creamos el usuario vinculado
         $user = User::create([
-            'name'     => $trabajador->nombres . ' ' . $trabajador->apellidos,
-            'email'    => $emailGenerado,
+            'name' => $trabajador->nombres.' '.$trabajador->apellidos,
+            'email' => $emailGenerado,
             'password' => bcrypt('12345678'), // Contraseña por defecto inicial
-            'activo'   => true, 
+            'activo' => true,
         ]);
 
         // 5. Asignamos el rol base (ajusta el nombre del rol según tu seeder)
@@ -41,7 +41,7 @@ class TrabajadorObserver
         // Si cambia el estado activo del trabajador, sincronizamos con el usuario
         if ($trabajador->user) {
             $trabajador->user->update([
-                'active' => $trabajador->activo
+                'active' => $trabajador->activo,
             ]);
         }
     }

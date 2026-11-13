@@ -2,14 +2,13 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
-
 use App\Models\Computador;
 use App\Models\Dispositivo;
-use App\Models\Insumo;
 use App\Models\Incidencia;
+use App\Models\Insumo;
 use App\Models\Trabajador;
 use Illuminate\Support\Facades\DB;
+use Livewire\Component;
 
 class Dashboard extends Component
 {
@@ -30,7 +29,7 @@ class Dashboard extends Component
 
         return view('livewire.dashboard', [
             'stats' => $stats,
-            'pcsPorEstado' => $pcsPorEstado
+            'pcsPorEstado' => $pcsPorEstado,
         ]);
     }
 }

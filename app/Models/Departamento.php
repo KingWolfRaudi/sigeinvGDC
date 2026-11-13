@@ -2,15 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes; // No olvides el SoftDeletes
-
 use App\Traits\RecordSignature;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model; // No olvides el SoftDeletes
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Departamento extends Model
 {
-    use HasFactory, SoftDeletes, RecordSignature;
+    use HasFactory, RecordSignature, SoftDeletes;
 
     protected $fillable = ['nombre', 'activo'];
 

@@ -2,59 +2,113 @@
 
 namespace App\Livewire\Inventario;
 
-use Livewire\Component;
-use Livewire\WithPagination;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
+use App\Models\CategoriaInsumo;
+use App\Models\Computador;
+use App\Models\Departamento;
+use App\Models\Dependencia;
+use App\Models\Dispositivo;
 use App\Models\Insumo;
 use App\Models\Marca;
-use App\Models\CategoriaInsumo;
-use App\Models\Dependencia;
 use App\Models\MovimientoInsumo;
+use App\Models\Trabajador;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class Insumos extends Component
 {
     use WithPagination;
+
     protected $paginationTheme = 'bootstrap';
 
     // Campos
-    public $insumo_id, $bien_nacional, $serial, $nombre, $descripcion;
-    public $marca_id, $categoria_insumo_id;
+    public $insumo_id;
+
+    public $bien_nacional;
+
+    public $serial;
+
+    public $nombre;
+
+    public $descripcion;
+
+    public $marca_id;
+
+    public $categoria_insumo_id;
+
     public $unidad_medida = 'unidad';
+
     public int $medida_actual = 1;
+
     public int $medida_minima = 1;
+
     public $reutilizable = false;
+
     public $instalable_en_equipo = false;
+
     public $estado_fisico = 'operativo';
+
     public bool $activo = true;
 
     // Asociaciones
-    public $departamento_id, $dependencia_id, $trabajador_id, $dispositivo_id, $computador_id;
+    public $departamento_id;
+
+    public $dependencia_id;
+
+    public $trabajador_id;
+
+    public $dispositivo_id;
+
+    public $computador_id;
+
     public $dependencias_disponibles = [];
 
     // Workflow de Movimientos
     public $justificacion = '';
+
     public bool $es_edicion = false;
+
     public $movimiento_preview = null;
 
     // On The Fly
-    public $creando_marca = false, $nueva_marca;
-    public $creando_categoria = false, $nueva_categoria;
-    public $creando_departamento = false, $nuevo_departamento;
+    public $creando_marca = false;
+
+    public $nueva_marca;
+
+    public $creando_categoria = false;
+
+    public $nueva_categoria;
+
+    public $creando_departamento = false;
+
+    public $nuevo_departamento;
 
     // Trabajador On The Fly (Modal)
-    public $nuevo_trab_nombres, $nuevo_trab_apellidos, $nuevo_trab_cedula, $nuevo_trab_departamento_id;
+    public $nuevo_trab_nombres;
+
+    public $nuevo_trab_apellidos;
+
+    public $nuevo_trab_cedula;
+
+    public $nuevo_trab_departamento_id;
 
     public $insumo_detalle;
+
     public $tituloModal = 'Nuevo Insumo/Herramienta';
+
     public $search = '';
+
     public $sortField = 'id';
+
     public $sortAsc = false;
-    public $filtro_estado = 'todos'; 
-    
+
+    public $filtro_estado = 'todos';
+
     // Variables para Reutilización y Anidación
     public $presetFiltro = [];
+
     public $ocultarTitulos = false;
 
     public function mount($presetFiltro = [], $ocultarTitulos = false)
@@ -63,13 +117,16 @@ class Insumos extends Component
         $this->ocultarTitulos = $ocultarTitulos;
     }
 
-    public function updatingSearch() { $this->resetPage(); }
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
 
     public function updatedDepartamentoId($value)
     {
         $this->trabajador_id = null;
         $this->dependencia_id = null;
-        if (!empty($value)) {
+        if (! empty($value)) {
             $this->dependencias_disponibles = Dependencia::where('departamento_id', $value)->where('activo', true)->get();
         } else {
             $this->dependencias_disponibles = [];
@@ -79,7 +136,7 @@ class Insumos extends Component
     public function sortBy($field)
     {
         if ($this->sortField === $field) {
-            $this->sortAsc = !$this->sortAsc;
+            $this->sortAsc = ! $this->sortAsc;
         } else {
             $this->sortAsc = true;
             $this->sortField = $field;
@@ -91,20 +148,23 @@ class Insumos extends Component
         $userId = Auth::id();
         $query = Insumo::with(['marca', 'categoriaInsumo', 'departamento', 'dependencia'])
             ->withCount([
-                'movimientos as pendientes_count'     => fn($q) => $q->where('estado_workflow', 'pendiente'),
-                'movimientos as mis_borradores_count'  => fn($q) => $q->where('estado_workflow', 'borrador')->where('solicitante_id', $userId),
+                'movimientos as pendientes_count' => fn ($q) => $q->where('estado_workflow', 'pendiente'),
+                'movimientos as mis_borradores_count' => fn ($q) => $q->where('estado_workflow', 'borrador')->where('solicitante_id', $userId),
             ]);
 
-        if (\Illuminate\Support\Facades\Gate::allows('ver-estado-insumos')) {
-            if ($this->filtro_estado === 'activos') $query->where('activo', true);
-            elseif ($this->filtro_estado === 'inactivos') $query->where('activo', false);
+        if (Gate::allows('ver-estado-insumos')) {
+            if ($this->filtro_estado === 'activos') {
+                $query->where('activo', true);
+            } elseif ($this->filtro_estado === 'inactivos') {
+                $query->where('activo', false);
+            }
         } else {
             $query->where('activo', true);
         }
 
         // Filtros Prediseñados (Cuando el componente se renderiza dentro de un Asociaciones Dashboard)
-        if (!empty($this->presetFiltro)) {
-            foreach($this->presetFiltro as $col => $val) {
+        if (! empty($this->presetFiltro)) {
+            foreach ($this->presetFiltro as $col => $val) {
                 if ($val !== null) {
                     $query->where($col, $val);
                 }
@@ -112,13 +172,13 @@ class Insumos extends Component
         }
 
         $query->where(function ($q) {
-            $search = '%' . $this->search . '%';
+            $search = '%'.$this->search.'%';
             $q->where('bien_nacional', 'like', $search)
-              ->orWhere('serial', 'like', $search)
-              ->orWhere('nombre', 'like', $search)
-              ->orWhere('descripcion', 'like', $search)
-              ->orWhereHas('marca', fn($subQ) => $subQ->where('nombre', 'like', $search))
-              ->orWhereHas('categoriaInsumo', fn($subQ) => $subQ->where('nombre', 'like', $search));
+                ->orWhere('serial', 'like', $search)
+                ->orWhere('nombre', 'like', $search)
+                ->orWhere('descripcion', 'like', $search)
+                ->orWhereHas('marca', fn ($subQ) => $subQ->where('nombre', 'like', $search))
+                ->orWhereHas('categoriaInsumo', fn ($subQ) => $subQ->where('nombre', 'like', $search));
         });
 
         $insumos = $query->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')->paginate(10);
@@ -126,21 +186,21 @@ class Insumos extends Component
         $marcas = Marca::where('activo', true)->orderBy('nombre')->get();
         $categorias = CategoriaInsumo::where('activo', true)->orderBy('nombre')->get();
 
-        $departamentos = \App\Models\Departamento::orderBy('nombre')->get();
+        $departamentos = Departamento::orderBy('nombre')->get();
         $trabajadores = [];
         $dispositivos = [];
         $computadores = [];
 
         if ($this->departamento_id) {
-            $trabajadores = \App\Models\Trabajador::where('departamento_id', $this->departamento_id)
+            $trabajadores = Trabajador::where('departamento_id', $this->departamento_id)
                 ->where('activo', true)
                 ->orderBy('nombres')
                 ->get();
-            $dispositivos = \App\Models\Dispositivo::where('departamento_id', $this->departamento_id)
+            $dispositivos = Dispositivo::where('departamento_id', $this->departamento_id)
                 ->where('activo', true)
                 ->orderBy('nombre')
                 ->get();
-            $computadores = \App\Models\Computador::where('departamento_id', $this->departamento_id)
+            $computadores = Computador::where('departamento_id', $this->departamento_id)
                 ->where('activo', true)
                 ->orderBy('nombre_equipo')
                 ->get();
@@ -163,18 +223,18 @@ class Insumos extends Component
         abort_if(Gate::denies($esEdicion ? 'editar-insumos' : 'crear-insumos'), 403);
 
         $rules = [
-            'bien_nacional'  => 'nullable|string|unique:insumos,bien_nacional,' . $this->insumo_id,
-            'serial'         => 'nullable|string|unique:insumos,serial,' . $this->insumo_id,
-            'nombre'         => 'required|string',
-            'estado_fisico'  => 'required|string',
-            'unidad_medida'  => 'required|string',
-            'marca_id'       => 'required_without:nueva_marca',
+            'bien_nacional' => 'nullable|string|unique:insumos,bien_nacional,'.$this->insumo_id,
+            'serial' => 'nullable|string|unique:insumos,serial,'.$this->insumo_id,
+            'nombre' => 'required|string',
+            'estado_fisico' => 'required|string',
+            'unidad_medida' => 'required|string',
+            'marca_id' => 'required_without:nueva_marca',
             'categoria_insumo_id' => 'required_without:nueva_categoria',
             'departamento_id' => 'nullable|required_with:nuevo_departamento',
-            'dependencia_id'  => 'nullable|exists:dependencias,id',
-            'trabajador_id'   => 'nullable|exists:trabajadores,id',
-            'dispositivo_id'  => 'nullable|exists:dispositivos,id',
-            'computador_id'   => 'nullable|exists:computadores,id',
+            'dependencia_id' => 'nullable|exists:dependencias,id',
+            'trabajador_id' => 'nullable|exists:trabajadores,id',
+            'dispositivo_id' => 'nullable|exists:dispositivos,id',
+            'computador_id' => 'nullable|exists:computadores,id',
         ];
 
         $rules['medida_actual'] = 'required|integer|min:0';
@@ -185,45 +245,46 @@ class Insumos extends Component
         $this->validate($rules);
 
         try {
-            if ($this->creando_marca && !empty($this->nueva_marca)) {
+            if ($this->creando_marca && ! empty($this->nueva_marca)) {
                 $marca = Marca::firstOrCreate(['nombre' => $this->nueva_marca], ['activo' => true]);
                 $this->marca_id = $marca->id;
             }
-            if ($this->creando_categoria && !empty($this->nueva_categoria)) {
+            if ($this->creando_categoria && ! empty($this->nueva_categoria)) {
                 $cat = CategoriaInsumo::firstOrCreate(['nombre' => $this->nueva_categoria], ['activo' => true]);
                 $this->categoria_insumo_id = $cat->id;
             }
-            if ($this->creando_departamento && !empty($this->nuevo_departamento)) {
-                $dpto = \App\Models\Departamento::firstOrCreate(['nombre' => $this->nuevo_departamento], ['activo' => true]);
+            if ($this->creando_departamento && ! empty($this->nuevo_departamento)) {
+                $dpto = Departamento::firstOrCreate(['nombre' => $this->nuevo_departamento], ['activo' => true]);
                 $this->departamento_id = $dpto->id;
             }
 
             $payloadNuevo = [
-                'bien_nacional'        => $this->bien_nacional ?: null,
-                'serial'               => $this->serial ?: null,
-                'nombre'               => $this->nombre,
-                'descripcion'          => $this->descripcion,
-                'marca_id'             => $this->marca_id,
-                'categoria_insumo_id'  => $this->categoria_insumo_id,
-                'unidad_medida'        => $this->unidad_medida,
-                'medida_actual'        => $this->medida_actual,
-                'medida_minima'        => $this->medida_minima,
-                'reutilizable'         => $this->reutilizable,
+                'bien_nacional' => $this->bien_nacional ?: null,
+                'serial' => $this->serial ?: null,
+                'nombre' => $this->nombre,
+                'descripcion' => $this->descripcion,
+                'marca_id' => $this->marca_id,
+                'categoria_insumo_id' => $this->categoria_insumo_id,
+                'unidad_medida' => $this->unidad_medida,
+                'medida_actual' => $this->medida_actual,
+                'medida_minima' => $this->medida_minima,
+                'reutilizable' => $this->reutilizable,
                 'instalable_en_equipo' => $this->instalable_en_equipo,
-                'estado_fisico'        => $this->estado_fisico,
-                'activo'               => $this->activo,
-                'departamento_id'      => $this->departamento_id ?: null,
-                'dependencia_id'       => $this->dependencia_id ?: null,
-                'trabajador_id'        => $this->trabajador_id ?: null,
-                'dispositivo_id'       => $this->dispositivo_id ?: null,
-                'computador_id'        => $this->computador_id ?: null,
+                'estado_fisico' => $this->estado_fisico,
+                'activo' => $this->activo,
+                'departamento_id' => $this->departamento_id ?: null,
+                'dependencia_id' => $this->dependencia_id ?: null,
+                'trabajador_id' => $this->trabajador_id ?: null,
+                'dispositivo_id' => $this->dispositivo_id ?: null,
+                'computador_id' => $this->computador_id ?: null,
             ];
 
-            if (!$esEdicion) {
+            if (! $esEdicion) {
                 Insumo::create($payloadNuevo);
                 $this->dispatch('cerrar-modal', id: 'modalInsumo');
                 $this->dispatch('mostrar-toast', mensaje: 'Registro creado.', tipo: 'success');
                 $this->resetCampos();
+
                 return;
             }
 
@@ -232,33 +293,33 @@ class Insumos extends Component
 
             // ── Computar solo los campos que CAMBIARON ──
             $candidatoNuevo = [
-                'bien_nacional'        => $this->bien_nacional ?: null,
-                'serial'               => $this->serial ?: null,
-                'nombre'               => $this->nombre,
-                'descripcion'          => $this->descripcion,
-                'marca_id'             => $this->marca_id,
-                'categoria_insumo_id'  => $this->categoria_insumo_id,
-                'unidad_medida'        => $this->unidad_medida,
-                'medida_actual'        => $this->medida_actual,
-                'medida_minima'        => $this->medida_minima,
-                'reutilizable'         => $this->reutilizable,
+                'bien_nacional' => $this->bien_nacional ?: null,
+                'serial' => $this->serial ?: null,
+                'nombre' => $this->nombre,
+                'descripcion' => $this->descripcion,
+                'marca_id' => $this->marca_id,
+                'categoria_insumo_id' => $this->categoria_insumo_id,
+                'unidad_medida' => $this->unidad_medida,
+                'medida_actual' => $this->medida_actual,
+                'medida_minima' => $this->medida_minima,
+                'reutilizable' => $this->reutilizable,
                 'instalable_en_equipo' => $this->instalable_en_equipo,
-                'estado_fisico'        => $this->estado_fisico,
-                'activo'               => $this->activo,
-                'departamento_id'      => $this->departamento_id ?: null,
-                'dependencia_id'       => $this->dependencia_id ?: null,
-                'trabajador_id'        => $this->trabajador_id ?: null,
-                'dispositivo_id'       => $this->dispositivo_id ?: null,
-                'computador_id'        => $this->computador_id ?: null,
+                'estado_fisico' => $this->estado_fisico,
+                'activo' => $this->activo,
+                'departamento_id' => $this->departamento_id ?: null,
+                'dependencia_id' => $this->dependencia_id ?: null,
+                'trabajador_id' => $this->trabajador_id ?: null,
+                'dispositivo_id' => $this->dispositivo_id ?: null,
+                'computador_id' => $this->computador_id ?: null,
             ];
             $boolCampos = ['activo', 'reutilizable', 'instalable_en_equipo'];
             $payloadNuevo = [];
             foreach ($candidatoNuevo as $k => $v) {
                 $ant = $payloadAnterior[$k] ?? null;
                 $iguales = in_array($k, $boolCampos)
-                    ? ((bool)$ant === (bool)$v)
-                    : ((string)($ant ?? '') === (string)($v ?? ''));
-                if (!$iguales) {
+                    ? ((bool) $ant === (bool) $v)
+                    : ((string) ($ant ?? '') === (string) ($v ?? ''));
+                if (! $iguales) {
                     $payloadNuevo[$k] = $v;
                 }
             }
@@ -266,33 +327,34 @@ class Insumos extends Component
                 $this->dispatch('mostrar-toast', mensaje: 'No se detectaron cambios para registrar.', tipo: 'info');
                 $this->dispatch('cerrar-modal', id: 'modalInsumo');
                 $this->resetCampos();
+
                 return;
             }
 
             if (Gate::allows('movimientos-insumos-ejecutar-directo')) {
                 $insumo->update($payloadNuevo);
                 MovimientoInsumo::create([
-                    'insumo_id'        => $insumo->id,
-                    'tipo_operacion'   => 'actualizacion_datos',
+                    'insumo_id' => $insumo->id,
+                    'tipo_operacion' => 'actualizacion_datos',
                     'payload_anterior' => $payloadAnterior,
-                    'payload_nuevo'    => $payloadNuevo,
-                    'estado_workflow'  => 'ejecutado_directo',
-                    'justificacion'    => $this->justificacion,
-                    'solicitante_id'   => Auth::id(),
-                    'aprobador_id'     => Auth::id(),
-                    'aprobado_at'      => now(),
+                    'payload_nuevo' => $payloadNuevo,
+                    'estado_workflow' => 'ejecutado_directo',
+                    'justificacion' => $this->justificacion,
+                    'solicitante_id' => Auth::id(),
+                    'aprobador_id' => Auth::id(),
+                    'aprobado_at' => now(),
                 ]);
                 $this->dispatch('cerrar-modal', id: 'modalInsumo');
                 $this->dispatch('mostrar-toast', mensaje: 'Registro actualizado directamente.', tipo: 'success');
             } else {
                 MovimientoInsumo::create([
-                    'insumo_id'        => $insumo->id,
-                    'tipo_operacion'   => 'actualizacion_datos',
+                    'insumo_id' => $insumo->id,
+                    'tipo_operacion' => 'actualizacion_datos',
                     'payload_anterior' => $payloadAnterior,
-                    'payload_nuevo'    => $payloadNuevo,
-                    'estado_workflow'  => 'borrador',
-                    'justificacion'    => $this->justificacion,
-                    'solicitante_id'   => Auth::id(),
+                    'payload_nuevo' => $payloadNuevo,
+                    'estado_workflow' => 'borrador',
+                    'justificacion' => $this->justificacion,
+                    'solicitante_id' => Auth::id(),
                 ]);
                 $this->dispatch('cerrar-modal', id: 'modalInsumo');
                 $this->dispatch('mostrar-toast',
@@ -302,7 +364,7 @@ class Insumos extends Component
             }
             $this->resetCampos();
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Error guardando insumo: ' . $e->getMessage());
+            Log::error('Error guardando insumo: '.$e->getMessage());
             $this->dispatch('mostrar-toast', mensaje: 'Ocurrió un error guardando el registro.', tipo: 'error');
         }
     }
@@ -314,7 +376,7 @@ class Insumos extends Component
         $this->es_edicion = true;
         $this->justificacion = '';
         $insumo = Insumo::findOrFail($id);
-        
+
         $this->insumo_id = $insumo->id;
         $this->bien_nacional = $insumo->bien_nacional;
         $this->serial = $insumo->serial;
@@ -328,7 +390,7 @@ class Insumos extends Component
         $this->reutilizable = (bool) $insumo->reutilizable;
         $this->instalable_en_equipo = (bool) $insumo->instalable_en_equipo;
         $this->estado_fisico = $insumo->estado_fisico;
-        $this->activo = (bool) $insumo->activo; 
+        $this->activo = (bool) $insumo->activo;
         $this->departamento_id = $insumo->departamento_id;
         $this->dependencia_id = $insumo->dependencia_id;
         $this->trabajador_id = $insumo->trabajador_id;
@@ -367,20 +429,21 @@ class Insumos extends Component
     public function aprobarMovimientoPreview(): void
     {
         abort_if(Gate::denies('movimientos-insumos-aprobar'), 403);
-        if (!$this->movimiento_preview || $this->movimiento_preview->estado_workflow !== 'pendiente') {
+        if (! $this->movimiento_preview || $this->movimiento_preview->estado_workflow !== 'pendiente') {
             $this->dispatch('mostrar-toast', mensaje: 'Solo se pueden aprobar movimientos en estado Pendiente.', tipo: 'warning');
+
             return;
         }
         try {
-            $mov    = MovimientoInsumo::where('estado_workflow', 'pendiente')->findOrFail($this->movimiento_preview->id);
+            $mov = MovimientoInsumo::where('estado_workflow', 'pendiente')->findOrFail($this->movimiento_preview->id);
             $insumo = Insumo::withTrashed()->findOrFail($mov->insumo_id);
 
             match ($mov->tipo_operacion) {
-                'baja'          => $insumo->delete(),
-                'toggle_activo' => $insumo->update(['activo' => $mov->payload_nuevo['activo'] ?? !$insumo->activo]),
+                'baja' => $insumo->delete(),
+                'toggle_activo' => $insumo->update(['activo' => $mov->payload_nuevo['activo'] ?? ! $insumo->activo]),
                 'entrada_stock' => $insumo->increment('medida_actual', $mov->cantidad_movida ?? 0),
-                'salida_consumo'=> $insumo->decrement('medida_actual', $mov->cantidad_movida ?? 0),
-                default         => $insumo->update($mov->payload_nuevo),
+                'salida_consumo' => $insumo->decrement('medida_actual', $mov->cantidad_movida ?? 0),
+                default => $insumo->update($mov->payload_nuevo),
             };
 
             $mov->update(['estado_workflow' => 'aprobado', 'aprobador_id' => Auth::id(), 'aprobado_at' => now()]);
@@ -388,7 +451,7 @@ class Insumos extends Component
             $this->dispatch('cerrar-modal', id: 'modalCambioPendiente');
             $this->dispatch('mostrar-toast', mensaje: 'Movimiento aprobado y aplicado.', tipo: 'success');
         } catch (\Exception $e) {
-            Log::error('Error aprobando movimiento desde inventario: ' . $e->getMessage());
+            Log::error('Error aprobando movimiento desde inventario: '.$e->getMessage());
             $this->dispatch('mostrar-toast', mensaje: 'Error al aprobar.', tipo: 'error');
         }
     }
@@ -401,26 +464,26 @@ class Insumos extends Component
             if (Gate::allows('movimientos-insumos-ejecutar-directo')) {
                 $insumo->delete();
                 MovimientoInsumo::create([
-                    'insumo_id'        => $id,
-                    'tipo_operacion'   => 'baja',
+                    'insumo_id' => $id,
+                    'tipo_operacion' => 'baja',
                     'payload_anterior' => $insumo->toArray(),
-                    'payload_nuevo'    => ['activo' => false, 'baja' => true],
-                    'estado_workflow'  => 'ejecutado_directo',
-                    'justificacion'    => 'Baja directa.',
-                    'solicitante_id'   => Auth::id(),
-                    'aprobador_id'     => Auth::id(),
-                    'aprobado_at'      => now(),
+                    'payload_nuevo' => ['activo' => false, 'baja' => true],
+                    'estado_workflow' => 'ejecutado_directo',
+                    'justificacion' => 'Baja directa.',
+                    'solicitante_id' => Auth::id(),
+                    'aprobador_id' => Auth::id(),
+                    'aprobado_at' => now(),
                 ]);
                 $this->dispatch('mostrar-toast', mensaje: 'Registro de Insumo dado de baja.', tipo: 'success');
             } else {
                 MovimientoInsumo::create([
-                    'insumo_id'        => $insumo->id,
-                    'tipo_operacion'   => 'baja',
+                    'insumo_id' => $insumo->id,
+                    'tipo_operacion' => 'baja',
                     'payload_anterior' => $insumo->toArray(),
-                    'payload_nuevo'    => ['activo' => false, 'baja' => true],
-                    'estado_workflow'  => 'borrador',
-                    'justificacion'    => 'Solicitud de baja pendiente.',
-                    'solicitante_id'   => Auth::id(),
+                    'payload_nuevo' => ['activo' => false, 'baja' => true],
+                    'estado_workflow' => 'borrador',
+                    'justificacion' => 'Solicitud de baja pendiente.',
+                    'solicitante_id' => Auth::id(),
                 ]);
                 $this->dispatch('mostrar-toast',
                     mensaje: 'Solicitud de baja creada como borrador.',
@@ -428,7 +491,7 @@ class Insumos extends Component
                 );
             }
         } catch (\Exception $e) {
-            Log::error('Error eliminando insumo: ' . $e->getMessage());
+            Log::error('Error eliminando insumo: '.$e->getMessage());
             $this->dispatch('mostrar-toast', mensaje: 'Ocurrió un error eliminando.', tipo: 'error');
         }
     }
@@ -438,32 +501,32 @@ class Insumos extends Component
         abort_if(Gate::denies('cambiar-estatus-insumos'), 403);
         try {
             $i = Insumo::findOrFail($id);
-            $nuevoEstado = !$i->activo;
+            $nuevoEstado = ! $i->activo;
             if (Gate::allows('movimientos-insumos-ejecutar-directo')) {
                 $i->activo = $nuevoEstado;
                 $i->save();
                 MovimientoInsumo::create([
-                    'insumo_id'        => $i->id,
-                    'tipo_operacion'   => 'toggle_activo',
-                    'payload_anterior' => ['activo' => !$nuevoEstado],
-                    'payload_nuevo'    => ['activo' => $nuevoEstado],
-                    'estado_workflow'  => 'ejecutado_directo',
-                    'justificacion'    => 'Cambio de estatus directo.',
-                    'solicitante_id'   => Auth::id(),
-                    'aprobador_id'     => Auth::id(),
-                    'aprobado_at'      => now(),
+                    'insumo_id' => $i->id,
+                    'tipo_operacion' => 'toggle_activo',
+                    'payload_anterior' => ['activo' => ! $nuevoEstado],
+                    'payload_nuevo' => ['activo' => $nuevoEstado],
+                    'estado_workflow' => 'ejecutado_directo',
+                    'justificacion' => 'Cambio de estatus directo.',
+                    'solicitante_id' => Auth::id(),
+                    'aprobador_id' => Auth::id(),
+                    'aprobado_at' => now(),
                 ]);
                 $status = $nuevoEstado ? 'activado' : 'inactivado';
                 $this->dispatch('mostrar-toast', mensaje: "Registro $status.", tipo: 'success');
             } else {
                 MovimientoInsumo::create([
-                    'insumo_id'        => $i->id,
-                    'tipo_operacion'   => 'toggle_activo',
-                    'payload_anterior' => ['activo' => !$nuevoEstado],
-                    'payload_nuevo'    => ['activo' => $nuevoEstado],
-                    'estado_workflow'  => 'borrador',
-                    'justificacion'    => 'Solicitud de cambio de estatus pendiente.',
-                    'solicitante_id'   => Auth::id(),
+                    'insumo_id' => $i->id,
+                    'tipo_operacion' => 'toggle_activo',
+                    'payload_anterior' => ['activo' => ! $nuevoEstado],
+                    'payload_nuevo' => ['activo' => $nuevoEstado],
+                    'estado_workflow' => 'borrador',
+                    'justificacion' => 'Solicitud de cambio de estatus pendiente.',
+                    'solicitante_id' => Auth::id(),
                 ]);
                 $this->dispatch('mostrar-toast',
                     mensaje: 'Solicitud de cambio de estatus guardada en borrador.',
@@ -471,7 +534,7 @@ class Insumos extends Component
                 );
             }
         } catch (\Exception $e) {
-            Log::error('Error cambiando estatus de insumo: ' . $e->getMessage());
+            Log::error('Error cambiando estatus de insumo: '.$e->getMessage());
             $this->dispatch('mostrar-toast', mensaje: 'Ocurrió un error.', tipo: 'error');
         }
     }
@@ -479,9 +542,9 @@ class Insumos extends Component
     public function resetCampos()
     {
         $this->reset([
-            'insumo_id', 'bien_nacional', 'serial', 'nombre', 'descripcion', 
+            'insumo_id', 'bien_nacional', 'serial', 'nombre', 'descripcion',
             'marca_id', 'categoria_insumo_id', 'insumo_detalle', 'nueva_marca', 'nueva_categoria', 'nuevo_departamento', 'justificacion',
-            'departamento_id', 'dependencia_id', 'dependencias_disponibles', 'trabajador_id', 'dispositivo_id', 'computador_id'
+            'departamento_id', 'dependencia_id', 'dependencias_disponibles', 'trabajador_id', 'dispositivo_id', 'computador_id',
         ]);
         $this->creando_marca = false;
         $this->creando_categoria = false;
@@ -507,10 +570,10 @@ class Insumos extends Component
     public function cancelarModalTrabajador()
     {
         $this->reset([
-            'nuevo_trab_nombres', 
-            'nuevo_trab_apellidos', 
-            'nuevo_trab_cedula', 
-            'nuevo_trab_departamento_id'
+            'nuevo_trab_nombres',
+            'nuevo_trab_apellidos',
+            'nuevo_trab_cedula',
+            'nuevo_trab_departamento_id',
         ]);
         $this->dispatch('cerrar-modal', id: 'modalTrabajador');
         $this->dispatch('abrir-modal', id: 'modalInsumo');
@@ -521,17 +584,17 @@ class Insumos extends Component
         $this->validate([
             'nuevo_trab_nombres' => 'required|string|max:255',
             'nuevo_trab_apellidos' => 'required|string|max:255',
-            'nuevo_trab_cedula' => 'nullable|string|unique:trabajadores,cedula', 
+            'nuevo_trab_cedula' => 'nullable|string|unique:trabajadores,cedula',
             'nuevo_trab_departamento_id' => 'required|exists:departamentos,id',
         ]);
 
         try {
-            $trab = \App\Models\Trabajador::create([
+            $trab = Trabajador::create([
                 'nombres' => $this->nuevo_trab_nombres,
                 'apellidos' => $this->nuevo_trab_apellidos,
                 'cedula' => $this->nuevo_trab_cedula,
                 'departamento_id' => $this->nuevo_trab_departamento_id,
-                'activo' => true
+                'activo' => true,
             ]);
 
             $this->trabajador_id = $trab->id;
@@ -539,10 +602,10 @@ class Insumos extends Component
             $this->reset(['nuevo_trab_nombres', 'nuevo_trab_apellidos', 'nuevo_trab_cedula', 'nuevo_trab_departamento_id']);
             $this->dispatch('cerrar-modal', id: 'modalTrabajador');
             $this->dispatch('abrir-modal', id: 'modalInsumo');
-            $this->dispatch('mostrar-toast', mensaje: 'Trabajador creado.', tipo:'success');
+            $this->dispatch('mostrar-toast', mensaje: 'Trabajador creado.', tipo: 'success');
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Error trabajador rapido (Insumos): ' . $e->getMessage());
-            $this->dispatch('mostrar-toast', mensaje: 'Error al registrar trabajador.', tipo:'error');
+            Log::error('Error trabajador rapido (Insumos): '.$e->getMessage());
+            $this->dispatch('mostrar-toast', mensaje: 'Error al registrar trabajador.', tipo: 'error');
         }
     }
 }

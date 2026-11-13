@@ -2,30 +2,52 @@
 
 namespace App\Livewire\Catalogos;
 
-use Livewire\Component;
-use App\Models\Procesador;
 use App\Models\Marca;
-use Livewire\WithPagination;
+use App\Models\Procesador;
 use Illuminate\Support\Facades\Gate;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class Procesadores extends Component
 {
     use WithPagination;
+
     protected $paginationTheme = 'bootstrap';
 
     // Variables del formulario
-    public $procesador_id, $marca_id, $modelo, $generacion;
-    public $frecuencia_base, $frecuencia_maxima, $nucleos, $hilos;
+    public $procesador_id;
+
+    public $marca_id;
+
+    public $modelo;
+
+    public $generacion;
+
+    public $frecuencia_base;
+
+    public $frecuencia_maxima;
+
+    public $nucleos;
+
+    public $hilos;
+
     public $procesador_detalle;
+
     public bool $activo = true;
+
     public $tituloModal = 'Nuevo Procesador';
+
     // Variables para creación rápida de Marca
     public $nueva_marca = '';
+
     public $creando_marca = false;
 
     public $search = '';
+
     public $sortField = 'modelo';
+
     public $sortAsc = true;
+
     public $filtro_estado = 'todos';
 
     public function updatingSearch()
@@ -36,7 +58,7 @@ class Procesadores extends Component
     public function sortBy($field)
     {
         if ($this->sortField === $field) {
-            $this->sortAsc = !$this->sortAsc;
+            $this->sortAsc = ! $this->sortAsc;
         } else {
             $this->sortAsc = true;
             $this->sortField = $field;
@@ -49,7 +71,7 @@ class Procesadores extends Component
         $query = Procesador::with('marca');
 
         // 2. LÓGICA DE ESTADOS Y VISIBILIDAD (Data Scoping)
-        if (\Illuminate\Support\Facades\Gate::allows('ver-estado-procesadores')) {
+        if (Gate::allows('ver-estado-procesadores')) {
             if ($this->filtro_estado === 'activos') {
                 $query->where('activo', true);
             } elseif ($this->filtro_estado === 'inactivos') {
@@ -62,24 +84,24 @@ class Procesadores extends Component
 
         // 3. Búsqueda profunda (Tu código intacto)
         $query->where(function ($q) {
-            $q->where('modelo', 'like', '%' . $this->search . '%')
-              ->orWhere('generacion', 'like', '%' . $this->search . '%')
-              ->orWhere('frecuencia_base', 'like', '%' . $this->search . '%')
-              ->orWhere('frecuencia_maxima', 'like', '%' . $this->search . '%')
-              ->orWhere('nucleos', 'like', '%' . $this->search . '%')
-              ->orWhere('hilos', 'like', '%' . $this->search . '%')
-              ->orWhereHas('marca', function($subQ) {
-                  $subQ->where('nombre', 'like', '%' . $this->search . '%');
-              });
+            $q->where('modelo', 'like', '%'.$this->search.'%')
+                ->orWhere('generacion', 'like', '%'.$this->search.'%')
+                ->orWhere('frecuencia_base', 'like', '%'.$this->search.'%')
+                ->orWhere('frecuencia_maxima', 'like', '%'.$this->search.'%')
+                ->orWhere('nucleos', 'like', '%'.$this->search.'%')
+                ->orWhere('hilos', 'like', '%'.$this->search.'%')
+                ->orWhereHas('marca', function ($subQ) {
+                    $subQ->where('nombre', 'like', '%'.$this->search.'%');
+                });
         });
 
         // 4. Ordenamos y paginamos
         $procesadores = $query->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
-                              ->paginate(10);
+            ->paginate(10);
 
         // Cargamos solo las marcas activas para el formulario
         $marcas = Marca::where('activo', true)->orderBy('nombre')->get();
-                       
+
         return view('livewire.catalogos.procesadores', compact('procesadores', 'marcas'));
     }
 
@@ -96,13 +118,13 @@ class Procesadores extends Component
     public function guardarMarca()
     {
         $this->validate([
-            'nueva_marca' => 'required|string|unique:marcas,nombre|min:2'
+            'nueva_marca' => 'required|string|unique:marcas,nombre|min:2',
         ]);
 
         // Guardamos la marca tal cual la escribe el usuario (sin strtoupper)
-        $marca = \App\Models\Marca::create([
+        $marca = Marca::create([
             'nombre' => $this->nueva_marca,
-            'activo' => true
+            'activo' => true,
         ]);
 
         // Asignamos el ID, cerramos el modo de creación rápida y limpiamos el input
@@ -135,12 +157,12 @@ class Procesadores extends Component
                 'frecuencia_maxima' => $this->frecuencia_maxima,
                 'nucleos' => $this->nucleos,
                 'hilos' => $this->hilos,
-                'activo' => $this->activo ? 1 : 0
+                'activo' => $this->activo ? 1 : 0,
             ]
         );
 
         $this->dispatch('cerrar-modal', id: 'modalProcesador');
-        $this->dispatch('mostrar-toast', mensaje: $this->procesador_id ? 'Procesador actualizado.' : 'Procesador creado.', tipo:'success');
+        $this->dispatch('mostrar-toast', mensaje: $this->procesador_id ? 'Procesador actualizado.' : 'Procesador creado.', tipo: 'success');
         $this->resetCampos();
     }
 
@@ -149,7 +171,7 @@ class Procesadores extends Component
         abort_if(Gate::denies('editar-procesadores'), 403);
         $this->resetValidation();
         $procesador = Procesador::findOrFail($id);
-        
+
         $this->procesador_id = $procesador->id;
         $this->marca_id = $procesador->marca_id;
         $this->modelo = $procesador->modelo;
@@ -158,8 +180,8 @@ class Procesadores extends Component
         $this->frecuencia_maxima = $procesador->frecuencia_maxima;
         $this->nucleos = $procesador->nucleos;
         $this->hilos = $procesador->hilos;
-        $this->activo = (bool) $procesador->activo; 
-        
+        $this->activo = (bool) $procesador->activo;
+
         $this->tituloModal = 'Editar Procesador';
         $this->dispatch('abrir-modal', id: 'modalProcesador');
     }
@@ -168,9 +190,9 @@ class Procesadores extends Component
     {
         abort_if(Gate::denies('cambiar-estatus-procesadores'), 403);
         $procesador = Procesador::findOrFail($id);
-        $procesador->activo = !$procesador->activo;
+        $procesador->activo = ! $procesador->activo;
         $procesador->save();
-        $this->dispatch('mostrar-toast', mensaje: "Estado cambiado.", tipo:'success');
+        $this->dispatch('mostrar-toast', mensaje: 'Estado cambiado.', tipo: 'success');
     }
 
     public function ver($id)
@@ -186,14 +208,14 @@ class Procesadores extends Component
         // Validar si está en uso por una computadora antes de eliminar
         // (Esto lo agregaremos más adelante cuando hagamos la tabla computadoras)
         Procesador::findOrFail($id)->delete();
-        $this->dispatch('mostrar-toast', mensaje: 'Procesador eliminado.', tipo:'success');
+        $this->dispatch('mostrar-toast', mensaje: 'Procesador eliminado.', tipo: 'success');
     }
 
     public function resetCampos()
     {
         $this->reset([
-            'procesador_id', 'marca_id', 'modelo', 'generacion', 
-            'frecuencia_base', 'frecuencia_maxima', 'nucleos', 'hilos', 'procesador_detalle'
+            'procesador_id', 'marca_id', 'modelo', 'generacion',
+            'frecuencia_base', 'frecuencia_maxima', 'nucleos', 'hilos', 'procesador_detalle',
         ]);
         $this->creando_marca = false;
         $this->nueva_marca = '';

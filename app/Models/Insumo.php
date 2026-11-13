@@ -2,18 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\RecordSignature;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
-
-use App\Traits\RecordSignature;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Insumo extends Model
 {
-    use HasFactory, SoftDeletes, LogsActivity, RecordSignature;
+    use HasFactory, LogsActivity, RecordSignature, SoftDeletes;
 
     public function getActivitylogOptions(): LogOptions
     {
@@ -22,13 +20,13 @@ class Insumo extends Model
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
-    
+
     protected $fillable = [
-        'bien_nacional', 'serial', 'nombre', 'descripcion', 
-        'marca_id', 'categoria_insumo_id', 'unidad_medida', 
-        'medida_actual', 'medida_minima', 'reutilizable', 
+        'bien_nacional', 'serial', 'nombre', 'descripcion',
+        'marca_id', 'categoria_insumo_id', 'unidad_medida',
+        'medida_actual', 'medida_minima', 'reutilizable',
         'instalable_en_equipo', 'estado_fisico', 'activo',
-        'departamento_id', 'dependencia_id', 'trabajador_id', 'dispositivo_id', 'computador_id'
+        'departamento_id', 'dependencia_id', 'trabajador_id', 'dispositivo_id', 'computador_id',
     ];
 
     protected $casts = [
@@ -36,17 +34,47 @@ class Insumo extends Model
         'reutilizable' => 'boolean',
         'instalable_en_equipo' => 'boolean',
     ];
-    
-    public function marca() { return $this->belongsTo(Marca::class); }
-    public function categoriaInsumo() { return $this->belongsTo(CategoriaInsumo::class); }
-    public function departamento() { return $this->belongsTo(Departamento::class); }
-    public function dependencia() { return $this->belongsTo(Dependencia::class); }
-    public function trabajador() { return $this->belongsTo(Trabajador::class); }
-    public function dispositivo() { return $this->belongsTo(Dispositivo::class); }
-    public function computador() { return $this->belongsTo(Computador::class); }
+
+    public function marca()
+    {
+        return $this->belongsTo(Marca::class);
+    }
+
+    public function categoriaInsumo()
+    {
+        return $this->belongsTo(CategoriaInsumo::class);
+    }
+
+    public function departamento()
+    {
+        return $this->belongsTo(Departamento::class);
+    }
+
+    public function dependencia()
+    {
+        return $this->belongsTo(Dependencia::class);
+    }
+
+    public function trabajador()
+    {
+        return $this->belongsTo(Trabajador::class);
+    }
+
+    public function dispositivo()
+    {
+        return $this->belongsTo(Dispositivo::class);
+    }
+
+    public function computador()
+    {
+        return $this->belongsTo(Computador::class);
+    }
 
     // Trazabilidad de Movimientos
-    public function movimientos() { return $this->hasMany(MovimientoInsumo::class, 'insumo_id'); }
+    public function movimientos()
+    {
+        return $this->hasMany(MovimientoInsumo::class, 'insumo_id');
+    }
 
     public function incidencias()
     {

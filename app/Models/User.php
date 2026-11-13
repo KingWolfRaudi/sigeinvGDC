@@ -2,20 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles; // <-- Importar trait de Roles
-use Illuminate\Database\Eloquent\SoftDeletes; // 1. Importar SoftDeletes
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
-
 use App\Traits\RecordSignature;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable; // <-- Importar trait de Roles
+use Laravel\Sanctum\HasApiTokens; // 1. Importar SoftDeletes
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, SoftDeletes, Notifiable, HasRoles, LogsActivity, RecordSignature;
+    use HasApiTokens, HasFactory, HasRoles, LogsActivity, Notifiable, RecordSignature, SoftDeletes;
 
     public function getActivitylogOptions(): LogOptions
     {

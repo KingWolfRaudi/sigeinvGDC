@@ -26,23 +26,27 @@ class InsumosExport implements FromCollection, WithHeadings, WithMapping, WithTi
     {
         $query = Insumo::with(['marca', 'categoriaInsumo', 'departamento', 'dependencia', 'trabajador', 'computador', 'dispositivo']);
 
-        if (!empty($this->filters['search'])) {
+        if (! empty($this->filters['search'])) {
             $search = $this->filters['search'];
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('nombre', 'like', "%$search%")
-                  ->orWhere('bien_nacional', 'like', "%$search%")
-                  ->orWhere('serial', 'like', "%$search%")
-                  ->orWhereHas('marca', fn($sub) => $sub->where('nombre', 'like', "%$search%"))
-                  ->orWhereHas('categoriaInsumo', fn($sub) => $sub->where('nombre', 'like', "%$search%"));
+                    ->orWhere('bien_nacional', 'like', "%$search%")
+                    ->orWhere('serial', 'like', "%$search%")
+                    ->orWhereHas('marca', fn ($sub) => $sub->where('nombre', 'like', "%$search%"))
+                    ->orWhereHas('categoriaInsumo', fn ($sub) => $sub->where('nombre', 'like', "%$search%"));
             });
         }
 
         if (isset($this->filters['estado'])) {
-            if ($this->filters['estado'] === 'activos') $query->where('activo', true);
-            if ($this->filters['estado'] === 'inactivos') $query->where('activo', false);
+            if ($this->filters['estado'] === 'activos') {
+                $query->where('activo', true);
+            }
+            if ($this->filters['estado'] === 'inactivos') {
+                $query->where('activo', false);
+            }
         }
 
-        if (!empty($this->filters['departamento_id'])) {
+        if (! empty($this->filters['departamento_id'])) {
             $query->where('departamento_id', $this->filters['departamento_id']);
         }
 
@@ -96,9 +100,9 @@ class InsumosExport implements FromCollection, WithHeadings, WithMapping, WithTi
             strtoupper(str_replace('_', ' ', $item->estado_fisico)),
             $item->departamento->nombre ?? 'STOCK / ALMACÉN',
             $item->dependencia->nombre ?? 'N/A',
-            $item->trabajador ? ($item->trabajador->nombres . ' ' . $item->trabajador->apellidos) : 'No asignado',
-            $item->computador ? ('BN: ' . $item->computador->bien_nacional) : 'N/A',
-            $item->dispositivo ? ('BN: ' . $item->dispositivo->bien_nacional) : 'N/A',
+            $item->trabajador ? ($item->trabajador->nombres.' '.$item->trabajador->apellidos) : 'No asignado',
+            $item->computador ? ('BN: '.$item->computador->bien_nacional) : 'N/A',
+            $item->dispositivo ? ('BN: '.$item->dispositivo->bien_nacional) : 'N/A',
             $item->activo ? 'ACTIVO' : 'INACTIVO',
             $item->creator->name ?? 'Sistema',
             $item->updater->name ?? 'N/A',

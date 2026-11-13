@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Computador;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -14,6 +15,7 @@ class ComputadoresExport implements FromCollection, WithHeadings, WithMapping, W
     {
         return 'Computadores';
     }
+
     protected $filters;
 
     public function __construct($filters = [])
@@ -22,42 +24,46 @@ class ComputadoresExport implements FromCollection, WithHeadings, WithMapping, W
     }
 
     /**
-    * @return \Illuminate\Support\Collection
-    */
+     * @return Collection
+     */
     public function collection()
     {
         $query = Computador::with([
-            'marca', 
-            'departamento', 
+            'marca',
+            'departamento',
             'dependencia',
-            'trabajador', 
-            'procesador.marca', 
-            'gpu.marca', 
-            'sistemaOperativo', 
-            'discos', 
-            'rams', 
-            'puertos'
+            'trabajador',
+            'procesador.marca',
+            'gpu.marca',
+            'sistemaOperativo',
+            'discos',
+            'rams',
+            'puertos',
         ]);
 
-        if (!empty($this->filters['search'])) {
+        if (! empty($this->filters['search'])) {
             $search = $this->filters['search'];
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('bien_nacional', 'like', "%$search%")
-                  ->orWhere('serial', 'like', "%$search%")
-                  ->orWhere('nombre_equipo', 'like', "%$search%")
-                  ->orWhere('tipo_computador', 'like', "%$search%")
-                  ->orWhere('ip', 'like', "%$search%")
-                  ->orWhereHas('marca', fn($sub) => $sub->where('nombre', 'like', "%$search%"))
-                  ->orWhereHas('trabajador', fn($sub) => $sub->where('nombres', 'like', "%$search%")->orWhere('apellidos', 'like', "%$search%"));
+                    ->orWhere('serial', 'like', "%$search%")
+                    ->orWhere('nombre_equipo', 'like', "%$search%")
+                    ->orWhere('tipo_computador', 'like', "%$search%")
+                    ->orWhere('ip', 'like', "%$search%")
+                    ->orWhereHas('marca', fn ($sub) => $sub->where('nombre', 'like', "%$search%"))
+                    ->orWhereHas('trabajador', fn ($sub) => $sub->where('nombres', 'like', "%$search%")->orWhere('apellidos', 'like', "%$search%"));
             });
         }
 
         if (isset($this->filters['estado'])) {
-            if ($this->filters['estado'] === 'activos') $query->where('activo', true);
-            if ($this->filters['estado'] === 'inactivos') $query->where('activo', false);
+            if ($this->filters['estado'] === 'activos') {
+                $query->where('activo', true);
+            }
+            if ($this->filters['estado'] === 'inactivos') {
+                $query->where('activo', false);
+            }
         }
 
-        if (!empty($this->filters['departamento_id'])) {
+        if (! empty($this->filters['departamento_id'])) {
             $query->where('departamento_id', $this->filters['departamento_id']);
         }
 
@@ -92,20 +98,20 @@ class ComputadoresExport implements FromCollection, WithHeadings, WithMapping, W
             'Creado Por',
             'Última Modif. Por',
             'Fecha Registro',
-            'Última Modificación'
+            'Última Modificación',
         ];
     }
 
     public function map($pc): array
     {
         // Almacenamiento detallado
-        $storageInfo = $pc->discos->map(function($d) {
-            return $d->capacidad . ' (' . $d->tipo . ')';
+        $storageInfo = $pc->discos->map(function ($d) {
+            return $d->capacidad.' ('.$d->tipo.')';
         })->implode(' + ');
 
         // CPU y GPU
-        $cpu = ($pc->procesador->marca->nombre ?? '') . ' ' . ($pc->procesador->modelo ?? 'N/A');
-        $gpu = ($pc->gpu->marca->nombre ?? '') . ' ' . ($pc->gpu->modelo ?? 'Integrada/NA');
+        $cpu = ($pc->procesador->marca->nombre ?? '').' '.($pc->procesador->modelo ?? 'N/A');
+        $gpu = ($pc->gpu->marca->nombre ?? '').' '.($pc->gpu->modelo ?? 'Integrada/NA');
 
         // Puertos
         $puertos = $pc->puertos->pluck('nombre')->implode(', ');
@@ -118,8 +124,8 @@ class ComputadoresExport implements FromCollection, WithHeadings, WithMapping, W
             $pc->marca->nombre ?? 'Generico',
             $pc->tipo_computador ?? 'N/A',
             compact_string($cpu),
-            $pc->total_ram . ' (' . $pc->tipo_ram . ')',
-            $pc->total_almacenamiento . ($storageInfo ? " [$storageInfo]" : ''),
+            $pc->total_ram.' ('.$pc->tipo_ram.')',
+            $pc->total_almacenamiento.($storageInfo ? " [$storageInfo]" : ''),
             compact_string($gpu),
             $pc->sistemaOperativo->nombre ?? 'N/A',
             $pc->ip ?? 'Dinamica/NA',
@@ -128,7 +134,7 @@ class ComputadoresExport implements FromCollection, WithHeadings, WithMapping, W
             strtoupper($pc->estado_fisico),
             $pc->departamento->nombre ?? 'STOCK / ALMACEN',
             $pc->dependencia->nombre ?? 'N/A',
-            $pc->trabajador ? ($pc->trabajador->nombres . ' ' . $pc->trabajador->apellidos) : 'Sin Asignar',
+            $pc->trabajador ? ($pc->trabajador->nombres.' '.$pc->trabajador->apellidos) : 'Sin Asignar',
             $pc->unidad_dvd ? 'SI' : 'NO',
             $pc->fuente_poder ? 'SI' : 'NO',
             $puertos ?: 'Estandard',
@@ -142,7 +148,9 @@ class ComputadoresExport implements FromCollection, WithHeadings, WithMapping, W
 }
 
 /** Helper para limpiar strings de CPU/GPU si vienen vacios */
-function compact_string($str) {
+function compact_string($str)
+{
     $trimmed = trim($str);
+
     return empty($trimmed) ? 'N/A' : $trimmed;
 }

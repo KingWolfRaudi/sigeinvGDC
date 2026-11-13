@@ -2,23 +2,34 @@
 
 namespace App\Livewire\Catalogos;
 
-use Livewire\Component;
 use App\Models\Marca;
-use Livewire\WithPagination;
 use Illuminate\Support\Facades\Gate;
+use Livewire\Component;
+use Livewire\WithPagination;
+
 class Marcas extends Component
 {
     use WithPagination;
+
     protected $paginationTheme = 'bootstrap';
 
-    public $marca_id, $nombre, $marca_detalle;
+    public $marca_id;
+
+    public $nombre;
+
+    public $marca_detalle;
+
     public bool $activo = true;
+
     public $tituloModal = 'Nueva Marca';
 
     // 1. Variables para Búsqueda y Filtros
     public $search = '';
+
     public $sortField = 'nombre';
+
     public $sortAsc = true;
+
     public $filtro_estado = 'todos';
 
     // 2. Resetear la paginación cuando el usuario escribe en el buscador
@@ -31,7 +42,7 @@ class Marcas extends Component
     public function sortBy($field)
     {
         if ($this->sortField === $field) {
-            $this->sortAsc = !$this->sortAsc; // Invierte el orden si es la misma columna
+            $this->sortAsc = ! $this->sortAsc; // Invierte el orden si es la misma columna
         } else {
             $this->sortAsc = true;
             $this->sortField = $field;
@@ -44,7 +55,7 @@ class Marcas extends Component
         $query = Marca::query();
 
         // 2. LÓGICA DE ESTADOS Y VISIBILIDAD (Data Scoping)
-        if (\Illuminate\Support\Facades\Gate::allows('ver-estado-marcas')) {
+        if (Gate::allows('ver-estado-marcas')) {
             if ($this->filtro_estado === 'activos') {
                 $query->where('activo', true);
             } elseif ($this->filtro_estado === 'inactivos') {
@@ -56,10 +67,10 @@ class Marcas extends Component
         }
 
         // 3. Búsqueda y Paginación
-        $marcas = $query->where('nombre', 'like', '%' . $this->search . '%')
-                        ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
-                        ->paginate(10);
-                       
+        $marcas = $query->where('nombre', 'like', '%'.$this->search.'%')
+            ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
+            ->paginate(10);
+
         return view('livewire.catalogos.marcas', compact('marcas'));
     }
 
@@ -77,19 +88,19 @@ class Marcas extends Component
     {
         // El guardado comparte permiso con crear/editar
         $this->validate([
-            'nombre' => 'required|min:2|unique:marcas,nombre,' . $this->marca_id,
+            'nombre' => 'required|min:2|unique:marcas,nombre,'.$this->marca_id,
         ]);
 
         Marca::updateOrCreate(
             ['id' => $this->marca_id],
             [
                 'nombre' => $this->nombre,
-                'activo' => $this->activo ? 1 : 0
+                'activo' => $this->activo ? 1 : 0,
             ]
         );
 
         $this->dispatch('cerrar-modal', id: 'modalMarca');
-        $this->dispatch('mostrar-toast', mensaje: $this->marca_id ? 'Marca actualizada.' : 'Marca creada.', tipo:'success');
+        $this->dispatch('mostrar-toast', mensaje: $this->marca_id ? 'Marca actualizada.' : 'Marca creada.', tipo: 'success');
         $this->resetCampos();
     }
 
@@ -101,8 +112,8 @@ class Marcas extends Component
         $marca = Marca::findOrFail($id);
         $this->marca_id = $marca->id;
         $this->nombre = $marca->nombre;
-        $this->activo = (bool) $marca->activo; 
-        
+        $this->activo = (bool) $marca->activo;
+
         $this->tituloModal = 'Editar Marca';
         $this->dispatch('abrir-modal', id: 'modalMarca');
     }
@@ -112,9 +123,9 @@ class Marcas extends Component
         abort_if(Gate::denies('cambiar-estatus-marcas'), 403, 'No tienes permiso para cambiar el estatus.');
 
         $marca = Marca::findOrFail($id);
-        $marca->activo = !$marca->activo;
+        $marca->activo = ! $marca->activo;
         $marca->save();
-        $this->dispatch('mostrar-toast', mensaje: "Estado cambiado.", tipo:'success');
+        $this->dispatch('mostrar-toast', mensaje: 'Estado cambiado.', tipo: 'success');
     }
 
     public function ver($id)
@@ -131,12 +142,14 @@ class Marcas extends Component
         // 1. Verificamos si tiene procesadores asociados
         if ($marca->procesadores()->exists()) {
             $this->dispatch('toast', mensaje: 'No se puede eliminar: Tiene procesadores asociados.', tipo: 'error');
+
             return; // Cortamos la ejecución aquí
         }
 
         // 2. Verificamos si tiene GPUs asociadas
         if ($marca->gpus()->exists()) {
             $this->dispatch('toast', mensaje: 'No se puede eliminar: Tiene tarjetas de video (GPUs) asociadas.', tipo: 'error');
+
             return;
         }
 

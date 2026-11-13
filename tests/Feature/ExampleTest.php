@@ -2,17 +2,28 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
     /**
-     * A basic test example.
+     * Un invitado que visita la raíz debe ser redirigido al login (deny by default).
+     * CWE-306 — sin credencial no hay contenido.
      */
-    public function test_the_application_returns_a_successful_response(): void
+    public function test_guest_is_redirected_to_login(): void
     {
         $response = $this->get('/');
+
+        $response->assertStatus(302);
+        $response->assertRedirect('/login');
+    }
+
+    /**
+     * La página de login debe responder 200 a un invitado.
+     */
+    public function test_login_page_is_available_for_guests(): void
+    {
+        $response = $this->get('/login');
 
         $response->assertStatus(200);
     }

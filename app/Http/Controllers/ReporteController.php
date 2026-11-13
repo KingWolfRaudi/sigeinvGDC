@@ -2,24 +2,36 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Computador;
-use App\Models\Dispositivo;
-use App\Models\Insumo;
-use App\Models\Gpu;
-use App\Models\Incidencia;
-use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\CatalogosExport;
 use App\Exports\ComputadoresExport;
 use App\Exports\DispositivosExport;
-use App\Exports\InsumosExport;
-use App\Exports\CatalogosExport;
-use App\Exports\MassiveReportExport;
 use App\Exports\IncidenciasExport;
-use App\Exports\MovimientosExport;
-use App\Exports\UsersExport;
-use App\Exports\SoftwareExport;
+use App\Exports\InsumosExport;
 use App\Exports\LogsExport;
+use App\Exports\MassiveReportExport;
+use App\Exports\MovimientosExport;
+use App\Exports\SoftwareExport;
+use App\Exports\UsersExport;
+use App\Models\Computador;
+use App\Models\Departamento;
+use App\Models\Dependencia;
+use App\Models\Dispositivo;
+use App\Models\Gpu;
+use App\Models\Incidencia;
+use App\Models\Insumo;
+use App\Models\Marca;
+use App\Models\MovimientoComputador;
+use App\Models\MovimientoDispositivo;
+use App\Models\MovimientoInsumo;
+use App\Models\Procesador;
+use App\Models\Puerto;
+use App\Models\SistemaOperativo;
+use App\Models\TipoDispositivo;
+use App\Models\Trabajador;
+use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Activitylog\Models\Activity;
 
 class ReporteController extends Controller
@@ -31,7 +43,7 @@ class ReporteController extends Controller
     {
         $pc = Computador::with(['marca', 'sistemaOperativo', 'procesador.marca', 'gpu.marca', 'trabajador', 'departamento', 'movimientos.aprobador', 'movimientos.incidencia', 'discos', 'rams', 'puertos'])
             ->findOrFail($id);
-            
+
         $pdf = Pdf::loadView('reports.ficha-computador', compact('pc'));
 
         activity()
@@ -48,7 +60,7 @@ class ReporteController extends Controller
     {
         $disp = Dispositivo::with(['marca', 'tipoDispositivo', 'trabajador', 'departamento', 'computador', 'puertos', 'movimientos.aprobador', 'movimientos.incidencia'])
             ->findOrFail($id);
-            
+
         $pdf = Pdf::loadView('reports.ficha-dispositivo', compact('disp'));
 
         activity()
@@ -65,7 +77,7 @@ class ReporteController extends Controller
     {
         $insumo = Insumo::with(['marca', 'categoriaInsumo', 'movimientos.aprobador', 'movimientos.incidencia'])
             ->findOrFail($id);
-            
+
         $pdf = Pdf::loadView('reports.ficha-insumo', compact('insumo'));
 
         activity()
@@ -81,7 +93,7 @@ class ReporteController extends Controller
     public function gpuFicha($id)
     {
         $gpu = Gpu::with(['marca', 'puertos'])->findOrFail($id);
-            
+
         $pdf = Pdf::loadView('reports.ficha-gpu', compact('gpu'));
 
         activity()
@@ -98,7 +110,7 @@ class ReporteController extends Controller
     {
         $incidencia = Incidencia::with(['problema.especialidad', 'departamento', 'trabajador', 'tecnico', 'creator', 'movimientoComputador', 'movimientoDispositivo', 'movimientoInsumo'])
             ->findOrFail($id);
-            
+
         $pdf = Pdf::loadView('reports.ficha-incidencia', compact('incidencia'));
 
         activity()
@@ -116,10 +128,10 @@ class ReporteController extends Controller
         $this->authorize('reportes-excel');
 
         $filters = $request->only(['search', 'estado', 'departamento_id']);
-        
-        activity()->log("Exportó inventario de Computadores a Excel con filtros: " . json_encode($filters));
 
-        return Excel::download(new ComputadoresExport($filters), 'Inventario_Computadores_' . now()->format('d-m-Y') . '.xlsx');
+        activity()->log('Exportó inventario de Computadores a Excel con filtros: '.json_encode($filters));
+
+        return Excel::download(new ComputadoresExport($filters), 'Inventario_Computadores_'.now()->format('d-m-Y').'.xlsx');
     }
 
     /**
@@ -128,12 +140,12 @@ class ReporteController extends Controller
     public function logsExcel(Request $request)
     {
         $this->authorize('reportes-excel');
-        
-        $filters = $request->only(['searchUser', 'searchModule', 'dateFrom', 'dateTo']);
-        
-        activity()->log("Exportó Auditoría de Logs a Excel");
 
-        return Excel::download(new LogsExport($filters), 'Auditoria_Logs_' . now()->format('d-m-Y') . '.xlsx');
+        $filters = $request->only(['searchUser', 'searchModule', 'dateFrom', 'dateTo']);
+
+        activity()->log('Exportó Auditoría de Logs a Excel');
+
+        return Excel::download(new LogsExport($filters), 'Auditoria_Logs_'.now()->format('d-m-Y').'.xlsx');
     }
 
     /**
@@ -142,41 +154,41 @@ class ReporteController extends Controller
     public function logsPdf(Request $request)
     {
         $this->authorize('reportes-excel'); // Usamos el mismo permiso base
-        
+
         $filters = $request->only(['searchUser', 'searchModule', 'dateFrom', 'dateTo']);
-        
+
         $query = Activity::with('causer')->latest();
 
-        if (!empty($filters['searchUser'])) {
-            $query->whereHas('causer', function($q) use ($filters) {
-                $q->where('name', 'like', '%' . $filters['searchUser'] . '%')
-                  ->orWhere('email', 'like', '%' . $filters['searchUser'] . '%');
+        if (! empty($filters['searchUser'])) {
+            $query->whereHas('causer', function ($q) use ($filters) {
+                $q->where('name', 'like', '%'.$filters['searchUser'].'%')
+                    ->orWhere('email', 'like', '%'.$filters['searchUser'].'%');
             });
         }
 
-        if (!empty($filters['searchModule'])) {
-            $query->where(function($q) use ($filters) {
-                $q->where('subject_type', 'like', '%' . $filters['searchModule'] . '%')
-                  ->orWhere('description', 'like', '%' . $filters['searchModule'] . '%');
+        if (! empty($filters['searchModule'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('subject_type', 'like', '%'.$filters['searchModule'].'%')
+                    ->orWhere('description', 'like', '%'.$filters['searchModule'].'%');
             });
         }
 
-        if (!empty($filters['dateFrom'])) {
+        if (! empty($filters['dateFrom'])) {
             $query->whereDate('created_at', '>=', $filters['dateFrom']);
         }
 
-        if (!empty($filters['dateTo'])) {
+        if (! empty($filters['dateTo'])) {
             $query->whereDate('created_at', '<=', $filters['dateTo']);
         }
 
         // Limitamos a 500 registros para PDF para evitar sobrecarga de memoria
         $logs = $query->take(500)->get();
 
-        activity()->log("Exportó Auditoría de Logs a PDF");
+        activity()->log('Exportó Auditoría de Logs a PDF');
 
         $pdf = Pdf::loadView('reports.logs-pdf', compact('logs', 'filters'))->setPaper('a4', 'landscape');
-        
-        return $pdf->stream('Auditoria_Logs_' . now()->format('d-m-Y') . '.pdf');
+
+        return $pdf->stream('Auditoria_Logs_'.now()->format('d-m-Y').'.pdf');
     }
 
     /**
@@ -185,15 +197,15 @@ class ReporteController extends Controller
     public function auditoriaUsuarioPdf(Request $request, $id)
     {
         $this->authorize('ver-auditoria-usuarios');
-        
-        $user = \App\Models\User::with(['roles', 'especialidad'])->findOrFail($id);
-        
+
+        $user = User::with(['roles', 'especialidad'])->findOrFail($id);
+
         $dateFrom = $request->query('dateFrom');
         $dateTo = $request->query('dateTo');
-        
+
         $query = Activity::where('causer_id', $user->id)
-                         ->where('causer_type', \App\Models\User::class)
-                         ->latest();
+            ->where('causer_type', User::class)
+            ->latest();
 
         if ($dateFrom) {
             $query->whereDate('created_at', '>=', $dateFrom);
@@ -208,8 +220,8 @@ class ReporteController extends Controller
         activity()->log("Generó Reporte PDF de Auditoría del Usuario: {$user->name}");
 
         $pdf = Pdf::loadView('reports.auditoria-usuario-pdf', compact('user', 'actividades', 'dateFrom', 'dateTo'))->setPaper('a4', 'portrait');
-        
-        return $pdf->stream("Auditoria_Usuario_{$user->username}_" . now()->format('d-m-Y') . ".pdf");
+
+        return $pdf->stream("Auditoria_Usuario_{$user->username}_".now()->format('d-m-Y').'.pdf');
     }
 
     /**
@@ -220,10 +232,10 @@ class ReporteController extends Controller
         $this->authorize('reportes-excel');
 
         $filters = $request->only(['search', 'estado', 'departamento_id']);
-        
-        activity()->log("Exportó inventario de Dispositivos a Excel con filtros: " . json_encode($filters));
 
-        return Excel::download(new DispositivosExport($filters), 'Inventario_Dispositivos_' . now()->format('d-m-Y') . '.xlsx');
+        activity()->log('Exportó inventario de Dispositivos a Excel con filtros: '.json_encode($filters));
+
+        return Excel::download(new DispositivosExport($filters), 'Inventario_Dispositivos_'.now()->format('d-m-Y').'.xlsx');
     }
 
     /**
@@ -234,10 +246,10 @@ class ReporteController extends Controller
         $this->authorize('reportes-excel');
 
         $filters = $request->only(['search', 'estado', 'departamento_id']);
-        
-        activity()->log("Exportó catálogo de Insumos a Excel con filtros: " . json_encode($filters));
 
-        return Excel::download(new InsumosExport($filters), 'Inventario_Insumos_' . now()->format('d-m-Y') . '.xlsx');
+        activity()->log('Exportó catálogo de Insumos a Excel con filtros: '.json_encode($filters));
+
+        return Excel::download(new InsumosExport($filters), 'Inventario_Insumos_'.now()->format('d-m-Y').'.xlsx');
     }
 
     /**
@@ -248,25 +260,27 @@ class ReporteController extends Controller
         $this->authorize('reportes-excel');
 
         $map = [
-            'marcas' => [\App\Models\Marca::class, 'Marcas'],
-            'tipos' => [\App\Models\TipoDispositivo::class, 'Tipos_Dispositivos'],
-            'departamentos' => [\App\Models\Departamento::class, 'Departamentos'],
-            'dependencias' => [\App\Models\Dependencia::class, 'Dependencias'],
-            'trabajadores' => [\App\Models\Trabajador::class, 'Trabajadores'],
-            'procesadores' => [\App\Models\Procesador::class, 'Procesadores'],
-            'gpus' => [\App\Models\Gpu::class, 'GPUs'],
-            'puertos' => [\App\Models\Puerto::class, 'Puertos'],
-            'so' => [\App\Models\SistemaOperativo::class, 'Sistemas_Operativos'],
+            'marcas' => [Marca::class, 'Marcas'],
+            'tipos' => [TipoDispositivo::class, 'Tipos_Dispositivos'],
+            'departamentos' => [Departamento::class, 'Departamentos'],
+            'dependencias' => [Dependencia::class, 'Dependencias'],
+            'trabajadores' => [Trabajador::class, 'Trabajadores'],
+            'procesadores' => [Procesador::class, 'Procesadores'],
+            'gpus' => [Gpu::class, 'GPUs'],
+            'puertos' => [Puerto::class, 'Puertos'],
+            'so' => [SistemaOperativo::class, 'Sistemas_Operativos'],
         ];
 
-        if (!isset($map[$tipo])) abort(404);
+        if (! isset($map[$tipo])) {
+            abort(404);
+        }
 
         [$model, $title] = $map[$tipo];
         $filters = $request->only(['search', 'estado']);
 
         activity()->log("Exportó catálogo de {$title} a Excel");
 
-        return Excel::download(new CatalogosExport($model, $filters, $title), "Catalogo_{$title}_" . now()->format('d-m-Y') . ".xlsx");
+        return Excel::download(new CatalogosExport($model, $filters, $title), "Catalogo_{$title}_".now()->format('d-m-Y').'.xlsx');
     }
 
     /**
@@ -277,10 +291,10 @@ class ReporteController extends Controller
         $this->authorize('reportes-excel');
 
         $filters = $request->only(['search', 'estado', 'departamento_id']);
-        
-        activity()->log("Exportó reporte de Incidencias a Excel");
 
-        return Excel::download(new IncidenciasExport($filters), 'Reporte_Incidencias_' . now()->format('d-m-Y') . '.xlsx');
+        activity()->log('Exportó reporte de Incidencias a Excel');
+
+        return Excel::download(new IncidenciasExport($filters), 'Reporte_Incidencias_'.now()->format('d-m-Y').'.xlsx');
     }
 
     /**
@@ -291,19 +305,21 @@ class ReporteController extends Controller
         $this->authorize('reportes-excel');
 
         $map = [
-            'computadores' => [\App\Models\MovimientoComputador::class, 'Movimientos_Computadores'],
-            'dispositivos' => [\App\Models\MovimientoDispositivo::class, 'Movimientos_Dispositivos'],
-            'insumos'      => [\App\Models\MovimientoInsumo::class, 'Movimientos_Insumos'],
+            'computadores' => [MovimientoComputador::class, 'Movimientos_Computadores'],
+            'dispositivos' => [MovimientoDispositivo::class, 'Movimientos_Dispositivos'],
+            'insumos' => [MovimientoInsumo::class, 'Movimientos_Insumos'],
         ];
 
-        if (!isset($map[$segmento])) abort(404);
+        if (! isset($map[$segmento])) {
+            abort(404);
+        }
 
         [$model, $title] = $map[$segmento];
         $filters = $request->only(['search', 'tipo_operacion', 'estado_workflow', 'tipo_modelo']);
 
-        activity()->log("Exportó reporte de {$title} a Excel con filtros: " . json_encode($filters));
+        activity()->log("Exportó reporte de {$title} a Excel con filtros: ".json_encode($filters));
 
-        return Excel::download(new MovimientosExport($model, $filters, $title), "Reporte_{$title}_" . now()->format('d-m-Y') . ".xlsx");
+        return Excel::download(new MovimientosExport($model, $filters, $title), "Reporte_{$title}_".now()->format('d-m-Y').'.xlsx');
     }
 
     /**
@@ -314,10 +330,10 @@ class ReporteController extends Controller
         $this->authorize('reportes-excel');
 
         $filters = $request->only(['search', 'estado']);
-        
-        activity()->log("Exportó listado de Usuarios del Sistema a Excel con filtros: " . json_encode($filters));
 
-        return Excel::download(new UsersExport($filters), 'Listado_Usuarios_' . now()->format('d-m-Y') . '.xlsx');
+        activity()->log('Exportó listado de Usuarios del Sistema a Excel con filtros: '.json_encode($filters));
+
+        return Excel::download(new UsersExport($filters), 'Listado_Usuarios_'.now()->format('d-m-Y').'.xlsx');
     }
 
     /**
@@ -328,10 +344,10 @@ class ReporteController extends Controller
         $this->authorize('reportes-excel');
 
         $filters = $request->only(['search', 'estado']);
-        
-        activity()->log("Exportó catálogo de Software a Excel con filtros: " . json_encode($filters));
 
-        return Excel::download(new SoftwareExport($filters), 'Catalogo_Software_' . now()->format('d-m-Y') . '.xlsx');
+        activity()->log('Exportó catálogo de Software a Excel con filtros: '.json_encode($filters));
+
+        return Excel::download(new SoftwareExport($filters), 'Catalogo_Software_'.now()->format('d-m-Y').'.xlsx');
     }
 
     /**
@@ -347,11 +363,13 @@ class ReporteController extends Controller
         if (is_string($selections)) {
             $selections = json_decode($selections, true);
         }
-        
-        if (empty($selections)) return back()->with('error', 'Debe seleccionar al menos un módulo.');
 
-        activity()->log("Generó reporte masivo multi-hoja de " . count($selections) . " módulos.");
+        if (empty($selections)) {
+            return back()->with('error', 'Debe seleccionar al menos un módulo.');
+        }
 
-        return Excel::download(new MassiveReportExport($selections), 'Reporte_MasivoGDC_' . now()->format('d-m-Y') . '.xlsx');
+        activity()->log('Generó reporte masivo multi-hoja de '.count($selections).' módulos.');
+
+        return Excel::download(new MassiveReportExport($selections), 'Reporte_MasivoGDC_'.now()->format('d-m-Y').'.xlsx');
     }
 }

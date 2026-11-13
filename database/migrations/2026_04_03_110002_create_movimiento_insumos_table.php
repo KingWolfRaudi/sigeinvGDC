@@ -42,7 +42,7 @@ return new class extends Migration
 
             $table->text('justificacion');
             $table->text('motivo_rechazo')->nullable();
-            
+
             // Refactorizacion Incidencias V2
             $table->foreignId('incidencia_id')->nullable()->constrained('incidencias')->onDelete('set null');
 

@@ -16,7 +16,7 @@ return new class extends Migration
             'computadores',
             'dispositivos',
             'insumos',
-            'incidencias'
+            'incidencias',
         ];
 
         foreach ($tables as $tableName) {
@@ -38,7 +38,7 @@ return new class extends Migration
             'computadores',
             'dispositivos',
             'insumos',
-            'incidencias'
+            'incidencias',
         ];
 
         foreach ($tables as $tableName) {

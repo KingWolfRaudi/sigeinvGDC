@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('nombre');
             $table->foreignId('departamento_id')->constrained('departamentos')->onDelete('restrict');
-            
+
             $table->boolean('activo')->default(true);
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');

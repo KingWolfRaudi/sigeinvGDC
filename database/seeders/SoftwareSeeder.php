@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Software;
+use Illuminate\Database\Seeder;
 
 class SoftwareSeeder extends Seeder
 {
@@ -32,7 +32,7 @@ class SoftwareSeeder extends Seeder
                     'serial' => $soft['serial'],
                     'arquitectura_programa' => $soft['arquitectura_programa'],
                     'descripcion_programa' => 'Software de prueba para el inventario corporativo.',
-                    'activo' => true
+                    'activo' => true,
                 ]
             );
         }

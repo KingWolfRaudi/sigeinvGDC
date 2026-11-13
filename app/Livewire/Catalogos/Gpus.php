@@ -2,29 +2,51 @@
 
 namespace App\Livewire\Catalogos;
 
-use Livewire\Component;
 use App\Models\Gpu;
 use App\Models\Marca;
 use App\Models\Puerto;
-use Livewire\WithPagination;
 use Illuminate\Support\Facades\Gate;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class Gpus extends Component
 {
     use WithPagination;
+
     protected $paginationTheme = 'bootstrap';
 
-    public $gpu_id, $marca_id, $modelo, $memoria, $tipo_memoria, $bus, $frecuencia;
+    public $gpu_id;
+
+    public $marca_id;
+
+    public $modelo;
+
+    public $memoria;
+
+    public $tipo_memoria;
+
+    public $bus;
+
+    public $frecuencia;
+
     public $puertos_seleccionados = []; // Arreglo para los checkboxes
+
     public $gpu_detalle;
+
     public bool $activo = true;
+
     public $tituloModal = 'Nueva GPU';
+
     public $nueva_marca = '';
+
     public $creando_marca = false;
 
     public $search = '';
+
     public $sortField = 'modelo';
+
     public $sortAsc = true;
+
     public $filtro_estado = 'todos';
 
     public function updatingSearch()
@@ -35,7 +57,7 @@ class Gpus extends Component
     public function sortBy($field)
     {
         if ($this->sortField === $field) {
-            $this->sortAsc = !$this->sortAsc;
+            $this->sortAsc = ! $this->sortAsc;
         } else {
             $this->sortAsc = true;
             $this->sortField = $field;
@@ -48,7 +70,7 @@ class Gpus extends Component
         $query = Gpu::with(['marca', 'puertos']);
 
         // 2. LÓGICA DE ESTADOS Y VISIBILIDAD (Data Scoping)
-        if (\Illuminate\Support\Facades\Gate::allows('ver-estado-gpus')) {
+        if (Gate::allows('ver-estado-gpus')) {
             // Si tiene el permiso, aplicamos el filtro del select
             if ($this->filtro_estado === 'activos') {
                 $query->where('activo', true);
@@ -62,30 +84,30 @@ class Gpus extends Component
 
         // 3. Búsqueda profunda (Deep Search) - Tu código intacto
         $query->where(function ($q) {
-            $q->where('modelo', 'like', '%' . $this->search . '%')
-              ->orWhere('memoria', 'like', '%' . $this->search . '%')
-              ->orWhere('tipo_memoria', 'like', '%' . $this->search . '%')
-              ->orWhere('bus', 'like', '%' . $this->search . '%')
-              ->orWhere('frecuencia', 'like', '%' . $this->search . '%')
-              
+            $q->where('modelo', 'like', '%'.$this->search.'%')
+                ->orWhere('memoria', 'like', '%'.$this->search.'%')
+                ->orWhere('tipo_memoria', 'like', '%'.$this->search.'%')
+                ->orWhere('bus', 'like', '%'.$this->search.'%')
+                ->orWhere('frecuencia', 'like', '%'.$this->search.'%')
+
               // Búsqueda en Marca
-              ->orWhereHas('marca', function($subQ) {
-                  $subQ->where('nombre', 'like', '%' . $this->search . '%');
-              })
+                ->orWhereHas('marca', function ($subQ) {
+                    $subQ->where('nombre', 'like', '%'.$this->search.'%');
+                })
               // Búsqueda profunda en Puertos
-              ->orWhereHas('puertos', function($subQ) {
-                  $subQ->where('nombre', 'like', '%' . $this->search . '%');
-              });
+                ->orWhereHas('puertos', function ($subQ) {
+                    $subQ->where('nombre', 'like', '%'.$this->search.'%');
+                });
         });
 
         // 4. Ejecutamos el orden y la paginación
         $gpus = $query->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
-                      ->paginate(10);
+            ->paginate(10);
 
         // Catálogos para los selects del formulario
         $marcas = Marca::where('activo', true)->orderBy('nombre')->get();
         $lista_puertos = Puerto::where('activo', true)->orderBy('nombre')->get();
-                       
+
         return view('livewire.catalogos.gpus', compact('gpus', 'marcas', 'lista_puertos'));
     }
 
@@ -100,13 +122,13 @@ class Gpus extends Component
     public function guardarMarca()
     {
         $this->validate([
-            'nueva_marca' => 'required|string|unique:marcas,nombre|min:2'
+            'nueva_marca' => 'required|string|unique:marcas,nombre|min:2',
         ]);
 
         // Guardamos la marca sin forzar mayúsculas (según nuestras convenciones V2.1)
-        $marca = \App\Models\Marca::create([
+        $marca = Marca::create([
             'nombre' => $this->nueva_marca,
-            'activo' => true
+            'activo' => true,
         ]);
 
         $this->marca_id = $marca->id;
@@ -123,15 +145,15 @@ class Gpus extends Component
         $this->validate([
             'marca_id' => 'required|exists:marcas,id',
             'modelo' => 'required|string|max:255',
-            'memoria' => 'nullable|integer|min:1', 
+            'memoria' => 'nullable|integer|min:1',
             'tipo_memoria' => 'nullable|string|max:100',
             'bus' => 'nullable|string|in:32-bit,64-bit,128-bit,192-bit,256-bit,320-bit,384-bit,512-bit',
-            'frecuencia' => 'nullable|integer|min:1', 
+            'frecuencia' => 'nullable|integer|min:1',
             'puertos_seleccionados' => 'nullable|array',
         ]);
 
-        $memoria_formateada = $this->memoria ? $this->memoria . 'GB' : null;
-        $frecuencia_formateada = $this->frecuencia ? $this->frecuencia . 'MHz' : null;
+        $memoria_formateada = $this->memoria ? $this->memoria.'GB' : null;
+        $frecuencia_formateada = $this->frecuencia ? $this->frecuencia.'MHz' : null;
         $tipo_memoria_formateado = $this->tipo_memoria ? strtoupper($this->tipo_memoria) : null;
 
         // 1. Guardamos la GPU (Ya no le pasamos 'puertos' aquí)
@@ -144,7 +166,7 @@ class Gpus extends Component
                 'tipo_memoria' => $tipo_memoria_formateado,
                 'bus' => $this->bus,
                 'frecuencia' => $frecuencia_formateada,
-                'activo' => $this->activo ? 1 : 0
+                'activo' => $this->activo ? 1 : 0,
             ]
         );
 
@@ -152,7 +174,7 @@ class Gpus extends Component
         $gpu->puertos()->sync($this->puertos_seleccionados);
 
         $this->dispatch('cerrar-modal', id: 'modalGpu');
-        $this->dispatch('mostrar-toast', mensaje: $this->gpu_id ? 'GPU actualizada.' : 'GPU creada.', tipo:'sucess');
+        $this->dispatch('mostrar-toast', mensaje: $this->gpu_id ? 'GPU actualizada.' : 'GPU creada.', tipo: 'sucess');
         $this->resetCampos();
     }
 
@@ -161,7 +183,7 @@ class Gpus extends Component
         abort_if(Gate::denies('editar-gpus'), 403);
         $this->resetValidation();
         $gpu = Gpu::with('puertos')->findOrFail($id); // Cargamos con sus puertos
-        
+
         $this->gpu_id = $gpu->id;
         $this->marca_id = $gpu->marca_id;
         $this->modelo = $gpu->modelo;
@@ -169,12 +191,12 @@ class Gpus extends Component
         $this->frecuencia = $gpu->frecuencia ? str_replace('MHz', '', $gpu->frecuencia) : null;
         $this->tipo_memoria = $gpu->tipo_memoria;
         $this->bus = $gpu->bus;
-        
+
         // Pluck extrae solo los IDs de la relación y los convierte en un arreglo [1, 3, 5]
-        $this->puertos_seleccionados = $gpu->puertos->pluck('id')->toArray(); 
-        
-        $this->activo = (bool) $gpu->activo; 
-        
+        $this->puertos_seleccionados = $gpu->puertos->pluck('id')->toArray();
+
+        $this->activo = (bool) $gpu->activo;
+
         $this->tituloModal = 'Editar GPU';
         $this->dispatch('abrir-modal', id: 'modalGpu');
     }
@@ -183,9 +205,9 @@ class Gpus extends Component
     {
         abort_if(Gate::denies('cambiar-estatus-gpus'), 403);
         $gpu = Gpu::findOrFail($id);
-        $gpu->activo = !$gpu->activo;
+        $gpu->activo = ! $gpu->activo;
         $gpu->save();
-        $this->dispatch('mostrar-toast', mensaje: "Estado cambiado.", tipo: 'success');
+        $this->dispatch('mostrar-toast', mensaje: 'Estado cambiado.', tipo: 'success');
     }
 
     public function ver($id)
@@ -199,18 +221,18 @@ class Gpus extends Component
     {
         abort_if(Gate::denies('eliminar-gpus'), 403);
         Gpu::findOrFail($id)->delete();
-        $this->dispatch('mostrar-toast', mensaje: 'GPU eliminada.', tipo:'success');
+        $this->dispatch('mostrar-toast', mensaje: 'GPU eliminada.', tipo: 'success');
     }
 
     public function resetCampos()
     {
         $this->reset([
-            'gpu_id', 'marca_id', 'modelo', 'memoria', 'tipo_memoria', 
-            'bus', 'frecuencia', 'gpu_detalle'
+            'gpu_id', 'marca_id', 'modelo', 'memoria', 'tipo_memoria',
+            'bus', 'frecuencia', 'gpu_detalle',
         ]);
         $this->puertos_seleccionados = [];
         // Variables para creación rápida de Marca
-        
+
         $this->activo = true;
         $this->resetValidation();
     }

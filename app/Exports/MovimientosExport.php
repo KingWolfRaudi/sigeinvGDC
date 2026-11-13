@@ -10,7 +10,9 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 class MovimientosExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
     protected $modelClass;
+
     protected $filters;
+
     protected $title;
 
     public function __construct($modelClass, $filters = [], $title = 'Movimientos')
@@ -31,17 +33,23 @@ class MovimientosExport implements FromCollection, WithHeadings, WithMapping, Wi
 
         // Cargar relación del equipo base según el modelo
         $base = class_basename($this->modelClass);
-        if ($base === 'MovimientoComputador') $query->with('computador');
-        if ($base === 'MovimientoDispositivo') $query->with('dispositivo');
-        if ($base === 'MovimientoInsumo') $query->with('insumo');
+        if ($base === 'MovimientoComputador') {
+            $query->with('computador');
+        }
+        if ($base === 'MovimientoDispositivo') {
+            $query->with('dispositivo');
+        }
+        if ($base === 'MovimientoInsumo') {
+            $query->with('insumo');
+        }
 
-        if (!empty($this->filters['tipo_operacion'])) {
+        if (! empty($this->filters['tipo_operacion'])) {
             if ($this->filters['tipo_operacion'] !== 'todos') {
                 $query->where('tipo_operacion', $this->filters['tipo_operacion']);
             }
         }
 
-        if (!empty($this->filters['estado_workflow'])) {
+        if (! empty($this->filters['estado_workflow'])) {
             if ($this->filters['estado_workflow'] !== 'todos') {
                 $query->where('estado_workflow', $this->filters['estado_workflow']);
             }
@@ -73,9 +81,15 @@ class MovimientosExport implements FromCollection, WithHeadings, WithMapping, Wi
     {
         $base = class_basename($this->modelClass);
         $referencia = 'Desconocido';
-        if ($base === 'MovimientoComputador') $referencia = 'PC BN: ' . ($item->computador->bien_nacional ?? 'N/A');
-        if ($base === 'MovimientoDispositivo') $referencia = 'DISP BN: ' . ($item->dispositivo->bien_nacional ?? 'N/A');
-        if ($base === 'MovimientoInsumo') $referencia = 'INS BN: ' . ($item->insumo->bien_nacional ?? 'N/A');
+        if ($base === 'MovimientoComputador') {
+            $referencia = 'PC BN: '.($item->computador->bien_nacional ?? 'N/A');
+        }
+        if ($base === 'MovimientoDispositivo') {
+            $referencia = 'DISP BN: '.($item->dispositivo->bien_nacional ?? 'N/A');
+        }
+        if ($base === 'MovimientoInsumo') {
+            $referencia = 'INS BN: '.($item->insumo->bien_nacional ?? 'N/A');
+        }
 
         // Formatear cambios
         $detalleCambios = '';
@@ -83,7 +97,7 @@ class MovimientosExport implements FromCollection, WithHeadings, WithMapping, Wi
             foreach ($item->payload_nuevo as $key => $value) {
                 $old = $item->payload_anterior[$key] ?? 'N/A';
                 if ($old != $value) {
-                    $detalleCambios .= strtoupper($key) . ": $old -> $value\n";
+                    $detalleCambios .= strtoupper($key).": $old -> $value\n";
                 }
             }
         }
@@ -91,7 +105,7 @@ class MovimientosExport implements FromCollection, WithHeadings, WithMapping, Wi
         return [
             $item->id,
             $referencia,
-            $item->incidencia_id ? '#' . str_pad($item->incidencia_id, 5, '0', STR_PAD_LEFT) : 'N/A',
+            $item->incidencia_id ? '#'.str_pad($item->incidencia_id, 5, '0', STR_PAD_LEFT) : 'N/A',
             $item->tipo_operacion === 'toggle_activo' ? 'Cambio de Estado' : strtoupper(str_replace('_', ' ', $item->tipo_operacion)),
             $item->cantidad_movida ?? '—',
             strtoupper($item->estado_workflow),

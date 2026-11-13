@@ -2,16 +2,18 @@
 
 namespace App\Exports;
 
+use Illuminate\Support\Facades\Schema;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
-use Illuminate\Support\Facades\Schema;
 
 class CatalogosExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
     protected $modelClass;
+
     protected $filters;
+
     protected $customTitle;
 
     public function __construct($modelClass, $filters = [], $title = 'Catalogo')
@@ -34,15 +36,15 @@ class CatalogosExport implements FromCollection, WithHeadings, WithMapping, With
         if (in_array(class_basename($this->modelClass), ['Procesador', 'Gpu'])) {
             $query->with('marca');
         }
-        
+
         // Si es Trabajador o Dependencia, cargar departamento
         if (in_array(class_basename($this->modelClass), ['Trabajador', 'Dependencia'])) {
             $query->with('departamento');
         }
 
-        if (!empty($this->filters['search'])) {
+        if (! empty($this->filters['search'])) {
             $search = $this->filters['search'];
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 // Intentar buscar por nombre, modelo o nombres/apellidos
                 $q->where('id', 'like', "%$search%");
                 if (Schema::hasColumn($q->getModel()->getTable(), 'nombre')) {
@@ -58,8 +60,12 @@ class CatalogosExport implements FromCollection, WithHeadings, WithMapping, With
         }
 
         if (isset($this->filters['estado'])) {
-            if ($this->filters['estado'] === 'activos') $query->where('activo', true);
-            if ($this->filters['estado'] === 'inactivos') $query->where('activo', false);
+            if ($this->filters['estado'] === 'activos') {
+                $query->where('activo', true);
+            }
+            if ($this->filters['estado'] === 'inactivos') {
+                $query->where('activo', false);
+            }
         }
 
         return $query->get();
@@ -77,6 +83,7 @@ class CatalogosExport implements FromCollection, WithHeadings, WithMapping, With
         if (in_array($base, ['Procesador', 'Gpu'])) {
             return ['ID', 'Modelo', 'Marca', 'Estatus', 'Creado Por', 'Modificado Por', 'Fecha Reg.', 'Última Modif.'];
         }
+
         return [
             'ID',
             'Nombre / Identificador',
@@ -91,7 +98,7 @@ class CatalogosExport implements FromCollection, WithHeadings, WithMapping, With
     public function map($item): array
     {
         $base = class_basename($this->modelClass);
-        
+
         if ($base === 'Trabajador') {
             return [
                 $item->id,

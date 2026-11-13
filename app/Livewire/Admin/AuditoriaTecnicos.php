@@ -2,24 +2,27 @@
 
 namespace App\Livewire\Admin;
 
-use Livewire\Component;
-use Livewire\WithPagination;
-use App\Models\User;
 use App\Models\Incidencia;
-use Spatie\Activitylog\Models\Activity;
+use App\Models\User;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Spatie\Activitylog\Models\Activity;
 
 class AuditoriaTecnicos extends Component
 {
     use WithPagination;
+
     protected $paginationTheme = 'bootstrap';
 
     public $tecnicos = [];
-    public $filtro_tecnico = '';
-    public $dateFrom = '';
-    public $dateTo = '';
 
+    public $filtro_tecnico = '';
+
+    public $dateFrom = '';
+
+    public $dateTo = '';
 
     // KPIs
     public $kpis = [
@@ -113,8 +116,12 @@ class AuditoriaTecnicos extends Component
         $query = Activity::with('causer')->latest();
 
         // Filtros de fecha
-        if ($this->dateFrom) $query->whereDate('created_at', '>=', $this->dateFrom);
-        if ($this->dateTo) $query->whereDate('created_at', '<=', $this->dateTo);
+        if ($this->dateFrom) {
+            $query->whereDate('created_at', '>=', $this->dateFrom);
+        }
+        if ($this->dateTo) {
+            $query->whereDate('created_at', '<=', $this->dateTo);
+        }
 
         $query->where('subject_type', Incidencia::class);
 

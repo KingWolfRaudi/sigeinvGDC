@@ -2,17 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\RecordSignature;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
-
-use App\Traits\RecordSignature;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Dispositivo extends Model
 {
-    use HasFactory, SoftDeletes, LogsActivity, RecordSignature;
+    use HasFactory, LogsActivity, RecordSignature, SoftDeletes;
 
     public function getActivitylogOptions(): LogOptions
     {
@@ -37,11 +36,11 @@ class Dispositivo extends Model
         'trabajador_id',
         'computador_id',
         'notas',
-        'activo'
+        'activo',
     ];
 
     protected $casts = [
-        'activo' => 'boolean'
+        'activo' => 'boolean',
     ];
 
     // Relaciones

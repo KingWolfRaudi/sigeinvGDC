@@ -2,23 +2,33 @@
 
 namespace App\Livewire\Asignaciones;
 
-use Livewire\Component;
-use App\Models\Dependencia;
 use App\Models\Departamento;
-use Livewire\WithPagination;
+use App\Models\Dependencia;
 use Illuminate\Support\Facades\Gate;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class Dependencias extends Component
 {
     use WithPagination;
+
     protected $paginationTheme = 'bootstrap';
 
-    public $dependencia_id, $nombre, $departamento_id, $dependencia_detalle;
+    public $dependencia_id;
+
+    public $nombre;
+
+    public $departamento_id;
+
+    public $dependencia_detalle;
+
     public bool $activo = true;
+
     public $tituloModal = 'Nueva Dependencia';
 
     // Variables para Reutilización y Anidación
     public $presetFiltro = [];
+
     public $ocultarTitulos = false;
 
     public function mount($presetFiltro = [], $ocultarTitulos = false)
@@ -28,8 +38,11 @@ class Dependencias extends Component
     }
 
     public $search = '';
+
     public $sortField = 'nombre';
+
     public $sortAsc = true;
+
     public $filtro_estado = 'todos';
 
     public function updatingSearch()
@@ -40,7 +53,7 @@ class Dependencias extends Component
     public function sortBy($field)
     {
         if ($this->sortField === $field) {
-            $this->sortAsc = !$this->sortAsc;
+            $this->sortAsc = ! $this->sortAsc;
         } else {
             $this->sortAsc = true;
             $this->sortField = $field;
@@ -51,7 +64,7 @@ class Dependencias extends Component
     {
         $query = Dependencia::query()->with('departamento');
 
-        if (\Illuminate\Support\Facades\Gate::allows('ver-estado-departamentos')) {
+        if (Gate::allows('ver-estado-departamentos')) {
             if ($this->filtro_estado === 'activos') {
                 $query->where('activo', true);
             } elseif ($this->filtro_estado === 'inactivos') {
@@ -61,25 +74,25 @@ class Dependencias extends Component
             $query->where('activo', true);
         }
 
-        if (!empty($this->presetFiltro)) {
-            foreach($this->presetFiltro as $col => $val) {
+        if (! empty($this->presetFiltro)) {
+            foreach ($this->presetFiltro as $col => $val) {
                 if ($val !== null) {
                     $query->where($col, $val);
                 }
             }
         }
 
-        $query->where(function($q) {
-            $search = '%' . $this->search . '%';
+        $query->where(function ($q) {
+            $search = '%'.$this->search.'%';
             $q->where('nombre', 'like', $search)
-              ->orWhereHas('departamento', fn($d) => $d->where('nombre', 'like', $search));
+                ->orWhereHas('departamento', fn ($d) => $d->where('nombre', 'like', $search));
         });
 
         $dependencias = $query->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
-                              ->paginate(10);
-                              
+            ->paginate(10);
+
         $departamentos = Departamento::activos()->orderBy('nombre')->get();
-                       
+
         return view('livewire.asignaciones.dependencias', compact('dependencias', 'departamentos'));
     }
 
@@ -97,8 +110,8 @@ class Dependencias extends Component
         abort_if(Gate::denies($this->dependencia_id ? 'editar-departamentos' : 'crear-departamentos'), 403);
 
         $this->validate([
-            'nombre' => 'required|min:2|unique:dependencias,nombre,' . $this->dependencia_id,
-            'departamento_id' => 'required|exists:departamentos,id'
+            'nombre' => 'required|min:2|unique:dependencias,nombre,'.$this->dependencia_id,
+            'departamento_id' => 'required|exists:departamentos,id',
         ]);
 
         Dependencia::updateOrCreate(
@@ -106,12 +119,12 @@ class Dependencias extends Component
             [
                 'nombre' => $this->nombre,
                 'departamento_id' => $this->departamento_id,
-                'activo' => $this->activo ? 1 : 0
+                'activo' => $this->activo ? 1 : 0,
             ]
         );
 
         $this->dispatch('cerrar-modal', id: 'modalDependencia');
-        $this->dispatch('mostrar-toast', mensaje: $this->dependencia_id ? 'Dependencia actualizada.' : 'Dependencia creada.', tipo:'success');
+        $this->dispatch('mostrar-toast', mensaje: $this->dependencia_id ? 'Dependencia actualizada.' : 'Dependencia creada.', tipo: 'success');
         $this->resetCampos();
     }
 
@@ -124,8 +137,8 @@ class Dependencias extends Component
         $this->dependencia_id = $dependencia->id;
         $this->nombre = $dependencia->nombre;
         $this->departamento_id = $dependencia->departamento_id;
-        $this->activo = (bool) $dependencia->activo; 
-        
+        $this->activo = (bool) $dependencia->activo;
+
         $this->tituloModal = 'Editar Dependencia';
         $this->dispatch('abrir-modal', id: 'modalDependencia');
     }
@@ -135,15 +148,15 @@ class Dependencias extends Component
         abort_if(Gate::denies('cambiar-estatus-departamentos'), 403);
 
         $dependencia = Dependencia::findOrFail($id);
-        $dependencia->activo = !$dependencia->activo;
+        $dependencia->activo = ! $dependencia->activo;
         $dependencia->save();
-        $this->dispatch('mostrar-toast', mensaje: "Estado cambiado.", tipo:'success');
+        $this->dispatch('mostrar-toast', mensaje: 'Estado cambiado.', tipo: 'success');
     }
 
     public function ver($id)
     {
         abort_if(Gate::denies('ver-departamentos'), 403);
-        
+
         $this->dependencia_detalle = Dependencia::with('departamento')->findOrFail($id);
         $this->dispatch('abrir-modal', id: 'modalDetalleDependencia');
     }
@@ -156,6 +169,7 @@ class Dependencias extends Component
 
         if ($dependencia->trabajadores()->exists() || $dependencia->computadores()->exists() || $dependencia->dispositivos()->exists() || $dependencia->insumos()->exists() || $dependencia->incidencias()->exists()) {
             $this->dispatch('mostrar-toast', mensaje: 'No se puede eliminar: Hay registros asignados a esta dependencia.', tipo: 'error');
+
             return;
         }
 

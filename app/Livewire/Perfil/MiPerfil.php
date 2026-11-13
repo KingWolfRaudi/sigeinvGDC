@@ -2,15 +2,16 @@
 
 namespace App\Livewire\Perfil;
 
-use Livewire\Component;
-use Livewire\WithFileUploads;
+use App\Models\Configuracion;
+use App\Models\SolicitudPerfil;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use App\Models\SolicitudPerfil;
-use App\Models\Configuracion;
 use Livewire\Attributes\Layout;
+use Livewire\Component;
+use Livewire\WithFileUploads;
 
 /**
  * MiPerfil Component
@@ -23,10 +24,19 @@ class MiPerfil extends Component
     public $nueva_foto;
 
     // Campos de Solicitud
-    public $nuevo_nombre, $nuevo_username, $nuevo_email, $nuevo_password, $confirmar_password;
+    public $nuevo_nombre;
+
+    public $nuevo_username;
+
+    public $nuevo_email;
+
+    public $nuevo_password;
+
+    public $confirmar_password;
 
     // Disponibilidad Técnica
     public $disponible_asignacion = false;
+
     public $es_tecnico = false;
 
     // Configuración
@@ -35,21 +45,21 @@ class MiPerfil extends Component
     public function mount()
     {
         $this->loadConfig();
-        
-        /** @var \App\Models\User $user */
+
+        /** @var User $user */
         $user = Auth::user();
-        
+
         $this->nuevo_nombre = $user->name;
         $this->nuevo_username = $user->username;
         $this->nuevo_email = $user->email;
-        
+
         $this->es_tecnico = $user->hasRole(['personal-ti', 'resolutor-incidencia']);
         $this->disponible_asignacion = (bool) $user->disponible_asignacion;
     }
 
     public function toggleDisponibilidad()
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
         if ($this->es_tecnico) {
             $user->disponible_asignacion = $this->disponible_asignacion;
@@ -67,11 +77,12 @@ class MiPerfil extends Component
 
     public function updatedNuevaFoto()
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
         if ($user->hasRole('super-admin')) {
             $this->dispatch('mostrar-toast', mensaje: 'El Super Administrador es inmutable.', tipo: 'danger');
             $this->reset('nueva_foto');
+
             return;
         }
 
@@ -79,11 +90,11 @@ class MiPerfil extends Component
             'nueva_foto' => 'image|max:1024', // 1MB Max
         ]);
 
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
-        
+
         // Generar nombre: nombre-completo-slug.ext
-        $filename = Str::slug($user->name) . '.' . $this->nueva_foto->extension();
+        $filename = Str::slug($user->name).'.'.$this->nueva_foto->extension();
 
         // Si ya tenía una foto con el mismo nombre o diferente, la borramos si existe (opcional, pero limpio)
         if ($user->avatar) {
@@ -101,24 +112,27 @@ class MiPerfil extends Component
 
     public function enviarSolicitud($tipo)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
-        
+
         if ($user->hasRole('super-admin')) {
             $this->dispatch('mostrar-toast', mensaje: 'El perfil del Super Administrador no puede ser modificado.', tipo: 'danger');
+
             return;
         }
 
         // 1. Verificar si la opción está habilitada en config
-        if (!($this->config['perfil_solicitar_' . $tipo] ?? false)) {
+        if (! ($this->config['perfil_solicitar_'.$tipo] ?? false)) {
             $this->dispatch('mostrar-toast', mensaje: 'Esta solicitud está deshabilitada por el administrador.', tipo: 'danger');
+
             return;
         }
 
         // 2. Verificar la regla de los 180 días
-        if (!SolicitudPerfil::canRequest($user->id, $tipo)) {
+        if (! SolicitudPerfil::canRequest($user->id, $tipo)) {
             $días = SolicitudPerfil::daysRemaining($user->id, $tipo);
             $this->dispatch('mostrar-toast', mensaje: "No puedes solicitar este cambio aún. Faltan $días días.", tipo: 'warning');
+
             return;
         }
 
@@ -127,9 +141,15 @@ class MiPerfil extends Component
         $valor = $this->$valorStr;
 
         $rules = [];
-        if ($tipo === 'nombre') $rules['nuevo_nombre'] = 'required|min:3';
-        if ($tipo === 'username') $rules['nuevo_username'] = 'required|min:4|unique:users,username,' . $user->id;
-        if ($tipo === 'email') $rules['nuevo_email'] = 'required|email|unique:users,email,' . $user->id;
+        if ($tipo === 'nombre') {
+            $rules['nuevo_nombre'] = 'required|min:3';
+        }
+        if ($tipo === 'username') {
+            $rules['nuevo_username'] = 'required|min:4|unique:users,username,'.$user->id;
+        }
+        if ($tipo === 'email') {
+            $rules['nuevo_email'] = 'required|email|unique:users,email,'.$user->id;
+        }
         if ($tipo === 'password') {
             $this->validate([
                 'nuevo_password' => 'required|min:8',
@@ -149,7 +169,7 @@ class MiPerfil extends Component
         ]);
 
         $this->dispatch('mostrar-toast', mensaje: 'Solicitud enviada con éxito. Pendiente de aprobación.', tipo: 'success');
-        
+
         if ($tipo === 'password') {
             $this->reset(['nuevo_password', 'confirmar_password']);
         }

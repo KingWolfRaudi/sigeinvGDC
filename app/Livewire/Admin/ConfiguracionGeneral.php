@@ -2,46 +2,65 @@
 
 namespace App\Livewire\Admin;
 
-use Livewire\Component;
-use App\Models\Problema;
 use App\Models\Configuracion;
 use App\Models\EspecialidadTecnica;
-use Spatie\Permission\Models\Role;
-use Livewire\WithPagination;
-use Livewire\Attributes\Layout;
+use App\Models\Problema;
 use Illuminate\Support\Facades\Gate;
+use Livewire\Attributes\Layout;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class ConfiguracionGeneral extends Component
 {
     use WithPagination;
+
     protected $paginationTheme = 'bootstrap';
 
     // Tabs
     public $activeTab = 'incidencias-ajustes'; // 'incidencias-catalogo', 'incidencias-ajustes', 'perfil-ajustes'
 
     // Propiedades para Catálogo de Especialidades Técnicas
-    public $especialidad_id, $nombre_especialidad;
+    public $especialidad_id;
+
+    public $nombre_especialidad;
+
     public $especialidad_activo = true;
+
     public $searchEspecialidad = '';
+
     public $sortFieldEspecialidad = 'nombre';
+
     public $sortAscEspecialidad = true;
 
     // Propiedades para Catálogo de Problemas (Incidencias)
-    public $problema_id, $nombre_problema, $problema_especialidad_id;
+    public $problema_id;
+
+    public $nombre_problema;
+
+    public $problema_especialidad_id;
+
     public $problema_activo = true;
+
     public $searchProblema = '';
+
     public $sortField = 'nombre';
+
     public $sortAsc = true;
 
     // Propiedades para Configuración de Incidencias
     public $cierre_irreversible = false;
+
     public $activo_obligatorio = false;
+
     public $dashboard_tecnico_ver_global = false;
 
     // Propiedades para Configuración de Perfil
     public $perfil_solicitar_nombre = true;
+
     public $perfil_solicitar_username = true;
+
     public $perfil_solicitar_email = true;
+
     public $perfil_solicitar_password = true;
 
     public function mount()
@@ -65,23 +84,29 @@ class ConfiguracionGeneral extends Component
     {
 
         $configCierre = Configuracion::where('clave', 'incidencias_cierre_irreversible')->first();
-        if ($configCierre) $this->cierre_irreversible = (bool)$configCierre->valor;
+        if ($configCierre) {
+            $this->cierre_irreversible = (bool) $configCierre->valor;
+        }
 
         $configActivo = Configuracion::where('clave', 'incidencias_activo_obligatorio')->first();
-        if ($configActivo) $this->activo_obligatorio = (bool)$configActivo->valor;
+        if ($configActivo) {
+            $this->activo_obligatorio = (bool) $configActivo->valor;
+        }
 
         $configDash = Configuracion::where('clave', 'dashboard_tecnico_ver_global')->first();
-        if ($configDash) $this->dashboard_tecnico_ver_global = (bool)$configDash->valor;
+        if ($configDash) {
+            $this->dashboard_tecnico_ver_global = (bool) $configDash->valor;
+        }
     }
 
     private function cargarConfigPerfil()
     {
         $keys = ['nombre', 'username', 'email', 'password'];
         foreach ($keys as $key) {
-            $prop = "perfil_solicitar_" . $key;
-            $config = Configuracion::where('clave', 'perfil_solicitar_' . $key)->first();
+            $prop = 'perfil_solicitar_'.$key;
+            $config = Configuracion::where('clave', 'perfil_solicitar_'.$key)->first();
             if ($config) {
-                $this->$prop = (bool)$config->valor;
+                $this->$prop = (bool) $config->valor;
             }
         }
     }
@@ -95,7 +120,7 @@ class ConfiguracionGeneral extends Component
     public function sortBy($field)
     {
         if ($this->sortField === $field) {
-            $this->sortAsc = !$this->sortAsc;
+            $this->sortAsc = ! $this->sortAsc;
         } else {
             $this->sortAsc = true;
             $this->sortField = $field;
@@ -106,16 +131,16 @@ class ConfiguracionGeneral extends Component
     {
         abort_if(Gate::denies('admin-incidencias'), 403);
         $this->validate([
-            'nombre_problema' => 'required|min:3|unique:problemas,nombre,' . $this->problema_id,
+            'nombre_problema' => 'required|min:3|unique:problemas,nombre,'.$this->problema_id,
             'problema_especialidad_id' => 'required|exists:especialidades_tecnicas,id',
         ]);
 
         Problema::updateOrCreate(
             ['id' => $this->problema_id],
             [
-                'nombre' => $this->nombre_problema, 
+                'nombre' => $this->nombre_problema,
                 'activo' => $this->problema_activo,
-                'especialidad_id' => $this->problema_especialidad_id
+                'especialidad_id' => $this->problema_especialidad_id,
             ]
         );
 
@@ -141,6 +166,7 @@ class ConfiguracionGeneral extends Component
         $problema = Problema::findOrFail($id);
         if ($problema->incidencias()->count() > 0) {
             $this->dispatch('mostrar-toast', mensaje: 'No se puede eliminar un tipo de incidencia que ya tiene registros asociados.', tipo: 'danger');
+
             return;
         }
         $problema->delete();
@@ -156,7 +182,7 @@ class ConfiguracionGeneral extends Component
     public function sortByEspecialidad($field)
     {
         if ($this->sortFieldEspecialidad === $field) {
-            $this->sortAscEspecialidad = !$this->sortAscEspecialidad;
+            $this->sortAscEspecialidad = ! $this->sortAscEspecialidad;
         } else {
             $this->sortAscEspecialidad = true;
             $this->sortFieldEspecialidad = $field;
@@ -167,7 +193,7 @@ class ConfiguracionGeneral extends Component
     {
         abort_if(Gate::denies('admin-incidencias'), 403);
         $this->validate([
-            'nombre_especialidad' => 'required|min:3|unique:especialidades_tecnicas,nombre,' . $this->especialidad_id,
+            'nombre_especialidad' => 'required|min:3|unique:especialidades_tecnicas,nombre,'.$this->especialidad_id,
         ]);
 
         EspecialidadTecnica::updateOrCreate(
@@ -196,6 +222,7 @@ class ConfiguracionGeneral extends Component
         $especialidad = EspecialidadTecnica::findOrFail($id);
         if ($especialidad->problemas()->count() > 0 || $especialidad->usuarios()->count() > 0) {
             $this->dispatch('mostrar-toast', mensaje: 'No se puede eliminar una Especialidad que ya tiene problemas o usuarios asociados.', tipo: 'danger');
+
             return;
         }
         $especialidad->delete();
@@ -225,9 +252,9 @@ class ConfiguracionGeneral extends Component
 
         $keys = ['nombre', 'username', 'email', 'password'];
         foreach ($keys as $key) {
-            $prop = "perfil_solicitar_" . $key;
+            $prop = 'perfil_solicitar_'.$key;
             Configuracion::updateOrCreate(
-                ['clave' => 'perfil_solicitar_' . $key],
+                ['clave' => 'perfil_solicitar_'.$key],
                 ['valor' => $this->$prop ? '1' : '0', 'grupo' => 'perfil']
             );
         }
@@ -238,14 +265,14 @@ class ConfiguracionGeneral extends Component
     #[Layout('components.layouts.app')]
     public function render()
     {
-        $problemas = Problema::with('especialidad')->where('nombre', 'like', '%' . $this->searchProblema . '%')
+        $problemas = Problema::with('especialidad')->where('nombre', 'like', '%'.$this->searchProblema.'%')
             ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
             ->paginate(8, ['*'], 'problemasPage');
-            
-        $especialidadesList = EspecialidadTecnica::where('nombre', 'like', '%' . $this->searchEspecialidad . '%')
+
+        $especialidadesList = EspecialidadTecnica::where('nombre', 'like', '%'.$this->searchEspecialidad.'%')
             ->orderBy($this->sortFieldEspecialidad, $this->sortAscEspecialidad ? 'asc' : 'desc')
             ->paginate(8, ['*'], 'especialidadesPage');
-            
+
         $todasEspecialidades = EspecialidadTecnica::where('activo', true)->get();
 
         return view('livewire.admin.configuracion-general', compact('problemas', 'especialidadesList', 'todasEspecialidades'));

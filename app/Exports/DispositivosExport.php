@@ -26,23 +26,27 @@ class DispositivosExport implements FromCollection, WithHeadings, WithMapping, W
     {
         $query = Dispositivo::with(['marca', 'tipoDispositivo', 'departamento', 'dependencia', 'trabajador', 'computador', 'puertos']);
 
-        if (!empty($this->filters['search'])) {
+        if (! empty($this->filters['search'])) {
             $search = $this->filters['search'];
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('bien_nacional', 'like', "%$search%")
-                  ->orWhere('serial', 'like', "%$search%")
-                  ->orWhere('nombre', 'like', "%$search%")
-                  ->orWhere('ip', 'like', "%$search%")
-                  ->orWhereHas('marca', fn($sub) => $sub->where('nombre', 'like', "%$search%"));
+                    ->orWhere('serial', 'like', "%$search%")
+                    ->orWhere('nombre', 'like', "%$search%")
+                    ->orWhere('ip', 'like', "%$search%")
+                    ->orWhereHas('marca', fn ($sub) => $sub->where('nombre', 'like', "%$search%"));
             });
         }
 
         if (isset($this->filters['estado'])) {
-            if ($this->filters['estado'] === 'activos') $query->where('activo', true);
-            if ($this->filters['estado'] === 'inactivos') $query->where('activo', false);
+            if ($this->filters['estado'] === 'activos') {
+                $query->where('activo', true);
+            }
+            if ($this->filters['estado'] === 'inactivos') {
+                $query->where('activo', false);
+            }
         }
 
-        if (!empty($this->filters['departamento_id'])) {
+        if (! empty($this->filters['departamento_id'])) {
             $query->where('departamento_id', $this->filters['departamento_id']);
         }
 
@@ -88,8 +92,8 @@ class DispositivosExport implements FromCollection, WithHeadings, WithMapping, W
             $item->ip ?? 'Directo / N/A',
             $item->departamento->nombre ?? 'STOCK / ALMACÉN',
             $item->dependencia->nombre ?? 'N/A',
-            ($item->trabajador ? ($item->trabajador->nombres . ' ' . $item->trabajador->apellidos) : 'No asignado'),
-            $item->computador ? ('BN: ' . $item->computador->bien_nacional) : 'Libre / En Red',
+            ($item->trabajador ? ($item->trabajador->nombres.' '.$item->trabajador->apellidos) : 'No asignado'),
+            $item->computador ? ('BN: '.$item->computador->bien_nacional) : 'Libre / En Red',
             strtoupper(str_replace('_', ' ', $item->estado)),
             $puertos ?: 'Estandard',
             $item->notas,

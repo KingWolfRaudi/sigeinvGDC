@@ -2,24 +2,30 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\User;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\User;
 use Spatie\Activitylog\Models\Activity;
-use Livewire\Attributes\Layout;
 
 class AuditoriaUsuarios extends Component
 {
     use WithPagination;
+
     protected $paginationTheme = 'bootstrap';
 
     public $search = '';
+
     public $sortField = 'name';
+
     public $sortAsc = true;
+
     public $filtro_estado = 'todos';
 
     public $selectedUser = null;
+
     public $dateFrom = '';
+
     public $dateTo = '';
 
     public function mount()
@@ -36,7 +42,7 @@ class AuditoriaUsuarios extends Component
     public function sortBy($field)
     {
         if ($this->sortField === $field) {
-            $this->sortAsc = !$this->sortAsc;
+            $this->sortAsc = ! $this->sortAsc;
         } else {
             $this->sortAsc = true;
             $this->sortField = $field;
@@ -55,10 +61,10 @@ class AuditoriaUsuarios extends Component
         $query = User::with('roles');
 
         if ($this->search) {
-            $query->where(function($q) {
-                $q->where('name', 'like', '%' . $this->search . '%')
-                  ->orWhere('email', 'like', '%' . $this->search . '%')
-                  ->orWhere('username', 'like', '%' . $this->search . '%');
+            $query->where(function ($q) {
+                $q->where('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('email', 'like', '%'.$this->search.'%')
+                    ->orWhere('username', 'like', '%'.$this->search.'%');
             });
         }
 
@@ -69,17 +75,21 @@ class AuditoriaUsuarios extends Component
         }
 
         $usuarios = $query->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
-                          ->paginate(10);
+            ->paginate(10);
 
         // Si hay un usuario seleccionado, cargamos su historial de actividad
         $actividades = collect();
         if ($this->selectedUser) {
             $actQuery = Activity::where('causer_id', $this->selectedUser->id)
-                                ->where('causer_type', User::class)
-                                ->latest();
-            
-            if ($this->dateFrom) $actQuery->whereDate('created_at', '>=', $this->dateFrom);
-            if ($this->dateTo) $actQuery->whereDate('created_at', '<=', $this->dateTo);
+                ->where('causer_type', User::class)
+                ->latest();
+
+            if ($this->dateFrom) {
+                $actQuery->whereDate('created_at', '>=', $this->dateFrom);
+            }
+            if ($this->dateTo) {
+                $actQuery->whereDate('created_at', '<=', $this->dateTo);
+            }
 
             $actividades = $actQuery->take(100)->get();
         }

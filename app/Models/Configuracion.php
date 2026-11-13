@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
+use App\Traits\RecordSignature;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
-use App\Traits\RecordSignature;
 
 class Configuracion extends Model
 {

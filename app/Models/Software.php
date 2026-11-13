@@ -2,17 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\RecordSignature;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
-
-use App\Traits\RecordSignature;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Software extends Model
 {
-    use HasFactory, SoftDeletes, LogsActivity, RecordSignature;
+    use HasFactory, LogsActivity, RecordSignature, SoftDeletes;
 
     protected $table = 'software';
 
@@ -22,7 +21,7 @@ class Software extends Model
         'tipo_licencia',
         'serial',
         'descripcion_programa',
-        'activo'
+        'activo',
     ];
 
     /**
@@ -44,7 +43,7 @@ class Software extends Model
                 'tipo_licencia',
                 'serial',
                 'descripcion_programa',
-                'activo'
+                'activo',
             ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();

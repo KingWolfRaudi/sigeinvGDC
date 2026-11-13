@@ -15,15 +15,15 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             // El email es nullable porque los trabajadores puros solo usarán username
-            $table->string('email')->unique()->nullable(); 
+            $table->string('email')->unique()->nullable();
             // El username es unique y nullable porque el SuperAdmin inicialmente usa email
-            $table->string('username')->unique()->nullable(); 
+            $table->string('username')->unique()->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('avatar')->nullable();
             $table->boolean('activo')->default(true);
             $table->unsignedBigInteger('trabajador_id')->nullable(); // nullable para superadmins
-            
+
             // Refactorizacion Incidencias V2
             $table->boolean('disponible_asignacion')->default(false);
             $table->foreignId('especialidad_id')->nullable()->constrained('especialidades_tecnicas')->onDelete('set null');

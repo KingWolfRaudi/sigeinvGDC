@@ -2,15 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\RecordSignature;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-use App\Traits\RecordSignature;
-
 class Problema extends Model
 {
-    use HasFactory, SoftDeletes, RecordSignature;
+    use HasFactory, RecordSignature, SoftDeletes;
 
     protected $fillable = ['nombre', 'activo', 'especialidad_id'];
 
@@ -22,7 +21,7 @@ class Problema extends Model
     {
         return $this->hasMany(Incidencia::class);
     }
-    
+
     public function especialidad()
     {
         return $this->belongsTo(EspecialidadTecnica::class, 'especialidad_id');

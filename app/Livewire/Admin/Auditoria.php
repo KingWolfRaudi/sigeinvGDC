@@ -2,23 +2,29 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\Departamento;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Spatie\Activitylog\Models\Activity;
-use App\Models\User;
-use Livewire\Attributes\Layout;
 
 class Auditoria extends Component
 {
     use WithPagination;
+
     protected $paginationTheme = 'bootstrap';
 
     // Filtros
     public $searchUser = '';
+
     public $searchModule = '';
+
     public $dateFrom = '';
+
     public $dateTo = '';
+
     public $sortField = 'created_at';
+
     public $sortAsc = false;
 
     // Detalle
@@ -26,6 +32,7 @@ class Auditoria extends Component
 
     // Reporte Masivo
     public $showReportModal = false;
+
     public $reportSelections = [
         'computadores' => ['selected' => false, 'full_inventory' => true, 'filters' => ['estado' => '', 'departamento_id' => '']],
         'dispositivos' => ['selected' => false, 'full_inventory' => true, 'filters' => ['estado' => '', 'departamento_id' => '']],
@@ -58,13 +65,14 @@ class Auditoria extends Component
                 $finalSelections[] = [
                     'module' => $module,
                     'full_inventory' => $data['full_inventory'] ?? false, // <-- Agregado
-                    'filters' => $data['filters']
+                    'filters' => $data['filters'],
                 ];
             }
         }
 
         if (empty($finalSelections)) {
             $this->dispatch('notificar', icon: 'error', title: 'Selección vacía', text: 'Debe seleccionar al menos un módulo.');
+
             return;
         }
 
@@ -83,7 +91,7 @@ class Auditoria extends Component
     public function sortBy($field)
     {
         if ($this->sortField === $field) {
-            $this->sortAsc = !$this->sortAsc;
+            $this->sortAsc = ! $this->sortAsc;
         } else {
             $this->sortAsc = true;
             $this->sortField = $field;
@@ -96,15 +104,15 @@ class Auditoria extends Component
         $query = Activity::with('causer')->latest();
 
         if ($this->searchUser) {
-            $query->whereHas('causer', function($q) {
-                $q->where('name', 'like', '%' . $this->searchUser . '%')
-                  ->orWhere('email', 'like', '%' . $this->searchUser . '%');
+            $query->whereHas('causer', function ($q) {
+                $q->where('name', 'like', '%'.$this->searchUser.'%')
+                    ->orWhere('email', 'like', '%'.$this->searchUser.'%');
             });
         }
 
         if ($this->searchModule) {
-            $query->where('subject_type', 'like', '%' . $this->searchModule . '%')
-                  ->orWhere('description', 'like', '%' . $this->searchModule . '%');
+            $query->where('subject_type', 'like', '%'.$this->searchModule.'%')
+                ->orWhere('description', 'like', '%'.$this->searchModule.'%');
         }
 
         if ($this->dateFrom) {
@@ -116,11 +124,11 @@ class Auditoria extends Component
         }
 
         $logs = $query->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
-                      ->paginate(15);
+            ->paginate(15);
 
         return view('livewire.admin.auditoria', [
             'logs' => $logs,
-            'departamentos' => \App\Models\Departamento::activos()->get()
+            'departamentos' => Departamento::activos()->get(),
         ]);
     }
 }

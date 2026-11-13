@@ -2,6 +2,14 @@
 
 namespace App\Exports;
 
+use App\Models\Departamento;
+use App\Models\Gpu;
+use App\Models\Marca;
+use App\Models\Procesador;
+use App\Models\Puerto;
+use App\Models\SistemaOperativo;
+use App\Models\TipoDispositivo;
+use App\Models\Trabajador;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 class MassiveReportExport implements WithMultipleSheets
@@ -9,7 +17,7 @@ class MassiveReportExport implements WithMultipleSheets
     protected $selections;
 
     /**
-     * @param array $selections Array of ['module' => '...', 'filters' => [...]]
+     * @param  array  $selections  Array of ['module' => '...', 'filters' => [...]]
      */
     public function __construct(array $selections)
     {
@@ -36,28 +44,28 @@ class MassiveReportExport implements WithMultipleSheets
                     $sheets[] = new InsumosExport($filters);
                     break;
                 case 'marcas':
-                    $sheets[] = new CatalogosExport(\App\Models\Marca::class, $filters, 'Marcas');
+                    $sheets[] = new CatalogosExport(Marca::class, $filters, 'Marcas');
                     break;
                 case 'tipos-dispositivo':
-                    $sheets[] = new CatalogosExport(\App\Models\TipoDispositivo::class, $filters, 'Tipos de Dispositivo');
+                    $sheets[] = new CatalogosExport(TipoDispositivo::class, $filters, 'Tipos de Dispositivo');
                     break;
                 case 'sistemas-operativos':
-                    $sheets[] = new CatalogosExport(\App\Models\SistemaOperativo::class, $filters, 'Sistemas Operativos');
+                    $sheets[] = new CatalogosExport(SistemaOperativo::class, $filters, 'Sistemas Operativos');
                     break;
                 case 'departamentos':
-                    $sheets[] = new CatalogosExport(\App\Models\Departamento::class, $filters, 'Departamentos');
+                    $sheets[] = new CatalogosExport(Departamento::class, $filters, 'Departamentos');
                     break;
                 case 'trabajadores':
-                    $sheets[] = new CatalogosExport(\App\Models\Trabajador::class, $filters, 'Trabajadores');
+                    $sheets[] = new CatalogosExport(Trabajador::class, $filters, 'Trabajadores');
                     break;
                 case 'procesadores':
-                    $sheets[] = new CatalogosExport(\App\Models\Procesador::class, $filters, 'Procesadores');
+                    $sheets[] = new CatalogosExport(Procesador::class, $filters, 'Procesadores');
                     break;
                 case 'gpus':
-                    $sheets[] = new CatalogosExport(\App\Models\Gpu::class, $filters, 'GPUs');
+                    $sheets[] = new CatalogosExport(Gpu::class, $filters, 'GPUs');
                     break;
                 case 'puertos':
-                    $sheets[] = new CatalogosExport(\App\Models\Puerto::class, $filters, 'Puertos');
+                    $sheets[] = new CatalogosExport(Puerto::class, $filters, 'Puertos');
                     break;
             }
         }

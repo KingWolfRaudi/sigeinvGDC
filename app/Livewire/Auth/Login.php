@@ -2,22 +2,24 @@
 
 namespace App\Livewire\Auth;
 
-use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
-//use Livewire\Attributes\Layout;
+use Livewire\Component;
+
+// use Livewire\Attributes\Layout;
 
 // Le indicamos que use nuestra plantilla base de Bootstrap
-//#[Layout('layouts.app')]
+// #[Layout('layouts.app')]
 class Login extends Component
 {
     // Variables ligadas al formulario
     public $identificador = ''; // Puede ser email o username
+
     public $password = '';
 
     // Reglas de validación básicas
     protected $rules = [
         'identificador' => 'required',
-        'password' => 'required'
+        'password' => 'required',
     ];
 
     public function iniciarSesion()
@@ -32,14 +34,14 @@ class Login extends Component
         // NOTA: Agregamos 'activo' => 1 para asegurar que usuarios dados de baja no entren
         $credenciales = [
             $tipoDeCampo => $this->identificador,
-            'password'   => $this->password,
-            'activo'     => 1 
+            'password' => $this->password,
+            'activo' => 1,
         ];
 
         // 3. Intentar autenticar
         if (Auth::attempt($credenciales, false)) {
             $user = Auth::user();
-            
+
             // Registrar auditoría de inicio de sesión
             activity()
                 ->causedBy($user)
@@ -61,7 +63,7 @@ class Login extends Component
             ->withProperties([
                 'identificador_intentado' => $this->identificador,
                 'ip' => request()->ip(),
-                'user_agent' => request()->userAgent()
+                'user_agent' => request()->userAgent(),
             ])
             ->log('Intento fallido de inicio de sesión');
 

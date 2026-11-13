@@ -11,19 +11,19 @@ trait RecordSignature
     {
         static::creating(function ($model) {
             $userId = Auth::check() ? Auth::id() : 1; // Default to ID 1 (Sistema) if no auth
-            
-            if (!$model->isDirty('created_by')) {
+
+            if (! $model->isDirty('created_by')) {
                 $model->created_by = $userId;
             }
-            if (!$model->isDirty('updated_by')) {
+            if (! $model->isDirty('updated_by')) {
                 $model->updated_by = $userId;
             }
         });
 
         static::updating(function ($model) {
             $userId = Auth::check() ? Auth::id() : 1;
-            
-            if (!$model->isDirty('updated_by')) {
+
+            if (! $model->isDirty('updated_by')) {
                 $model->updated_by = $userId;
             }
         });

@@ -2,23 +2,33 @@
 
 namespace App\Livewire\Catalogos;
 
-use Livewire\Component;
 use App\Models\SistemaOperativo;
-use Livewire\WithPagination;
 use Illuminate\Support\Facades\Gate;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class SistemasOperativos extends Component
 {
     use WithPagination;
+
     protected $paginationTheme = 'bootstrap';
 
-    public $sistema_id, $nombre, $sistema_detalle;
+    public $sistema_id;
+
+    public $nombre;
+
+    public $sistema_detalle;
+
     public bool $activo = true;
+
     public $tituloModal = 'Nuevo Sistema Operativo';
 
     public $search = '';
+
     public $sortField = 'nombre';
+
     public $sortAsc = true;
+
     public $filtro_estado = 'todos';
 
     public function updatingSearch()
@@ -29,7 +39,7 @@ class SistemasOperativos extends Component
     public function sortBy($field)
     {
         if ($this->sortField === $field) {
-            $this->sortAsc = !$this->sortAsc;
+            $this->sortAsc = ! $this->sortAsc;
         } else {
             $this->sortAsc = true;
             $this->sortField = $field;
@@ -42,7 +52,7 @@ class SistemasOperativos extends Component
         $query = SistemaOperativo::query();
 
         // 2. LÓGICA DE ESTADOS Y VISIBILIDAD (Data Scoping)
-        if (\Illuminate\Support\Facades\Gate::allows('ver-estado-sistemas-operativos')) {
+        if (Gate::allows('ver-estado-sistemas-operativos')) {
             if ($this->filtro_estado === 'activos') {
                 $query->where('activo', true);
             } elseif ($this->filtro_estado === 'inactivos') {
@@ -54,10 +64,10 @@ class SistemasOperativos extends Component
         }
 
         // 3. Búsqueda y Paginación
-        $sistemas = $query->where('nombre', 'like', '%' . $this->search . '%')
-                          ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
-                          ->paginate(10);
-                       
+        $sistemas = $query->where('nombre', 'like', '%'.$this->search.'%')
+            ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
+            ->paginate(10);
+
         return view('livewire.catalogos.sistemas-operativos', compact('sistemas'));
     }
 
@@ -75,19 +85,19 @@ class SistemasOperativos extends Component
         abort_if(Gate::denies($this->sistema_id ? 'editar-sistemas-operativos' : 'crear-sistemas-operativos'), 403);
 
         $this->validate([
-            'nombre' => 'required|min:2|unique:sistemas_operativos,nombre,' . $this->sistema_id,
+            'nombre' => 'required|min:2|unique:sistemas_operativos,nombre,'.$this->sistema_id,
         ]);
 
         SistemaOperativo::updateOrCreate(
             ['id' => $this->sistema_id],
             [
                 'nombre' => $this->nombre,
-                'activo' => $this->activo ? 1 : 0
+                'activo' => $this->activo ? 1 : 0,
             ]
         );
 
         $this->dispatch('cerrar-modal', id: 'modalSistema');
-        $this->dispatch('mostrar-toast', mensaje: $this->sistema_id ? 'Sistema Operativo actualizado.' : 'Sistema Operativo creado.', tipo:'success');
+        $this->dispatch('mostrar-toast', mensaje: $this->sistema_id ? 'Sistema Operativo actualizado.' : 'Sistema Operativo creado.', tipo: 'success');
         $this->resetCampos();
     }
 
@@ -99,8 +109,8 @@ class SistemasOperativos extends Component
         $sistema = SistemaOperativo::findOrFail($id);
         $this->sistema_id = $sistema->id;
         $this->nombre = $sistema->nombre;
-        $this->activo = (bool) $sistema->activo; 
-        
+        $this->activo = (bool) $sistema->activo;
+
         $this->tituloModal = 'Editar Sistema Operativo';
         $this->dispatch('abrir-modal', id: 'modalSistema');
     }
@@ -110,15 +120,15 @@ class SistemasOperativos extends Component
         abort_if(Gate::denies('cambiar-estatus-sistemas-operativos'), 403);
 
         $sistema = SistemaOperativo::findOrFail($id);
-        $sistema->activo = !$sistema->activo;
+        $sistema->activo = ! $sistema->activo;
         $sistema->save();
-        $this->dispatch('mostrar-toast', mensaje: "Estado cambiado.", tipo:'success');
+        $this->dispatch('mostrar-toast', mensaje: 'Estado cambiado.', tipo: 'success');
     }
 
     public function ver($id)
     {
         abort_if(Gate::denies('ver-sistemas-operativos'), 403);
-        
+
         $this->sistema_detalle = SistemaOperativo::findOrFail($id);
         $this->dispatch('abrir-modal', id: 'modalDetalle');
     }
@@ -128,7 +138,7 @@ class SistemasOperativos extends Component
         abort_if(Gate::denies('eliminar-sistemas-operativos'), 403);
 
         SistemaOperativo::findOrFail($id)->delete();
-        $this->dispatch('mostrar-toast', mensaje: 'Sistema Operativo eliminado.', tipo:'success');
+        $this->dispatch('mostrar-toast', mensaje: 'Sistema Operativo eliminado.', tipo: 'success');
     }
 
     public function resetCampos()

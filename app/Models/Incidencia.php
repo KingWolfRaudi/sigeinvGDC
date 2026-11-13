@@ -2,17 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\RecordSignature;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
-
-use App\Traits\RecordSignature;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Incidencia extends Model
 {
-    use HasFactory, SoftDeletes, LogsActivity, RecordSignature;
+    use HasFactory, LogsActivity, RecordSignature, SoftDeletes;
 
     public function getActivitylogOptions(): LogOptions
     {
@@ -34,7 +33,7 @@ class Incidencia extends Model
         'nota_resolucion',
         'amerita_movimiento',
         'solventado',
-        'cerrado'
+        'cerrado',
     ];
 
     protected $casts = [

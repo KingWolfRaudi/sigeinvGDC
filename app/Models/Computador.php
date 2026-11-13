@@ -2,17 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\RecordSignature;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
-
-use App\Traits\RecordSignature;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Computador extends Model
 {
-    use HasFactory, SoftDeletes, LogsActivity, RecordSignature;
+    use HasFactory, LogsActivity, RecordSignature, SoftDeletes;
 
     public function getActivitylogOptions(): LogOptions
     {
@@ -25,10 +24,10 @@ class Computador extends Model
     protected $table = 'computadores';
 
     protected $fillable = [
-        'bien_nacional', 'serial', 'nombre_equipo', 'marca_id', 'tipo_computador', 
+        'bien_nacional', 'serial', 'nombre_equipo', 'marca_id', 'tipo_computador',
         'sistema_operativo_id', 'procesador_id', 'gpu_id', 'unidad_dvd', 'fuente_poder', 'departamento_id', 'dependencia_id',
-        'trabajador_id', 'tipo_ram', 'mac', 'ip', 'tipo_conexion', 'estado_fisico', 
-        'observaciones', 'activo'
+        'trabajador_id', 'tipo_ram', 'mac', 'ip', 'tipo_conexion', 'estado_fisico',
+        'observaciones', 'activo',
     ];
 
     protected $casts = [
@@ -38,21 +37,62 @@ class Computador extends Model
     ];
 
     // Relaciones Simples (BelongsTo)
-    public function marca() { return $this->belongsTo(Marca::class); }
-    public function sistemaOperativo() { return $this->belongsTo(SistemaOperativo::class); }
-    public function procesador() { return $this->belongsTo(Procesador::class); }
-    public function gpu() { return $this->belongsTo(Gpu::class); }
-    public function trabajador() { return $this->belongsTo(Trabajador::class); }
-    public function departamento() { return $this->belongsTo(Departamento::class); }
-    public function dependencia() { return $this->belongsTo(Dependencia::class); }
+    public function marca()
+    {
+        return $this->belongsTo(Marca::class);
+    }
+
+    public function sistemaOperativo()
+    {
+        return $this->belongsTo(SistemaOperativo::class);
+    }
+
+    public function procesador()
+    {
+        return $this->belongsTo(Procesador::class);
+    }
+
+    public function gpu()
+    {
+        return $this->belongsTo(Gpu::class);
+    }
+
+    public function trabajador()
+    {
+        return $this->belongsTo(Trabajador::class);
+    }
+
+    public function departamento()
+    {
+        return $this->belongsTo(Departamento::class);
+    }
+
+    public function dependencia()
+    {
+        return $this->belongsTo(Dependencia::class);
+    }
 
     // Relaciones Múltiples (HasMany y BelongsToMany)
-    public function discos() { return $this->hasMany(ComputadorDisco::class); }
-    public function rams() { return $this->hasMany(ComputadorRam::class); }
-    public function puertos() { return $this->belongsToMany(Puerto::class, 'computador_puerto'); }
+    public function discos()
+    {
+        return $this->hasMany(ComputadorDisco::class);
+    }
+
+    public function rams()
+    {
+        return $this->hasMany(ComputadorRam::class);
+    }
+
+    public function puertos()
+    {
+        return $this->belongsToMany(Puerto::class, 'computador_puerto');
+    }
 
     // Trazabilidad de Movimientos
-    public function movimientos() { return $this->hasMany(MovimientoComputador::class, 'computador_id'); }
+    public function movimientos()
+    {
+        return $this->hasMany(MovimientoComputador::class, 'computador_id');
+    }
 
     /**
      * Incidencias asociadas
@@ -70,8 +110,8 @@ class Computador extends Model
         $total = $this->rams->sum(function ($ram) {
             return (int) str_replace('GB', '', $ram->capacidad);
         });
-        
-        return $total > 0 ? $total . 'GB' : '0GB';
+
+        return $total > 0 ? $total.'GB' : '0GB';
     }
 
     /**
@@ -82,7 +122,7 @@ class Computador extends Model
         $total = $this->discos->sum(function ($disco) {
             return (int) str_replace('GB', '', $disco->capacidad);
         });
-        
-        return $total > 0 ? $total . 'GB' : '0GB';
+
+        return $total > 0 ? $total.'GB' : '0GB';
     }
 }

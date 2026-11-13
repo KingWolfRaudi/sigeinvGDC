@@ -14,12 +14,12 @@ return new class extends Migration
             $table->string('apellidos');
             $table->string('cedula')->nullable()->unique();
             $table->string('cargo')->nullable();
-            
+
             $table->foreignId('departamento_id')->constrained('departamentos')->onDelete('restrict');
-            
+
             // AGREGAR ESTA LÍNEA (El vínculo con la cuenta de usuario)
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('restrict');
-            
+
             $table->boolean('activo')->default(true);
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
@@ -27,7 +27,6 @@ return new class extends Migration
             $table->softDeletes();
         });
     }
-    
 
     public function down(): void
     {

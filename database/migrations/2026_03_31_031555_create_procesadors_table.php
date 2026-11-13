@@ -15,14 +15,14 @@ return new class extends Migration
             $table->id();
             // Llave foránea hacia la tabla marcas
             $table->foreignId('marca_id')->constrained('marcas')->onDelete('restrict');
-            
+
             $table->string('modelo');
             $table->string('generacion')->nullable();
             $table->string('frecuencia_base')->nullable();
             $table->string('frecuencia_maxima')->nullable();
             $table->integer('nucleos')->nullable();
             $table->integer('hilos')->nullable();
-            
+
             $table->boolean('activo')->default(true);
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');

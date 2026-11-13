@@ -2,71 +2,139 @@
 
 namespace App\Livewire\Inventario;
 
-use Livewire\Component;
-use Livewire\WithPagination;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use App\Models\Computador;
 use App\Models\ComputadorDisco;
 use App\Models\ComputadorRam;
-use App\Models\Marca;
-use App\Models\TipoDispositivo;
-use App\Models\SistemaOperativo;
-use App\Models\Procesador;
-use App\Models\Gpu;
-use App\Models\Trabajador;
-use App\Models\Puerto;
 use App\Models\Departamento;
 use App\Models\Dependencia;
+use App\Models\Gpu;
+use App\Models\Marca;
 use App\Models\MovimientoComputador;
-
+use App\Models\Procesador;
+use App\Models\Puerto;
+use App\Models\SistemaOperativo;
+use App\Models\Trabajador;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class Computadores extends Component
 {
     use WithPagination;
+
     protected $paginationTheme = 'bootstrap';
 
     // Campos principales
-    public $computador_id, $bien_nacional, $serial, $nombre_equipo, $marca_id, $tipo_computador, $sistema_operativo_id;
-    public $procesador_id, $gpu_id, $departamento_id, $dependencia_id, $trabajador_id, $tipo_ram, $mac, $ip;
+    public $computador_id;
+
+    public $bien_nacional;
+
+    public $serial;
+
+    public $nombre_equipo;
+
+    public $marca_id;
+
+    public $tipo_computador;
+
+    public $sistema_operativo_id;
+
+    public $procesador_id;
+
+    public $gpu_id;
+
+    public $departamento_id;
+
+    public $dependencia_id;
+
+    public $trabajador_id;
+
+    public $tipo_ram;
+
+    public $mac;
+
+    public $ip;
+
     public $dependencias_disponibles = [];
+
     public $tipo_conexion = 'Ethernet'; // Valor por defecto
+
     public $estado_fisico = 'operativo';
+
     public bool $unidad_dvd = true;
+
     public bool $fuente_poder = true;
+
     public $observaciones;
+
     public bool $activo = true;
 
     // Workflow de Movimientos
     public $justificacion = '';
+
     public bool $es_edicion = false;
+
     public $movimiento_preview = null; // Vista rápida de cambio pendiente desde el inventario
 
     // Relaciones Multiples (Arrays Dinámicos)
     public $discos = [];
+
     public $rams = [];
+
     public $puertos_seleccionados = [];
 
     // Creación Rápida On The Fly (Select vs Input)
-    public $creando_marca = false, $nueva_marca;
-    public $creando_so = false, $nuevo_so;
-    public $creando_procesador = false, $nuevo_procesador_modelo, $nuevo_procesador_marca_id;
-    public $creando_gpu = false, $nueva_gpu_modelo, $nueva_gpu_marca_id;
-    public $creando_departamento = false, $nuevo_departamento;
+    public $creando_marca = false;
+
+    public $nueva_marca;
+
+    public $creando_so = false;
+
+    public $nuevo_so;
+
+    public $creando_procesador = false;
+
+    public $nuevo_procesador_modelo;
+
+    public $nuevo_procesador_marca_id;
+
+    public $creando_gpu = false;
+
+    public $nueva_gpu_modelo;
+
+    public $nueva_gpu_marca_id;
+
+    public $creando_departamento = false;
+
+    public $nuevo_departamento;
+
     // Variables para el Modal Completo de Trabajador
-    public $nuevo_trab_nombres, $nuevo_trab_apellidos, $nuevo_trab_cedula, $nuevo_trab_departamento_id; 
+    public $nuevo_trab_nombres;
+
+    public $nuevo_trab_apellidos;
+
+    public $nuevo_trab_cedula;
+
+    public $nuevo_trab_departamento_id;
     // (Agrega aquí otras variables si tu tabla trabajadores pide correo, cédula, etc.)
 
     public $computador_detalle;
+
     public $tituloModal = 'Nuevo Computador';
+
     public $search = '';
+
     public $sortField = 'id';
+
     public $sortAsc = false;
+
     public $filtro_estado = 'todos'; // Por defecto muestra todos (para quien tenga permiso)
-    
+
     // Variables para Reutilización y Anidación
     public $presetFiltro = [];
+
     public $ocultarTitulos = false;
 
     public function updatingSearch()
@@ -77,7 +145,7 @@ class Computadores extends Component
     public function sortBy($field)
     {
         if ($this->sortField === $field) {
-            $this->sortAsc = !$this->sortAsc;
+            $this->sortAsc = ! $this->sortAsc;
         } else {
             $this->sortAsc = true;
             $this->sortField = $field;
@@ -88,7 +156,7 @@ class Computadores extends Component
     {
         $this->presetFiltro = $presetFiltro;
         $this->ocultarTitulos = $ocultarTitulos;
-        
+
         // Inicializamos con un disco y una ram por defecto
         $this->addDisco();
         $this->addRam();
@@ -108,7 +176,7 @@ class Computadores extends Component
 
     public function addRam()
     {
-        if(count($this->rams) < 6) {
+        if (count($this->rams) < 6) {
             $this->rams[] = ['capacidad' => '', 'slot' => count($this->rams) + 1];
         } else {
             $this->dispatch('mostrar-toast', mensaje: 'Máximo 6 slots de RAM permitidos.', tipo: 'warning');
@@ -120,17 +188,18 @@ class Computadores extends Component
         unset($this->rams[$index]);
         $this->rams = array_values($this->rams);
         // Reasignar números de slot lógicos
-        foreach($this->rams as $i => $ram) {
+        foreach ($this->rams as $i => $ram) {
             $this->rams[$i]['slot'] = $i + 1;
         }
     }
+
     // ------------------------------------------
     // Este método se ejecuta AUTOMÁTICAMENTE cuando $departamento_id cambia en la vista
     public function updatedDepartamentoId($value)
     {
         $this->trabajador_id = null; // Reseteamos al trabajador para forzar la actualización
         $this->dependencia_id = null;
-        if (!empty($value)) {
+        if (! empty($value)) {
             $this->dependencias_disponibles = Dependencia::where('departamento_id', $value)->where('activo', true)->get();
         } else {
             $this->dependencias_disponibles = [];
@@ -141,19 +210,19 @@ class Computadores extends Component
     {
         $this->trabajador_id = null;
     }
-    
+
     public function render()
     {
         // 1. Iniciamos la consulta base
         $userId = Auth::id();
         $query = Computador::with(['marca', 'trabajador', 'departamento', 'dependencia', 'discos', 'rams'])
             ->withCount([
-                'movimientos as pendientes_count' => fn($q) => $q->where('estado_workflow', 'pendiente'),
-                'movimientos as mis_borradores_count' => fn($q) => $q->where('estado_workflow', 'borrador')->where('solicitante_id', $userId),
+                'movimientos as pendientes_count' => fn ($q) => $q->where('estado_workflow', 'pendiente'),
+                'movimientos as mis_borradores_count' => fn ($q) => $q->where('estado_workflow', 'borrador')->where('solicitante_id', $userId),
             ]);
 
         // 2. LÓGICA DE ESTADOS Y VISIBILIDAD
-        if (\Illuminate\Support\Facades\Gate::allows('ver-estado-computadores')) {
+        if (Gate::allows('ver-estado-computadores')) {
             // Si TIENE permiso, aplicamos el filtro visual
             if ($this->filtro_estado === 'activos') {
                 $query->where('activo', true);
@@ -166,13 +235,13 @@ class Computadores extends Component
         }
 
         // Filtros Prediseñados (Cuando el componente se renderiza dentro de un Asociaciones Dashboard)
-        if (!empty($this->presetFiltro)) {
-            foreach($this->presetFiltro as $col => $val) {
+        if (! empty($this->presetFiltro)) {
+            foreach ($this->presetFiltro as $col => $val) {
                 if ($val !== null) {
                     $query->where($col, $val);
                 }
             }
-            
+
             // Si el preset es sobre departamento, limitamos los catálogos a ese departamento
             if (isset($this->presetFiltro['departamento_id'])) {
                 $this->departamento_id = $this->presetFiltro['departamento_id'];
@@ -181,51 +250,51 @@ class Computadores extends Component
 
         // 3. Búsqueda profunda (Deep Search) - Multiples tablas
         $query->where(function ($q) {
-            $search = '%' . $this->search . '%';
-            
+            $search = '%'.$this->search.'%';
+
             // Campos nativos
             $q->where('bien_nacional', 'like', $search)
-              ->orWhere('serial', 'like', $search)
-              ->orWhere('nombre_equipo', 'like', $search)
-              ->orWhere('ip', 'like', $search)
-              ->orWhere('mac', 'like', $search)
-              ->orWhere('observaciones', 'like', $search)
-              
+                ->orWhere('serial', 'like', $search)
+                ->orWhere('nombre_equipo', 'like', $search)
+                ->orWhere('ip', 'like', $search)
+                ->orWhere('mac', 'like', $search)
+                ->orWhere('observaciones', 'like', $search)
+
               // Relaciones directas simples
-              ->orWhere('tipo_computador', 'like', $search)
-              ->orWhereHas('marca', fn($subQ) => $subQ->where('nombre', 'like', $search))
-              ->orWhereHas('sistemaOperativo', fn($subQ) => $subQ->where('nombre', 'like', $search))
-              ->orWhereHas('departamento', fn($subQ) => $subQ->where('nombre', 'like', $search))
-              
+                ->orWhere('tipo_computador', 'like', $search)
+                ->orWhereHas('marca', fn ($subQ) => $subQ->where('nombre', 'like', $search))
+                ->orWhereHas('sistemaOperativo', fn ($subQ) => $subQ->where('nombre', 'like', $search))
+                ->orWhereHas('departamento', fn ($subQ) => $subQ->where('nombre', 'like', $search))
+
               // Componentes Internos
-              ->orWhereHas('procesador', function($subQ) use ($search) {
-                  $subQ->where('modelo', 'like', $search)
-                       ->orWhereHas('marca', fn($m) => $m->where('nombre', 'like', $search));
-              })
-              ->orWhereHas('gpu', function($subQ) use ($search) {
-                  $subQ->where('modelo', 'like', $search)
-                       ->orWhereHas('marca', fn($m) => $m->where('nombre', 'like', $search));
-              })
-              ->orWhereHas('rams', function($subQ) use ($search) {
-                  $subQ->where('capacidad', 'like', $search);
-              })
-              ->orWhereHas('discos', function($subQ) use ($search) {
-                  $subQ->where('capacidad', 'like', $search)
-                       ->orWhere('tipo', 'like', $search);
-              })
+                ->orWhereHas('procesador', function ($subQ) use ($search) {
+                    $subQ->where('modelo', 'like', $search)
+                        ->orWhereHas('marca', fn ($m) => $m->where('nombre', 'like', $search));
+                })
+                ->orWhereHas('gpu', function ($subQ) use ($search) {
+                    $subQ->where('modelo', 'like', $search)
+                        ->orWhereHas('marca', fn ($m) => $m->where('nombre', 'like', $search));
+                })
+                ->orWhereHas('rams', function ($subQ) use ($search) {
+                    $subQ->where('capacidad', 'like', $search);
+                })
+                ->orWhereHas('discos', function ($subQ) use ($search) {
+                    $subQ->where('capacidad', 'like', $search)
+                        ->orWhere('tipo', 'like', $search);
+                })
 
               // Trabajador asignado
-              ->orWhereHas('trabajador', function($subQ) use ($search) {
-                  $subQ->where('nombres', 'like', $search)
-                       ->orWhere('apellidos', 'like', $search)
-                       ->orWhere('cedula', 'like', $search)
-                       ->orWhere('cargo', 'like', $search);
-              });
+                ->orWhereHas('trabajador', function ($subQ) use ($search) {
+                    $subQ->where('nombres', 'like', $search)
+                        ->orWhere('apellidos', 'like', $search)
+                        ->orWhere('cedula', 'like', $search)
+                        ->orWhere('cargo', 'like', $search);
+                });
         });
 
         // 4. Ordenamos y Paginamos
         $computadores = $query->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
-                              ->paginate(10);
+            ->paginate(10);
 
         // Catálogos para los selects
         $marcas = Marca::where('activo', true)->orderBy('nombre')->get();
@@ -239,13 +308,13 @@ class Computadores extends Component
         if ($this->departamento_id) {
             $trabajadores = Trabajador::where('activo', true)
                 ->where('departamento_id', $this->departamento_id)
-                ->when($this->dependencia_id, function($q) {
+                ->when($this->dependencia_id, function ($q) {
                     return $q->where('dependencia_id', $this->dependencia_id);
                 })
                 ->orderBy('nombres')
                 ->get();
         }
-            
+
         return view('livewire.inventario.computadores', compact(
             'computadores', 'marcas', 'sistemas', 'procesadores', 'gpus', 'trabajadores', 'puertos', 'departamentos'
         ));
@@ -266,15 +335,15 @@ class Computadores extends Component
 
         // Validación base
         $rules = [
-            'bien_nacional' => 'required|string|unique:computadores,bien_nacional,' . $this->computador_id,
-            'serial'        => 'required|string|unique:computadores,serial,' . $this->computador_id,
+            'bien_nacional' => 'required|string|unique:computadores,bien_nacional,'.$this->computador_id,
+            'serial' => 'required|string|unique:computadores,serial,'.$this->computador_id,
             'nombre_equipo' => 'required|string|max:15',
             'tipo_computador' => 'required|string|in:Computador de escritorio,Laptop,Mini Laptop',
-            'ip'            => 'nullable|ipv4',
-            'mac'           => 'nullable|string|unique:computadores,mac,' . $this->computador_id,
+            'ip' => 'nullable|ipv4',
+            'mac' => 'nullable|string|unique:computadores,mac,'.$this->computador_id,
             'estado_fisico' => 'required|string',
-            'tipo_ram'      => 'required|string',
-            'dependencia_id'=> 'nullable|exists:dependencias,id',
+            'tipo_ram' => 'required|string',
+            'dependencia_id' => 'nullable|exists:dependencias,id',
         ];
         // La justificación es OBLIGATORIA solo en ediciones
         if ($esEdicion) {
@@ -282,29 +351,29 @@ class Computadores extends Component
         }
         $this->validate($rules);
 
-        if ($this->creando_marca && !empty($this->nueva_marca)) {
+        if ($this->creando_marca && ! empty($this->nueva_marca)) {
             $marca = Marca::firstOrCreate(['nombre' => $this->nueva_marca], ['activo' => true]);
             $this->marca_id = $marca->id;
         }
-        if ($this->creando_so && !empty($this->nuevo_so)) {
+        if ($this->creando_so && ! empty($this->nuevo_so)) {
             $so = SistemaOperativo::firstOrCreate(['nombre' => $this->nuevo_so], ['activo' => true]);
             $this->sistema_operativo_id = $so->id;
         }
-        if ($this->creando_procesador && !empty($this->nuevo_procesador_modelo) && !empty($this->nuevo_procesador_marca_id)) {
+        if ($this->creando_procesador && ! empty($this->nuevo_procesador_modelo) && ! empty($this->nuevo_procesador_marca_id)) {
             $proc = Procesador::firstOrCreate([
                 'modelo' => $this->nuevo_procesador_modelo,
-                'marca_id' => $this->nuevo_procesador_marca_id
+                'marca_id' => $this->nuevo_procesador_marca_id,
             ], ['activo' => true]);
             $this->procesador_id = $proc->id;
         }
-        if ($this->creando_gpu && !empty($this->nueva_gpu_modelo) && !empty($this->nueva_gpu_marca_id)) {
+        if ($this->creando_gpu && ! empty($this->nueva_gpu_modelo) && ! empty($this->nueva_gpu_marca_id)) {
             $gpu = Gpu::firstOrCreate([
                 'modelo' => $this->nueva_gpu_modelo,
-                'marca_id' => $this->nueva_gpu_marca_id
+                'marca_id' => $this->nueva_gpu_marca_id,
             ], ['activo' => true]);
             $this->gpu_id = $gpu->id;
         }
-        if ($this->creando_departamento && !empty($this->nuevo_departamento)) {
+        if ($this->creando_departamento && ! empty($this->nuevo_departamento)) {
             $dep = Departamento::firstOrCreate(
                 ['nombre' => trim($this->nuevo_departamento)],
                 ['activo' => true]
@@ -331,7 +400,7 @@ class Computadores extends Component
 
         try {
             // ── CREACIÓN: Siempre inmediata ──────────────────────────────────
-            if (!$esEdicion) {
+            if (! $esEdicion) {
                 $computador = Computador::create($payloadNuevo);
                 $computador->puertos()->sync($this->puertos_seleccionados);
                 $this->_procesarDiscosYRams($computador, false);
@@ -339,42 +408,43 @@ class Computadores extends Component
                 $this->dispatch('cerrar-modal', id: 'modalComputador');
                 $this->dispatch('mostrar-toast', mensaje: 'Computador registrado exitosamente.', tipo: 'success');
                 $this->resetCampos();
+
                 return;
             }
 
             // ── EDICIÓN: Verificar si tiene ejecución directa ────────────────
-            $computador = Computador::with(['discos','rams','puertos'])->findOrFail($this->computador_id);
+            $computador = Computador::with(['discos', 'rams', 'puertos'])->findOrFail($this->computador_id);
             $payloadAnterior = $computador->toArray();
-            $payloadAnterior['discos']  = $computador->discos->toArray();
-            $payloadAnterior['rams']    = $computador->rams->toArray();
+            $payloadAnterior['discos'] = $computador->discos->toArray();
+            $payloadAnterior['rams'] = $computador->rams->toArray();
             $payloadAnterior['puertos'] = $computador->puertos->pluck('id')->toArray();
 
             // ── Computar solo los campos que CAMBIARON ──
             $candidato = [
-                'bien_nacional'       => $this->bien_nacional,    'serial'              => $this->serial,
-                'nombre_equipo'       => $this->nombre_equipo,
-                'marca_id'            => $this->marca_id,          'tipo_computador' => $this->tipo_computador,
-                'sistema_operativo_id'=> $this->sistema_operativo_id, 'procesador_id'    => $this->procesador_id,
-                'gpu_id'              => $this->gpu_id ?: null,   'unidad_dvd'          => $this->unidad_dvd,
-                'fuente_poder'        => $this->fuente_poder,     'departamento_id'     => $this->departamento_id ?: null,
-                'dependencia_id'      => $this->dependencia_id ?: null,
-                'trabajador_id'       => $this->trabajador_id ?: null, 'tipo_ram'         => $this->tipo_ram,
-                'mac'                 => $this->mac,              'ip'                  => $this->ip,
-                'tipo_conexion'       => $this->tipo_conexion,    'estado_fisico'       => $this->estado_fisico,
-                'observaciones'       => $this->observaciones,    'activo'              => $this->activo,
-                'discos'              => $this->discos,           'rams'                => $this->rams,
-                'puertos'             => $this->puertos_seleccionados,
+                'bien_nacional' => $this->bien_nacional,    'serial' => $this->serial,
+                'nombre_equipo' => $this->nombre_equipo,
+                'marca_id' => $this->marca_id,          'tipo_computador' => $this->tipo_computador,
+                'sistema_operativo_id' => $this->sistema_operativo_id, 'procesador_id' => $this->procesador_id,
+                'gpu_id' => $this->gpu_id ?: null,   'unidad_dvd' => $this->unidad_dvd,
+                'fuente_poder' => $this->fuente_poder,     'departamento_id' => $this->departamento_id ?: null,
+                'dependencia_id' => $this->dependencia_id ?: null,
+                'trabajador_id' => $this->trabajador_id ?: null, 'tipo_ram' => $this->tipo_ram,
+                'mac' => $this->mac,              'ip' => $this->ip,
+                'tipo_conexion' => $this->tipo_conexion,    'estado_fisico' => $this->estado_fisico,
+                'observaciones' => $this->observaciones,    'activo' => $this->activo,
+                'discos' => $this->discos,           'rams' => $this->rams,
+                'puertos' => $this->puertos_seleccionados,
             ];
             $boolCampos = ['activo', 'unidad_dvd', 'fuente_poder'];
             $payloadNuevo = [];
             foreach ($candidato as $k => $v) {
                 $ant = $payloadAnterior[$k] ?? null;
                 $iguales = in_array($k, $boolCampos)
-                    ? ((bool)$ant === (bool)$v)
-                    : (is_array($v) 
-                        ? $this->_sonIgualesArrays($ant, $v, $k) 
-                        : ((string)($ant ?? '') === (string)($v ?? '')));
-                if (!$iguales) {
+                    ? ((bool) $ant === (bool) $v)
+                    : (is_array($v)
+                        ? $this->_sonIgualesArrays($ant, $v, $k)
+                        : ((string) ($ant ?? '') === (string) ($v ?? '')));
+                if (! $iguales) {
                     $payloadNuevo[$k] = $v;
                 }
             }
@@ -382,6 +452,7 @@ class Computadores extends Component
                 $this->dispatch('mostrar-toast', mensaje: 'No se detectaron cambios.', tipo: 'info');
                 $this->dispatch('cerrar-modal', id: 'modalComputador');
                 $this->resetCampos();
+
                 return;
             }
 
@@ -393,15 +464,15 @@ class Computadores extends Component
 
                 // Registrar trazabilidad
                 MovimientoComputador::create([
-                    'computador_id'   => $computador->id,
-                    'tipo_operacion'  => 'actualizacion_datos',
+                    'computador_id' => $computador->id,
+                    'tipo_operacion' => 'actualizacion_datos',
                     'payload_anterior' => $payloadAnterior,
-                    'payload_nuevo'    => $payloadNuevo,
-                    'estado_workflow'  => 'ejecutado_directo',
-                    'justificacion'   => $this->justificacion,
-                    'solicitante_id'  => Auth::id(),
-                    'aprobador_id'    => Auth::id(),
-                    'aprobado_at'     => now(),
+                    'payload_nuevo' => $payloadNuevo,
+                    'estado_workflow' => 'ejecutado_directo',
+                    'justificacion' => $this->justificacion,
+                    'solicitante_id' => Auth::id(),
+                    'aprobador_id' => Auth::id(),
+                    'aprobado_at' => now(),
                 ]);
 
                 $this->dispatch('cerrar-modal', id: 'modalComputador');
@@ -409,13 +480,13 @@ class Computadores extends Component
             } else {
                 // Crear borrador — No toca la BD real
                 MovimientoComputador::create([
-                    'computador_id'   => $computador->id,
-                    'tipo_operacion'  => 'actualizacion_datos',
+                    'computador_id' => $computador->id,
+                    'tipo_operacion' => 'actualizacion_datos',
                     'payload_anterior' => $payloadAnterior,
-                    'payload_nuevo'    => $payloadNuevo,
-                    'estado_workflow'  => 'borrador',
-                    'justificacion'   => $this->justificacion,
-                    'solicitante_id'  => Auth::id(),
+                    'payload_nuevo' => $payloadNuevo,
+                    'estado_workflow' => 'borrador',
+                    'justificacion' => $this->justificacion,
+                    'solicitante_id' => Auth::id(),
                 ]);
 
                 $this->dispatch('cerrar-modal', id: 'modalComputador');
@@ -427,7 +498,7 @@ class Computadores extends Component
 
             $this->resetCampos();
         } catch (\Exception $e) {
-            Log::error('Error guardando computador: ' . $e->getMessage());
+            Log::error('Error guardando computador: '.$e->getMessage());
             $this->dispatch('mostrar-toast', mensaje: 'Ocurrió un error al guardar.', tipo: 'error');
         }
     }
@@ -436,52 +507,59 @@ class Computadores extends Component
     private function _sonIgualesArrays($ant, $nuevo, $tipo): bool
     {
         // Si ambos están vacíos o son nulos, son iguales
-        if (empty($ant) && empty($nuevo)) return true;
-        
+        if (empty($ant) && empty($nuevo)) {
+            return true;
+        }
+
         // Si uno está vacío y el otro no, son diferentes
-        if (empty($ant) || empty($nuevo)) return false;
+        if (empty($ant) || empty($nuevo)) {
+            return false;
+        }
 
         if ($tipo === 'puertos') {
             // Comparar listas de IDs ignorando el orden
-            $a = (array)$ant; sort($a);
-            $b = (array)$nuevo; sort($b);
+            $a = (array) $ant;
+            sort($a);
+            $b = (array) $nuevo;
+            sort($b);
+
             return $a == $b;
         }
 
         if ($tipo === 'discos' || $tipo === 'rams') {
             // Normalizar el "Anterior" (que viene de DB con IDs y 'GB') al formato del "Nuevo" (del form)
-            $antNorm = array_map(function($item) use ($tipo) {
+            $antNorm = array_map(function ($item) use ($tipo) {
                 if ($tipo === 'discos') {
                     return [
                         'capacidad' => str_replace('GB', '', $item['capacidad'] ?? ''),
-                        'tipo'      => $item['tipo'] ?? ''
+                        'tipo' => $item['tipo'] ?? '',
                     ];
                 } else {
                     return [
                         'capacidad' => str_replace('GB', '', $item['capacidad'] ?? ''),
-                        'slot'      => (int)($item['slot'] ?? 0)
+                        'slot' => (int) ($item['slot'] ?? 0),
                     ];
                 }
-            }, (array)$ant);
+            }, (array) $ant);
 
             // Normalizar el "Nuevo" (asegurar tipos de datos)
-            $nuevoNorm = array_map(function($item) use ($tipo) {
+            $nuevoNorm = array_map(function ($item) use ($tipo) {
                 if ($tipo === 'discos') {
                     return [
-                        'capacidad' => (string)($item['capacidad'] ?? ''),
-                        'tipo'      => (string)($item['tipo'] ?? '')
+                        'capacidad' => (string) ($item['capacidad'] ?? ''),
+                        'tipo' => (string) ($item['tipo'] ?? ''),
                     ];
                 } else {
                     return [
-                        'capacidad' => (string)($item['capacidad'] ?? ''),
-                        'slot'      => (int)($item['slot'] ?? 0)
+                        'capacidad' => (string) ($item['capacidad'] ?? ''),
+                        'slot' => (int) ($item['slot'] ?? 0),
                     ];
                 }
-            }, (array)$nuevo);
+            }, (array) $nuevo);
 
             // Ordenar ambos para que la comparación sea independiente del orden
-            usort($antNorm, fn($a, $b) => json_encode($a) <=> json_encode($b));
-            usort($nuevoNorm, fn($a, $b) => json_encode($a) <=> json_encode($b));
+            usort($antNorm, fn ($a, $b) => json_encode($a) <=> json_encode($b));
+            usort($nuevoNorm, fn ($a, $b) => json_encode($a) <=> json_encode($b));
 
             return json_encode($antNorm) === json_encode($nuevoNorm);
         }
@@ -497,18 +575,18 @@ class Computadores extends Component
             ComputadorRam::where('computador_id', $computador->id)->delete();
         }
         foreach ($this->discos as $disco) {
-            if (!empty($disco['capacidad']) && !empty($disco['tipo'])) {
+            if (! empty($disco['capacidad']) && ! empty($disco['tipo'])) {
                 $computador->discos()->create([
-                    'capacidad' => $disco['capacidad'] . 'GB',
-                    'tipo'      => $disco['tipo']
+                    'capacidad' => $disco['capacidad'].'GB',
+                    'tipo' => $disco['tipo'],
                 ]);
             }
         }
         foreach ($this->rams as $index => $ram) {
-            if (!empty($ram['capacidad'])) {
+            if (! empty($ram['capacidad'])) {
                 $computador->rams()->create([
-                    'capacidad' => $ram['capacidad'] . 'GB',
-                    'slot'      => $index + 1
+                    'capacidad' => $ram['capacidad'].'GB',
+                    'slot' => $index + 1,
                 ]);
             }
         }
@@ -521,7 +599,7 @@ class Computadores extends Component
         $this->es_edicion = true; // Activa el campo de justificación en el formulario
         $this->justificacion = '';
         $computador = Computador::with(['puertos', 'discos', 'rams'])->findOrFail($id);
-        
+
         $this->computador_id = $computador->id;
         $this->bien_nacional = $computador->bien_nacional;
         $this->serial = $computador->serial;
@@ -542,35 +620,39 @@ class Computadores extends Component
         $this->tipo_conexion = $computador->tipo_conexion;
         $this->estado_fisico = $computador->estado_fisico;
         $this->observaciones = $computador->observaciones;
-        $this->activo = (bool) $computador->activo; 
+        $this->activo = (bool) $computador->activo;
 
         if ($this->departamento_id) {
             $this->dependencias_disponibles = Dependencia::where('departamento_id', $this->departamento_id)->where('activo', true)->get();
-        } 
+        }
 
         // Recuperar Puertos
         $this->puertos_seleccionados = $computador->puertos->pluck('id')->toArray();
 
         // Recuperar Discos (Limpiando el 'GB' para el input numérico)
         $this->discos = [];
-        foreach($computador->discos as $disco) {
+        foreach ($computador->discos as $disco) {
             $this->discos[] = [
                 'capacidad' => str_replace('GB', '', $disco->capacidad),
-                'tipo' => $disco->tipo
+                'tipo' => $disco->tipo,
             ];
         }
-        if(count($this->discos) === 0) $this->addDisco();
+        if (count($this->discos) === 0) {
+            $this->addDisco();
+        }
 
         // Recuperar RAM
         $this->rams = [];
-        foreach($computador->rams as $ram) {
+        foreach ($computador->rams as $ram) {
             $this->rams[] = [
                 'capacidad' => str_replace('GB', '', $ram->capacidad),
-                'slot' => $ram->slot
+                'slot' => $ram->slot,
             ];
         }
-        if(count($this->rams) === 0) $this->addRam();
-        
+        if (count($this->rams) === 0) {
+            $this->addRam();
+        }
+
         $this->tituloModal = 'Editar Computador';
         $this->dispatch('abrir-modal', id: 'modalComputador');
     }
@@ -600,19 +682,20 @@ class Computadores extends Component
     public function aprobarMovimientoPreview(): void
     {
         abort_if(Gate::denies('movimientos-computadores-aprobar'), 403);
-        if (!$this->movimiento_preview || $this->movimiento_preview->estado_workflow !== 'pendiente') {
+        if (! $this->movimiento_preview || $this->movimiento_preview->estado_workflow !== 'pendiente') {
             $this->dispatch('mostrar-toast', mensaje: 'Solo se pueden aprobar movimientos en estado Pendiente.', tipo: 'warning');
+
             return;
         }
         try {
-            $mov        = MovimientoComputador::where('estado_workflow', 'pendiente')->findOrFail($this->movimiento_preview->id);
+            $mov = MovimientoComputador::where('estado_workflow', 'pendiente')->findOrFail($this->movimiento_preview->id);
             $computador = Computador::withTrashed()->findOrFail($mov->computador_id);
-            $payload    = $mov->payload_nuevo;
+            $payload = $mov->payload_nuevo;
 
             match ($mov->tipo_operacion) {
-                'baja'          => $computador->delete(),
-                'toggle_activo' => $computador->update(['activo' => $payload['activo'] ?? !$computador->activo]),
-                default         => $this->_aplicarPayloadComputador($computador, $payload),
+                'baja' => $computador->delete(),
+                'toggle_activo' => $computador->update(['activo' => $payload['activo'] ?? ! $computador->activo]),
+                default => $this->_aplicarPayloadComputador($computador, $payload),
             };
 
             $mov->update(['estado_workflow' => 'aprobado', 'aprobador_id' => Auth::id(), 'aprobado_at' => now()]);
@@ -620,26 +703,28 @@ class Computadores extends Component
             $this->dispatch('cerrar-modal', id: 'modalCambioPendiente');
             $this->dispatch('mostrar-toast', mensaje: 'Movimiento aprobado y aplicado.', tipo: 'success');
         } catch (\Exception $e) {
-            Log::error('Error aprobando movimiento desde inventario: ' . $e->getMessage());
+            Log::error('Error aprobando movimiento desde inventario: '.$e->getMessage());
             $this->dispatch('mostrar-toast', mensaje: 'Error al aprobar el movimiento.', tipo: 'error');
         }
     }
 
     private function _aplicarPayloadComputador(Computador $computador, array $payload): void
     {
-        $discos  = $payload['discos']  ?? null;
-        $rams    = $payload['rams']    ?? null;
+        $discos = $payload['discos'] ?? null;
+        $rams = $payload['rams'] ?? null;
         $puertos = $payload['puertos'] ?? null;
         $directos = array_diff_key($payload, array_flip(['discos', 'rams', 'puertos']));
         $computador->update($directos);
-        if ($puertos !== null) { $computador->puertos()->sync($puertos); }
+        if ($puertos !== null) {
+            $computador->puertos()->sync($puertos);
+        }
         if ($discos !== null) {
             ComputadorDisco::where('computador_id', $computador->id)->delete();
             foreach ($discos as $d) {
-                if (!empty($d['capacidad']) && !empty($d['tipo'])) {
+                if (! empty($d['capacidad']) && ! empty($d['tipo'])) {
                     $computador->discos()->create([
-                        'capacidad' => str_contains($d['capacidad'], 'GB') ? $d['capacidad'] : $d['capacidad'] . 'GB',
-                        'tipo'      => $d['tipo'],
+                        'capacidad' => str_contains($d['capacidad'], 'GB') ? $d['capacidad'] : $d['capacidad'].'GB',
+                        'tipo' => $d['tipo'],
                     ]);
                 }
             }
@@ -647,10 +732,10 @@ class Computadores extends Component
         if ($rams !== null) {
             ComputadorRam::where('computador_id', $computador->id)->delete();
             foreach ($rams as $i => $r) {
-                if (!empty($r['capacidad'])) {
+                if (! empty($r['capacidad'])) {
                     $computador->rams()->create([
-                        'capacidad' => str_contains($r['capacidad'], 'GB') ? $r['capacidad'] : $r['capacidad'] . 'GB',
-                        'slot'      => $i + 1,
+                        'capacidad' => str_contains($r['capacidad'], 'GB') ? $r['capacidad'] : $r['capacidad'].'GB',
+                        'slot' => $i + 1,
                     ]);
                 }
             }
@@ -666,26 +751,26 @@ class Computadores extends Component
             if (Gate::allows('movimientos-computadores-ejecutar-directo')) {
                 $computador->delete();
                 MovimientoComputador::create([
-                    'computador_id'   => $id,
-                    'tipo_operacion'  => 'baja',
+                    'computador_id' => $id,
+                    'tipo_operacion' => 'baja',
                     'payload_anterior' => $computador->toArray(),
-                    'payload_nuevo'    => ['activo' => false, 'baja' => true],
-                    'estado_workflow'  => 'ejecutado_directo',
-                    'justificacion'   => 'Baja directa por usuario con permisos de ejecución.',
-                    'solicitante_id'  => Auth::id(),
-                    'aprobador_id'    => Auth::id(),
-                    'aprobado_at'     => now(),
+                    'payload_nuevo' => ['activo' => false, 'baja' => true],
+                    'estado_workflow' => 'ejecutado_directo',
+                    'justificacion' => 'Baja directa por usuario con permisos de ejecución.',
+                    'solicitante_id' => Auth::id(),
+                    'aprobador_id' => Auth::id(),
+                    'aprobado_at' => now(),
                 ]);
                 $this->dispatch('mostrar-toast', mensaje: 'Computador dado de baja.', tipo: 'success');
             } else {
                 MovimientoComputador::create([
-                    'computador_id'   => $computador->id,
-                    'tipo_operacion'  => 'baja',
+                    'computador_id' => $computador->id,
+                    'tipo_operacion' => 'baja',
                     'payload_anterior' => $computador->toArray(),
-                    'payload_nuevo'    => ['activo' => false, 'baja' => true],
-                    'estado_workflow'  => 'borrador',
-                    'justificacion'   => 'Solicitud de baja pendiente de aprobación.',
-                    'solicitante_id'  => Auth::id(),
+                    'payload_nuevo' => ['activo' => false, 'baja' => true],
+                    'estado_workflow' => 'borrador',
+                    'justificacion' => 'Solicitud de baja pendiente de aprobación.',
+                    'solicitante_id' => Auth::id(),
                 ]);
                 $this->dispatch('mostrar-toast',
                     mensaje: 'Solicitud de baja creada como borrador. Envíela a revisión desde Movimientos.',
@@ -693,7 +778,7 @@ class Computadores extends Component
                 );
             }
         } catch (\Exception $e) {
-            Log::error('Error eliminando computador: ' . $e->getMessage());
+            Log::error('Error eliminando computador: '.$e->getMessage());
             $this->dispatch('mostrar-toast', mensaje: 'Ocurrió un error al procesar la baja.', tipo: 'error');
         }
     }
@@ -703,33 +788,33 @@ class Computadores extends Component
         abort_if(Gate::denies('cambiar-estatus-computadores'), 403);
         try {
             $computador = Computador::findOrFail($id);
-            $nuevoEstado = !$computador->activo;
+            $nuevoEstado = ! $computador->activo;
 
             if (Gate::allows('movimientos-computadores-ejecutar-directo')) {
                 $computador->activo = $nuevoEstado;
                 $computador->save();
                 MovimientoComputador::create([
-                    'computador_id'   => $computador->id,
-                    'tipo_operacion'  => 'toggle_activo',
-                    'payload_anterior' => ['activo' => !$nuevoEstado],
-                    'payload_nuevo'    => ['activo' => $nuevoEstado],
-                    'estado_workflow'  => 'ejecutado_directo',
-                    'justificacion'   => 'Cambio de estatus directo.',
-                    'solicitante_id'  => Auth::id(),
-                    'aprobador_id'    => Auth::id(),
-                    'aprobado_at'     => now(),
+                    'computador_id' => $computador->id,
+                    'tipo_operacion' => 'toggle_activo',
+                    'payload_anterior' => ['activo' => ! $nuevoEstado],
+                    'payload_nuevo' => ['activo' => $nuevoEstado],
+                    'estado_workflow' => 'ejecutado_directo',
+                    'justificacion' => 'Cambio de estatus directo.',
+                    'solicitante_id' => Auth::id(),
+                    'aprobador_id' => Auth::id(),
+                    'aprobado_at' => now(),
                 ]);
                 $estado = $nuevoEstado ? 'activado' : 'inactivado';
                 $this->dispatch('mostrar-toast', mensaje: "Computador $estado.", tipo: 'success');
             } else {
                 MovimientoComputador::create([
-                    'computador_id'   => $computador->id,
-                    'tipo_operacion'  => 'toggle_activo',
-                    'payload_anterior' => ['activo' => !$nuevoEstado],
-                    'payload_nuevo'    => ['activo' => $nuevoEstado],
-                    'estado_workflow'  => 'borrador',
-                    'justificacion'   => 'Solicitud de cambio de estatus pendiente.',
-                    'solicitante_id'  => Auth::id(),
+                    'computador_id' => $computador->id,
+                    'tipo_operacion' => 'toggle_activo',
+                    'payload_anterior' => ['activo' => ! $nuevoEstado],
+                    'payload_nuevo' => ['activo' => $nuevoEstado],
+                    'estado_workflow' => 'borrador',
+                    'justificacion' => 'Solicitud de cambio de estatus pendiente.',
+                    'solicitante_id' => Auth::id(),
                 ]);
                 $this->dispatch('mostrar-toast',
                     mensaje: 'Solicitud de cambio de estatus guardada en borrador.',
@@ -737,7 +822,7 @@ class Computadores extends Component
                 );
             }
         } catch (\Exception $e) {
-            Log::error('Error en toggleActivo computador: ' . $e->getMessage());
+            Log::error('Error en toggleActivo computador: '.$e->getMessage());
             $this->dispatch('mostrar-toast', mensaje: 'Error al cambiar el estatus.', tipo: 'error');
         }
     }
@@ -745,12 +830,12 @@ class Computadores extends Component
     public function resetCampos()
     {
         $this->reset([
-            'computador_id', 'bien_nacional', 'serial', 'nombre_equipo', 'marca_id', 'tipo_computador', 
-            'sistema_operativo_id', 'procesador_id', 'gpu_id', 'departamento_id', 'dependencia_id', 'dependencias_disponibles', 'trabajador_id', 'tipo_ram', 
+            'computador_id', 'bien_nacional', 'serial', 'nombre_equipo', 'marca_id', 'tipo_computador',
+            'sistema_operativo_id', 'procesador_id', 'gpu_id', 'departamento_id', 'dependencia_id', 'dependencias_disponibles', 'trabajador_id', 'tipo_ram',
             'mac', 'ip', 'tipo_conexion', 'estado_fisico', 'observaciones', 'computador_detalle',
-            'nueva_marca', 'nuevo_so', 'justificacion'
+            'nueva_marca', 'nuevo_so', 'justificacion',
         ]);
-        
+
         $this->creando_marca = false;
         $this->creando_so = false;
         $this->creando_procesador = false;
@@ -761,12 +846,12 @@ class Computadores extends Component
         $this->tipo_conexion = 'Ethernet';
         $this->activo = true;
         $this->es_edicion = false;
-        
+
         $this->discos = [];
         $this->rams = [];
         $this->addDisco();
         $this->addRam();
-        
+
         $this->puertos_seleccionados = [];
         $this->resetValidation();
     }
@@ -783,12 +868,12 @@ class Computadores extends Component
     public function cancelarModalTrabajador()
     {
         $this->reset([
-            'nuevo_trab_nombres', 
-            'nuevo_trab_apellidos', 
-            'nuevo_trab_cedula', 
-            'nuevo_trab_departamento_id'
+            'nuevo_trab_nombres',
+            'nuevo_trab_apellidos',
+            'nuevo_trab_cedula',
+            'nuevo_trab_departamento_id',
         ]);
-        
+
         $this->dispatch('cerrar-modal', id: 'modalTrabajador');
         $this->dispatch('abrir-modal', id: 'modalComputador');
     }
@@ -808,7 +893,7 @@ class Computadores extends Component
             'apellidos' => $this->nuevo_trab_apellidos,
             'cedula' => $this->nuevo_trab_cedula,
             'departamento_id' => $this->nuevo_trab_departamento_id,
-            'activo' => true
+            'activo' => true,
         ]);
 
         $this->trabajador_id = $trab->id;
@@ -816,6 +901,6 @@ class Computadores extends Component
         $this->reset(['nuevo_trab_nombres', 'nuevo_trab_apellidos', 'nuevo_trab_cedula', 'nuevo_trab_departamento_id']);
         $this->dispatch('cerrar-modal', id: 'modalTrabajador');
         $this->dispatch('abrir-modal', id: 'modalComputador');
-        $this->dispatch('mostrar-toast', mensaje: 'Trabajador y cuenta de usuario creados.', tipo:'success');
+        $this->dispatch('mostrar-toast', mensaje: 'Trabajador y cuenta de usuario creados.', tipo: 'success');
     }
 }

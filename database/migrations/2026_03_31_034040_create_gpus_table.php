@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('tipo_memoria')->nullable();
             $table->string('bus')->nullable();
             $table->string('frecuencia')->nullable();
-            //$table->json('puertos')->nullable(); // Guardará un arreglo
+            // $table->json('puertos')->nullable(); // Guardará un arreglo
             $table->boolean('activo')->default(true);
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');

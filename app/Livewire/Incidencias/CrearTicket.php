@@ -2,31 +2,41 @@
 
 namespace App\Livewire\Incidencias;
 
-use Livewire\Component;
+use App\Models\Computador;
+use App\Models\Configuracion;
+use App\Models\Departamento;
+use App\Models\Dependencia;
+use App\Models\Dispositivo;
 use App\Models\Incidencia;
 use App\Models\Problema;
-use App\Models\Configuracion;
 use App\Models\User;
-use App\Models\Computador;
-use App\Models\Dispositivo;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
+use Livewire\Component;
 
 class CrearTicket extends Component
 {
     public $problema_id;
+
     public $descripcion;
+
     public $tipo_activo = ''; // computador | dispositivo
+
     public $modelo_id;
 
     public $catalogoProblemas = [];
+
     public $misEquipos = [];
+
     public $misDispositivos = [];
 
     public $catalogoDepartamentos = [];
+
     public $departamento_id;
+
     public $dependencia_id;
+
     public $dependencias_disponibles = [];
 
     // Validar si el admin configuró los activos como obligatorios
@@ -35,10 +45,10 @@ class CrearTicket extends Component
     public function mount()
     {
         $this->catalogoProblemas = Problema::where('activo', true)
-                                           ->orderBy('nombre')->get();
-                                           
+            ->orderBy('nombre')->get();
+
         $configActivo = Configuracion::where('clave', 'incidencias_activo_obligatorio')->first();
-        $this->activoObligatorio = $configActivo ? (bool)$configActivo->valor : false;
+        $this->activoObligatorio = $configActivo ? (bool) $configActivo->valor : false;
 
         $user = Auth::user();
         if ($user && $user->trabajador) {
@@ -47,15 +57,15 @@ class CrearTicket extends Component
             $this->misEquipos = Computador::where('trabajador_id', $user->trabajador->id)->get();
             $this->misDispositivos = Dispositivo::where('trabajador_id', $user->trabajador->id)->get();
         } else {
-            $this->catalogoDepartamentos = \App\Models\Departamento::where('activo', true)->orderBy('nombre')->get();
+            $this->catalogoDepartamentos = Departamento::where('activo', true)->orderBy('nombre')->get();
         }
     }
 
     public function updatedDepartamentoId($value)
     {
         $this->dependencia_id = null;
-        if (!empty($value)) {
-            $this->dependencias_disponibles = \App\Models\Dependencia::where('departamento_id', $value)->where('activo', true)->get();
+        if (! empty($value)) {
+            $this->dependencias_disponibles = Dependencia::where('departamento_id', $value)->where('activo', true)->get();
         } else {
             $this->dependencias_disponibles = [];
         }
@@ -71,7 +81,7 @@ class CrearTicket extends Component
             'descripcion' => 'required|string|min:10|max:500',
         ];
 
-        if (!$trabajador) {
+        if (! $trabajador) {
             $rules['departamento_id'] = 'required|exists:departamentos,id';
         }
 
@@ -86,26 +96,26 @@ class CrearTicket extends Component
 
         // 1. Encontrar el Problema y su Especialidad
         $problema = Problema::find($this->problema_id);
-        
+
         // 2. Buscar Técnico Disponible
         $tecnicoAsignado = null;
         if ($problema && $problema->especialidad_id) {
             $tecnicoAsignado = User::where('especialidad_id', $problema->especialidad_id)
-                                   ->where('disponible_asignacion', true)
-                                   ->where('activo', true)
-                                   ->whereHas('roles', function($q) {
-                                       $q->whereIn('name', ['personal-ti', 'resolutor-incidencia']);
-                                   })
-                                   ->inRandomOrder()
-                                   ->first();
+                ->where('disponible_asignacion', true)
+                ->where('activo', true)
+                ->whereHas('roles', function ($q) {
+                    $q->whereIn('name', ['personal-ti', 'resolutor-incidencia']);
+                })
+                ->inRandomOrder()
+                ->first();
         }
 
         DB::beginTransaction();
         try {
-            $ticket = new Incidencia();
+            $ticket = new Incidencia;
             $ticket->problema_id = $this->problema_id;
             $ticket->descripcion = $this->descripcion;
-            $ticket->departamento_id = $trabajador ? $trabajador->departamento_id : $this->departamento_id; 
+            $ticket->departamento_id = $trabajador ? $trabajador->departamento_id : $this->departamento_id;
             $ticket->dependencia_id = $trabajador ? $trabajador->dependencia_id : ($this->dependencia_id ?: null);
             $ticket->trabajador_id = $trabajador ? $trabajador->id : null;
             $ticket->user_id = $tecnicoAsignado ? $tecnicoAsignado->id : null; // Asignación automática o null
@@ -123,20 +133,20 @@ class CrearTicket extends Component
             DB::commit();
 
             $folio = str_pad($ticket->id, 5, '0', STR_PAD_LEFT);
-            $this->dispatch('mostrar-toast', mensaje: 'Ticket generado con éxito. Su folio de seguimiento es #' . $folio, tipo: 'success');
-            
+            $this->dispatch('mostrar-toast', mensaje: 'Ticket generado con éxito. Su folio de seguimiento es #'.$folio, tipo: 'success');
+
             $this->reset(['problema_id', 'descripcion', 'tipo_activo', 'modelo_id']);
-            
+
             // Redirigir al Dashboard si es trabajador, sino a Gestión
-            if (Auth::user()->hasRole('trabajador') && !Auth::user()->can('ver-incidencias')) {
+            if (Auth::user()->hasRole('trabajador') && ! Auth::user()->can('ver-incidencias')) {
                 $this->redirect(route('dashboard'));
             } else {
                 $this->redirect(route('incidencias.gestion'));
             }
-            
+
         } catch (\Exception $e) {
             DB::rollBack();
-            $this->dispatch('mostrar-toast', mensaje: 'Error al generar ticket: ' . $e->getMessage(), tipo: 'danger');
+            $this->dispatch('mostrar-toast', mensaje: 'Error al generar ticket: '.$e->getMessage(), tipo: 'danger');
         }
     }
 

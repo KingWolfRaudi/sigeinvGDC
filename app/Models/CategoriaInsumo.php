@@ -2,22 +2,23 @@
 
 namespace App\Models;
 
+use App\Traits\RecordSignature;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
 use Illuminate\Database\Eloquent\SoftDeletes;
-
-use App\Traits\RecordSignature;
 
 class CategoriaInsumo extends Model
 {
-    use HasFactory, SoftDeletes, RecordSignature;
-    
+    use HasFactory, RecordSignature, SoftDeletes;
+
     protected $fillable = ['nombre', 'activo'];
-    
+
     protected $casts = [
         'activo' => 'boolean',
     ];
-    
-    public function insumos() { return $this->hasMany(Insumo::class); }
+
+    public function insumos()
+    {
+        return $this->hasMany(Insumo::class);
+    }
 }

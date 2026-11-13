@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Problema;
 use App\Models\Configuracion;
+use App\Models\EspecialidadTecnica;
+use App\Models\Problema;
+use Illuminate\Database\Seeder;
 
 class IncidenciasSeeder extends Seeder
 {
@@ -12,17 +13,17 @@ class IncidenciasSeeder extends Seeder
     {
         // 1. Tipos de Problemas Iniciales
         // 0. Especialidades Técnicas
-        $espSoporte = \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Soporte Técnico Hardware/Software']);
-        $espRedes = \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Redes e Infraestructura']);
-        $espMantenimiento = \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Mantenimiento General']);
-        \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Sistemas y Desarrollo']);
-        \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Seguridad Informática']);
-        \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Telecomunicaciones']);
-        \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Base de Datos']);
-        \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Servidores y Nube']);
-        \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Audiovisuales y Multimedia']);
-        \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Energía y Climatización']);
-        \App\Models\EspecialidadTecnica::firstOrCreate(['nombre' => 'Gestión de Proyectos TI']);
+        $espSoporte = EspecialidadTecnica::firstOrCreate(['nombre' => 'Soporte Técnico Hardware/Software']);
+        $espRedes = EspecialidadTecnica::firstOrCreate(['nombre' => 'Redes e Infraestructura']);
+        $espMantenimiento = EspecialidadTecnica::firstOrCreate(['nombre' => 'Mantenimiento General']);
+        EspecialidadTecnica::firstOrCreate(['nombre' => 'Sistemas y Desarrollo']);
+        EspecialidadTecnica::firstOrCreate(['nombre' => 'Seguridad Informática']);
+        EspecialidadTecnica::firstOrCreate(['nombre' => 'Telecomunicaciones']);
+        EspecialidadTecnica::firstOrCreate(['nombre' => 'Base de Datos']);
+        EspecialidadTecnica::firstOrCreate(['nombre' => 'Servidores y Nube']);
+        EspecialidadTecnica::firstOrCreate(['nombre' => 'Audiovisuales y Multimedia']);
+        EspecialidadTecnica::firstOrCreate(['nombre' => 'Energía y Climatización']);
+        EspecialidadTecnica::firstOrCreate(['nombre' => 'Gestión de Proyectos TI']);
 
         // 1. Tipos de Problemas Iniciales con su Especialidad
         $problemas = [
