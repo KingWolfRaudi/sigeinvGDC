@@ -50,6 +50,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Session Serialization
+    |--------------------------------------------------------------------------
+    |
+    | Laravel 13: "json" serializa los datos de sesión como JSON en lugar de
+    | PHP serializado, lo que impide la inyección de objetos PHP a través de
+    | datos de sesión manipulados (CWE-502). Al desplegar invalida las
+    | sesiones activas — ver ADR-001.
+    |
+    | Supported: "php", "json"
+    |
+    */
+
+    'serialization' => 'json',
+
+    /*
+    |--------------------------------------------------------------------------
     | Session File Location
     |--------------------------------------------------------------------------
     |

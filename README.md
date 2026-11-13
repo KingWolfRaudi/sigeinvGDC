@@ -1,5 +1,5 @@
 # sigeinvGDC
-SiGeInv Laravel 10 - SigeinvGDC
+SiGeInv Laravel 13 - SigeinvGDC
 
 iconos:
 https://icons.getbootstrap.com/

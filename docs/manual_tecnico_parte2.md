@@ -405,7 +405,7 @@ $this->cierre_irreversible = $config ? (bool)$config->valor : false;
 
 ### 15.1 Requisitos del Servidor
 
-- PHP 8.1+ con extensiones: `pdo_mysql`, `mbstring`, `openssl`, `xml`, `json`, `gd` (para PDF)
+- PHP 8.3+ con extensiones: `pdo_mysql`, `mbstring`, `openssl`, `xml`, `json`, `gd` (para PDF)
 - Composer 2.x
 - Node.js 18+ y NPM (para compilar assets)
 - MariaDB 10.6+ / MySQL 8+

@@ -4,8 +4,8 @@
 
 | Componente | Tecnología |
 |---|---|
-| Lenguaje | PHP 8.1+ |
-| Framework | Laravel 10 |
+| Lenguaje | PHP 8.3+ |
+| Framework | Laravel 13 |
 | Frontend | Livewire 3 + Bootstrap 5.3 |
 | Base de Datos | MariaDB 10.6+ / MySQL 8+ |
 | Auth/Permisos | Spatie Laravel-Permission |

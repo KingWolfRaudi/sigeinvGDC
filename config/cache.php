@@ -19,6 +19,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Cache Serializable Classes
+    |--------------------------------------------------------------------------
+    |
+    | Laravel 13: cuando no es null, restringe las clases que se permiten al
+    | deserializar valores de caché (unserialize con allowed_classes). "false"
+    | bloquea cualquier objeto — mitiga la inyección de objetos PHP vía
+    | caché manipulado (CWE-502). La aplicación solo cachea arrays escalares.
+    |
+    */
+
+    'serializable_classes' => false,
+
+    /*
+    |--------------------------------------------------------------------------
     | Cache Stores
     |--------------------------------------------------------------------------
     |
