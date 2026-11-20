@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -30,6 +31,9 @@ class AuditoriaUsuarios extends Component
 
     public function mount()
     {
+        // Defensa en profundidad: la ruta ya exige ->can('ver-auditoria-usuarios')
+        abort_if(Gate::denies('ver-auditoria-usuarios'), 403, 'No tienes permiso para ver la auditoría de usuarios.');
+
         $this->dateFrom = now()->startOfMonth()->format('Y-m-d');
         $this->dateTo = now()->endOfMonth()->format('Y-m-d');
     }

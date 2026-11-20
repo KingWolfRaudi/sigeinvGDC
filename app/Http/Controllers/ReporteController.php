@@ -41,6 +41,8 @@ class ReporteController extends Controller
      */
     public function computadorFicha($id)
     {
+        $this->authorize('reportes-pdf');
+
         $pc = Computador::with(['marca', 'sistemaOperativo', 'procesador.marca', 'gpu.marca', 'trabajador', 'departamento', 'movimientos.aprobador', 'movimientos.incidencia', 'discos', 'rams', 'puertos'])
             ->findOrFail($id);
 
@@ -58,6 +60,8 @@ class ReporteController extends Controller
      */
     public function dispositivoFicha($id)
     {
+        $this->authorize('reportes-pdf');
+
         $disp = Dispositivo::with(['marca', 'tipoDispositivo', 'trabajador', 'departamento', 'computador', 'puertos', 'movimientos.aprobador', 'movimientos.incidencia'])
             ->findOrFail($id);
 
@@ -75,6 +79,8 @@ class ReporteController extends Controller
      */
     public function insumoFicha($id)
     {
+        $this->authorize('reportes-pdf');
+
         $insumo = Insumo::with(['marca', 'categoriaInsumo', 'movimientos.aprobador', 'movimientos.incidencia'])
             ->findOrFail($id);
 
@@ -92,6 +98,8 @@ class ReporteController extends Controller
      */
     public function gpuFicha($id)
     {
+        $this->authorize('reportes-pdf');
+
         $gpu = Gpu::with(['marca', 'puertos'])->findOrFail($id);
 
         $pdf = Pdf::loadView('reports.ficha-gpu', compact('gpu'));
@@ -108,6 +116,8 @@ class ReporteController extends Controller
      */
     public function incidenciaFicha($id)
     {
+        $this->authorize('reportes-pdf');
+
         $incidencia = Incidencia::with(['problema.especialidad', 'departamento', 'trabajador', 'tecnico', 'creator', 'movimientoComputador', 'movimientoDispositivo', 'movimientoInsumo'])
             ->findOrFail($id);
 
@@ -139,7 +149,8 @@ class ReporteController extends Controller
      */
     public function logsExcel(Request $request)
     {
-        $this->authorize('reportes-excel');
+        // Logs con PII/IP: permiso alto (consistente con la ruta — matriz F1 §4.5)
+        $this->authorize('admin-auditoria');
 
         $filters = $request->only(['searchUser', 'searchModule', 'dateFrom', 'dateTo']);
 
@@ -153,7 +164,8 @@ class ReporteController extends Controller
      */
     public function logsPdf(Request $request)
     {
-        $this->authorize('reportes-excel'); // Usamos el mismo permiso base
+        // Logs con PII/IP: permiso alto (consistente con la ruta — matriz F1 §4.5)
+        $this->authorize('admin-auditoria');
 
         $filters = $request->only(['searchUser', 'searchModule', 'dateFrom', 'dateTo']);
 

@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Models\Incidencia;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -36,6 +37,9 @@ class AuditoriaTecnicos extends Component
 
     public function mount()
     {
+        // Defensa en profundidad: la ruta ya exige ->can('ver-auditoria-tecnicos')
+        abort_if(Gate::denies('ver-auditoria-tecnicos'), 403, 'No tienes permiso para ver la auditoría de técnicos.');
+
         $this->dateFrom = Carbon::now()->startOfMonth()->format('Y-m-d');
         $this->dateTo = Carbon::now()->endOfMonth()->format('Y-m-d');
         $this->tecnicos = User::role('resolutor-incidencia')->orderBy('name')->get();

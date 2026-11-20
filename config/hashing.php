@@ -29,7 +29,8 @@ return [
     */
 
     'bcrypt' => [
-        'rounds' => env('BCRYPT_ROUNDS', 10),
+        // CA-7: coste mínimo 12 (OWASP): endurece la fuerza bruta offline.
+        'rounds' => env('BCRYPT_ROUNDS', 12),
     ],
 
     /*

@@ -32,9 +32,6 @@ use App\Livewire\Movimientos\SolicitudesPerfil;
 use App\Livewire\Perfil\MiPerfil;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\PermissionRegistrar;
 
 // Ruta para invitados (Login)
 Route::middleware('guest')->group(function () {
@@ -45,26 +42,27 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth', 'nocache'])->group(function () {
 
     // Nuestro nuevo Dashboard
-    Route::get('/', MainDashboard::class)->name('dashboard');
+    Route::get('/', MainDashboard::class)->name('dashboard')->can('ver-dashboard');
 
     // Administración
     Route::get('/admin/roles', Roles::class)->name('admin.roles')->can('ver-roles');
     Route::get('/admin/usuarios', Usuarios::class)->name('admin.usuarios')->can('ver-usuarios');
-    Route::get('/admin/configuracion', ConfiguracionGeneral::class)->name('admin.configuracion');
+    Route::get('/admin/configuracion', ConfiguracionGeneral::class)->name('admin.configuracion')
+        ->can('admin.configuracion');
 
-    // Auditoría
-    Route::get('/admin/auditoria', Auditoria::class)->name('admin.auditoria');
-    Route::get('/admin/auditoria-tecnicos', AuditoriaTecnicos::class)->name('admin.auditoria-tecnicos');
-    Route::get('/admin/auditoria-usuarios', AuditoriaUsuarios::class)->name('admin.auditoria-usuarios');
+    // Auditoría (permisos unificados con el menú — ver docs/matriz-permisos.md §2)
+    Route::get('/admin/auditoria', Auditoria::class)->name('admin.auditoria')->can('admin-auditoria');
+    Route::get('/admin/auditoria-tecnicos', AuditoriaTecnicos::class)->name('admin.auditoria-tecnicos')->can('ver-auditoria-tecnicos');
+    Route::get('/admin/auditoria-usuarios', AuditoriaUsuarios::class)->name('admin.auditoria-usuarios')->can('ver-auditoria-usuarios');
 
     // Reportes y Auditoría
     Route::prefix('reportes')->name('reportes.')->group(function () {
-        // PDFs
-        Route::get('/computador/{id}/ficha', [ReporteController::class, 'computadorFicha'])->name('computador.ficha');
-        Route::get('/dispositivo/{id}/ficha', [ReporteController::class, 'dispositivoFicha'])->name('dispositivo.ficha');
-        Route::get('/insumo/{id}/ficha', [ReporteController::class, 'insumoFicha'])->name('insumo.ficha');
-        Route::get('/gpu/{id}/ficha', [ReporteController::class, 'gpuFicha'])->name('gpu.ficha');
-        Route::get('/incidencia/{id}/ficha', [ReporteController::class, 'incidenciaFicha'])->name('incidencia.ficha');
+        // PDFs (fichas) — requieren reportes-pdf (defensa en profundidad: también authorize() en el controlador)
+        Route::get('/computador/{id}/ficha', [ReporteController::class, 'computadorFicha'])->name('computador.ficha')->can('reportes-pdf');
+        Route::get('/dispositivo/{id}/ficha', [ReporteController::class, 'dispositivoFicha'])->name('dispositivo.ficha')->can('reportes-pdf');
+        Route::get('/insumo/{id}/ficha', [ReporteController::class, 'insumoFicha'])->name('insumo.ficha')->can('reportes-pdf');
+        Route::get('/gpu/{id}/ficha', [ReporteController::class, 'gpuFicha'])->name('gpu.ficha')->can('reportes-pdf');
+        Route::get('/incidencia/{id}/ficha', [ReporteController::class, 'incidenciaFicha'])->name('incidencia.ficha')->can('reportes-pdf');
 
         // Excels Inventario
         Route::get('/inventario/computadores/excel', [ReporteController::class, 'computadoresExcel'])->name('inventario.computadores.excel');
@@ -77,12 +75,13 @@ Route::middleware(['auth', 'nocache'])->group(function () {
         Route::get('/incidencias/excel', [ReporteController::class, 'incidenciasExcel'])->name('incidencias.excel');
         Route::get('/movimientos/{segmento}/excel', [ReporteController::class, 'movimientosExcel'])->name('movimientos.excel');
         Route::get('/usuarios/excel', [ReporteController::class, 'usuariosExcel'])->name('usuarios.excel');
-        Route::get('/logs/excel', [ReporteController::class, 'logsExcel'])->name('logs.excel');
-        Route::get('/logs/pdf', [ReporteController::class, 'logsPdf'])->name('logs.pdf');
+        // Logs de auditoría (PII/IP): permiso alto admin-auditoria, no reportes-excel
+        Route::get('/logs/excel', [ReporteController::class, 'logsExcel'])->name('logs.excel')->can('admin-auditoria');
+        Route::get('/logs/pdf', [ReporteController::class, 'logsPdf'])->name('logs.pdf')->can('admin-auditoria');
         Route::get('/auditoria-usuario/{id}/pdf', [ReporteController::class, 'auditoriaUsuarioPdf'])->name('auditoria-usuario.pdf');
 
-        // Masivo
-        Route::post('/masivo/excel', [ReporteController::class, 'reporteMasivo'])->name('masivo.excel');
+        // Masivo (permiso alto — también authorize() en el controlador)
+        Route::post('/masivo/excel', [ReporteController::class, 'reporteMasivo'])->name('masivo.excel')->can('reportes-masivos-filtros');
     });
 
     // Catalogos
@@ -159,24 +158,6 @@ Route::middleware(['auth', 'nocache'])->group(function () {
         return redirect('/login')->withErrors(['identificador' => 'Sesión cerrada por seguridad al detectar cambio de pestaña o ventana.']);
     })->name('force-logout-tab');
 
-    Route::get('/seed-permissions', function () {
-        app()[PermissionRegistrar::class]->forgetCachedPermissions();
-        $p1 = Permission::firstOrCreate(['name' => 'ver-auditoria-tecnicos', 'guard_name' => 'web'], ['descripcion' => 'Permite visualizar la vista de auditoría de técnicos.']);
-        $p2 = Permission::firstOrCreate(['name' => 'ver-auditoria-usuarios', 'guard_name' => 'web'], ['descripcion' => 'Permite visualizar la vista de auditoría individual de usuarios.']);
-
-        $r1 = Role::where('name', 'super-admin')->first();
-        if ($r1) {
-            $r1->givePermissionTo($p1);
-            $r1->givePermissionTo($p2);
-        }
-
-        $r2 = Role::where('name', 'administrador')->first();
-        if ($r2) {
-            $r2->givePermissionTo($p1);
-            $r2->givePermissionTo($p2);
-        }
-
-        return 'Permisos actualizados';
-    });
-
+    // NOTA: se eliminó GET /seed-permissions (mutaba roles vía GET sin autorización
+    // específica). Los permisos se gestionan con el seeder RolesAndPermissionsSeeder.
 });

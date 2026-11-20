@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Models\Departamento;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -43,6 +44,12 @@ class Auditoria extends Component
         'departamentos' => ['selected' => false, 'full_inventory' => true, 'filters' => ['estado' => '']],
         'trabajadores' => ['selected' => false, 'full_inventory' => true, 'filters' => ['estado' => '']],
     ];
+
+    public function mount()
+    {
+        // Defensa en profundidad: la ruta ya exige ->can('admin-auditoria')
+        abort_if(Gate::denies('admin-auditoria'), 403, 'No tienes permiso para acceder a la auditoría.');
+    }
 
     public function updated($propertyName)
     {

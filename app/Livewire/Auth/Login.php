@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Auth;
 
+use App\Support\LoginThrottle;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Component;
 
 // use Livewire\Attributes\Layout;
@@ -26,6 +28,16 @@ class Login extends Component
     {
         $this->validate();
 
+        // CA-6 / CWE-307: límite de intentos fallidos por identificador+IP.
+        // Misma regla que el limitador nombrado RateLimiter::for('login').
+        $throttleKey = LoginThrottle::key((string) $this->identificador, (string) request()->ip());
+
+        if (RateLimiter::tooManyAttempts($throttleKey, LoginThrottle::MAX_ATTEMPTS)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+
+            abort(429, "Demasiados intentos de acceso. Intente de nuevo en {$seconds} segundos.");
+        }
+
         // 1. Detección automática: ¿Es un correo o un nombre de usuario?
         // Usamos filter_var de PHP para ver si tiene un formato de email válido
         $tipoDeCampo = filter_var($this->identificador, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
@@ -40,6 +52,9 @@ class Login extends Component
 
         // 3. Intentar autenticar
         if (Auth::attempt($credenciales, false)) {
+            // Login correcto: restablecer el presupuesto de intentos
+            RateLimiter::clear($throttleKey);
+
             $user = Auth::user();
 
             // Registrar auditoría de inicio de sesión
@@ -58,7 +73,9 @@ class Login extends Component
             return redirect()->intended('/');
         }
 
-        // 4. Si falla, mostramos un error y registramos el intento fallido
+        // 4. Si falla, contabilizar el intento, mostramos un error y registramos el intento fallido
+        RateLimiter::hit($throttleKey, LoginThrottle::DECAY_SECONDS);
+
         activity()
             ->withProperties([
                 'identificador_intentado' => $this->identificador,

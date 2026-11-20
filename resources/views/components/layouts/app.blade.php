@@ -388,7 +388,7 @@
                         </li>
                     @endcanany
 
-                    @canany(['ver-roles', 'crear-roles', 'editar-roles', 'eliminar-roles', 'ver-usuarios', 'crear-usuarios', 'editar-usuarios', 'cambiar-estatus-usuarios', 'eliminar-usuarios'])
+                    @canany(['ver-roles', 'crear-roles', 'editar-roles', 'eliminar-roles', 'ver-usuarios', 'crear-usuarios', 'editar-usuarios', 'cambiar-estatus-usuarios', 'eliminar-usuarios', 'admin-incidencias', 'admin-solicitudes-perfil', 'admin-configuracion-global'])
                         <li class="nav-item mb-1 mt-3">
                             <h6 class="sidebar-heading px-3 mt-4 mb-1 text-white-50 text-uppercase" style="font-size: 0.75rem;">
                                 <span>Administración</span>
@@ -404,7 +404,7 @@
                             </a>
                         </li>
                     @endcan
-                    @canany(['admin-incidencias', 'admin-solicitudes-perfil'])
+                    @canany(['admin-incidencias', 'admin-solicitudes-perfil', 'admin-configuracion-global'])
                         <li class="nav-item mb-1">
                             <a href="{{ route('admin.configuracion') }}"
                                 class="nav-link {{ request()->routeIs('admin.configuracion') ? 'active' : 'text-white' }} d-flex align-items-center">
