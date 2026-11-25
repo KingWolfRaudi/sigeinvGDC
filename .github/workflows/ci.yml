@@ -16,14 +16,16 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # actions/checkout v4 (pin por SHA — supply chain, gate 17)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0 # gitleaks necesita el historial completo
 
-      - name: Setup PHP 8.3
-        uses: shivammathur/setup-php@v2
+      - name: Setup PHP 8.3.37
+        # shivammathur/setup-php v2 (pin por commit — supply chain, gate 17)
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962
         with:
-          php-version: '8.3'
+          php-version: '8.3.37'
           extensions: mbstring, dom, curl, sqlite3, pdo_sqlite, zip
           coverage: none
 
@@ -32,7 +34,8 @@ jobs:
         run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
       - name: Cache composer dependencies
-        uses: actions/cache@v4
+        # actions/cache v4 (pin por SHA — supply chain, gate 17)
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: composer-${{ hashFiles('composer.lock') }}
@@ -41,14 +44,18 @@ jobs:
       - name: Install dependencies (lockfile congelado)
         run: composer install --prefer-dist --no-progress --no-interaction
 
+      - name: SBOM sincronizado con el lockfile (CycloneDX)
+        run: php scripts/verify-sbom.php
+
       - name: Prepare environment (APP_KEY para los tests)
         run: |
           cp .env.example .env
           php artisan key:generate --ansi
 
-      - name: Secret scan (gitleaks)
+      - name: Secret scan (gitleaks 8.30.1, binario verificado)
         run: |
-          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz -o /tmp/gitleaks.tar.gz
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz -o /tmp/gitleaks.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  /tmp/gitleaks.tar.gz" | sha256sum -c -
           tar -xzf /tmp/gitleaks.tar.gz -C /tmp
           /tmp/gitleaks detect --source . --no-banner --redact
 

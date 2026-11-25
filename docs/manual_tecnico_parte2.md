@@ -272,9 +272,9 @@ Las vistas de auditoría aplican un formateador automático sobre los valores de
 |---|---|---|
 | `super-admin` | Control total del sistema | Todos los permisos |
 | `administrador` | Gestión completa de inventario y personal | Todos los permisos menos `eliminar-*` |
-| `coordinador` | Supervisión de equipos, movimientos e incidencias | Reportes, auditoría de técnicos, incidencias completas, movimientos, catálogos/asignaciones/inventario (sin eliminar), especialidades |
-| `personal-ti` | Gestión operativa de equipos técnicos | Reportes, incidencias (sin solicitudes de perfil), movimientos, catálogos/asignaciones/inventario (sin eliminar) |
-| `resolutor-incidencia` | Especialista en resolución de fallas | `ver-incidencias`, `gestionar-incidencias`, `ver-dashboard` |
+| `coordinador` | Supervisión de equipos, movimientos e incidencias | Reportes, auditoría de técnicos, incidencias completas (`crear-ticket`, `gestionar`, `ver`, `admin-incidencias`), `admin-solicitudes-perfil`, `ver-dashboard`, `ver-panel-soporte`, movimientos, catálogos/asignaciones/inventario (sin eliminar), especialidades |
+| `personal-ti` | Gestión operativa de equipos técnicos | Reportes, incidencias (`crear-ticket`, `gestionar`, `ver`; sin `admin-incidencias` ni `resolver-incidencias`), `ver-dashboard`, `ver-panel-soporte`, movimientos, catálogos/asignaciones/inventario (sin eliminar) |
+| `resolutor-incidencia` | Especialista en resolución de fallas | `ver-incidencias`, `gestionar-incidencias`, `resolver-incidencias`, `ver-dashboard` (sin `crear-ticket`) |
 | `trabajador` | Usuario estándar | `crear-ticket`, `ver-dashboard` |
 
 ### 11.2 Permisos Definidos por Módulo
@@ -284,12 +284,15 @@ Los permisos CRUD de entidades se generan automáticamente en el Seeder con el p
 **Entidades con CRUD completo** (`ver`, `crear`, `editar`, `eliminar`, `cambiar-estatus`, `ver-estado`):
 - `computadores`, `dispositivos`, `insumos`, `software`
 - `trabajadores`, `departamentos`
-- `marcas`, `tipo-dispositivo`, `sistemas-operativos`, `puertos`, `procesadores`, `gpus`
+- `marcas`, `tipos-dispositivo`, `sistemas-operativos`, `puertos`, `procesadores`, `gpus`
+- `categorias-insumos`, `problemas`
 - `usuarios`, `roles`, `especialidades`
 
-> Los módulos `software` y `roles` no incluyen `cambiar-estatus` ni `ver-estado`.
+> El módulo `roles` no incluye `cambiar-estatus` ni `ver-estado` (exclusión explícita en el Seeder); `software` sí los incluye.
 
 **Permisos especiales (definidos manualmente en el Seeder):**
+
+Además de los CRUD: `admin-configuracion-global` (configuración global del sistema, junto a `admin-incidencias` y `admin-solicitudes-perfil` forman la ability compuesta `admin.configuracion`).
 
 **Movimientos:**
 - `movimientos-computadores-crear`, `movimientos-computadores-ver`, `movimientos-computadores-enviar`
@@ -301,6 +304,7 @@ Los permisos CRUD de entidades se generan automáticamente en el Seeder con el p
 - `gestionar-incidencias` — Acceso a la mesa de soporte
 - `admin-incidencias` — Configuración avanzada del módulo
 - `ver-incidencias` — Histórico de incidencias
+- `resolver-incidencias` — Marcar incidencias/tickets como resueltos/solventados
 - `admin-solicitudes-perfil` — Gestión de cambios de perfil
 
 **Auditoría:**
@@ -309,17 +313,17 @@ Los permisos CRUD de entidades se generan automáticamente en el Seeder con el p
 - `ver-auditoria-usuarios` — Vista de auditoría individual por usuario
 
 **Reportes:**
-- `reportes-excel` — Exportación a Excel y PDF (compartido)
+- `reportes-excel` — Exportación a Excel (los PDF usan `reportes-pdf` o `admin-auditoria`)
 - `reportes-pdf` — Generación de fichas PDF de activos
 - `reportes-masivos-filtros` — Generador de reportes multi-módulo (Generador Pro)
 
 **Dashboard:**
-- `ver-dashboard` — Acceso al panel principal. Todos los roles lo tienen. Si un usuario autenticado no tiene este permiso (sin rol), es redirigido automáticamente a su Perfil.
+- `ver-dashboard` — Acceso al panel principal. Todos los roles lo tienen. Un usuario autenticado sin este permiso recibe **403** en `/` (la ruta exige `->can('ver-dashboard')`); sin sesión es redirigido al login.
 - `ver-panel-soporte` — Muestra la sección de Mesa de Ayuda (HelpDesk) dentro del Dashboard. Asignado exclusivamente a Administrador, Coordinador y Personal TI.
 
 ## 12. Exportaciones Excel
 
-Todas las exportaciones están en `app/Exports/` e implementan interfaces de `Maatwebsite/Excel`. Son invocadas exclusivamente desde `ReporteController`.
+Todas las exportaciones Excel están en `app/Exports/` e implementan interfaces de `Maatwebsite/Excel` y se invocan desde `ReporteController` (incluido `softwareExcel`); **excepción**: `Movimientos\SolicitudesPerfil::exportExcel()`. (Las exportaciones **PDF** se tratan en §13.)
 
 | Clase | Tabla/Dato exportado | Acepta Filtros |
 |---|---|---|
@@ -344,7 +348,7 @@ Todas las exportaciones están en `app/Exports/` e implementan interfaces de `Ma
 
 ## 13. Reportes PDF
 
-Todos los reportes PDF son generados por **un único controlador centralizado**: `App\Http\Controllers\ReporteController`, usando `Barryvdh\DomPDF`. Todas las rutas están bajo el prefijo `/reportes` con nombre `reportes.*`.
+La inmensa mayoría de reportes PDF la genera **`App\Http\Controllers\ReporteController`**, usando `Barryvdh\DomPDF`; **excepciones**: `Inventario\Software::exportPDF()` y `Movimientos\SolicitudesPerfil::exportPDF()`. Todas las rutas están bajo el prefijo `/reportes` con nombre `reportes.*`.
 
 ### 13.1 Fichas Individuales (GET con `{id}`)
 
@@ -488,15 +492,17 @@ php artisan route:list
 php artisan config:show
 ```
 
-### 15.6 Ruta de Emergencia: Sincronización de Permisos
+### 15.6 Sincronización de Permisos
 
-Existe una ruta temporal en `web.php` para sincronizar permisos nuevos sin necesidad de acceso a consola:
-
-```
-GET /seed-permissions
-```
-
-Esta ruta crea los permisos `ver-auditoria-tecnicos` y `ver-auditoria-usuarios` y los asigna a los roles `super-admin` y `administrador`. Debe protegerse o eliminarse en producción.
+> **F4 (2026-11-24):** la ruta temporal `GET /seed-permissions` fue **eliminada**
+> porque mutaba roles vía GET sin autorización específica (ahora responde 404 y
+> está cubierta por el test T-AUTH-7). Para sincronizar permisos nuevos se usa
+> el seeder idempotente y la consola:
+>
+> ```
+> php artisan db:seed --class=RolesAndPermissionsSeeder
+> php artisan permission:cache-reset
+> ```
 
 ### 15.7 Seguridad y Backups
 
@@ -508,9 +514,9 @@ Esta ruta crea los permisos `ver-auditoria-tecnicos` y `ver-auditoria-usuarios` 
 - **Permisos de carpetas:** `storage/` y `bootstrap/cache/` deben tener permisos `775`.
 - **Auditoría de acceso:** Todo inicio/cierre de sesión queda registrado en `activity_log` con la IP del cliente.
 - **Subida de archivos:** El módulo de avatar usa `extension()` (inferido por MIME) en lugar de `getClientOriginalExtension()`, para prevenir suplantación de extensiones.
-- **Ruta `/home`:** La constante `HOME` del `RouteServiceProvider` apunta a `/`. Los usuarios autenticados sin rol son redirigidos automáticamente a `/perfil` por la lógica del `MainDashboard`.
+- **Ruta `/home`:** La constante `HOME` del `RouteServiceProvider` apunta a `/`. Los usuarios autenticados sin el permiso `ver-dashboard` reciben **403** (la ruta `/` exige `->can('ver-dashboard')`); sin sesión son redirigidos al login.
 - **Cierre de sesión al cerrar navegador/pestaña:** Se ha establecido `'expire_on_close' => true` en `config/session.php` y se ha removido por completo la opción de "Mantener sesión iniciada" (remember me) en el backend y frontend. Esto garantiza que las cookies de sesión expiren tan pronto como el usuario cierre su navegador o pestaña.
-- **Control de Caché e Historial del Navegador:** Se implementó el middleware `PreventBackHistory` registrado bajo el alias `nocache` que inyecta encabezados HTTP (`Cache-Control: no-cache, no-store, must-revalidate`, `Pragma: no-cache`, `Expires: 0`). Este middleware está acoplado al grupo de rutas `auth`, impidiendo que el navegador almacene copias locales de las páginas del dashboard o inventarios. Así, si un usuario intenta navegar con el botón de atrás/adelante tras haber cerrado sesión, el navegador se ve obligado a solicitar la página al servidor, resultando en una redirección inmediata al login.
+- **Control de Caché e Historial del Navegador:** Se implementó el middleware `PreventBackHistory` registrado bajo el alias `nocache` que inyecta encabezados HTTP (`Cache-Control: no-cache, no-store, max-age=0, must-revalidate`, `Pragma: no-cache`, `Expires` con fecha de 1990). Este middleware está acoplado al grupo de rutas `auth`, impidiendo que el navegador almacene copias locales de las páginas del dashboard o inventarios. Así, si un usuario intenta navegar con el botón de atrás/adelante tras haber cerrado sesión, el navegador se ve obligado a solicitar la página al servidor, resultando en una redirección inmediata al login.
 - **Sistema de Cierre Automático por Inactividad (Banca Estilo UX):** Se implementó un sistema de control de inactividad dual en `app.blade.php`. 
   - *Monitoreo del Cliente:* Un temporizador JavaScript global registra la interacción física (clic, movimiento, scroll, teclado).
   - *Advertencia Previa:* Tras **28 minutos** de inactividad continua, se despliega de forma programática un modal de Bootstrap (`#sessionTimeoutModal`) con una cuenta regresiva visual en tiempo real de **120 segundos (2 minutos)**.
@@ -519,4 +525,4 @@ Esta ruta crea los permisos `ver-auditoria-tecnicos` y `ver-auditoria-usuarios` 
 - **Seguridad de Pestaña Estricta (Tab-Bound Sessions):** Se implementó un algoritmo dual entre `Login.php` y el `<head>` de `app.blade.php` para restringir estrictamente el acceso a la sesión a la pestaña original donde se inició. Al autenticarse, se inyecta un flash de sesión que permite firmar el `sessionStorage` del cliente. Si un usuario cierra la pestaña (preservando erróneamente la cookie en el proceso del navegador) e intenta acceder desde una pestaña nueva copiando la URL, el sistema detecta la ausencia de la firma local, aborta instantáneamente la renderización del DOM y redirige a la ruta de deslogueo de emergencia `/force-logout-tab`, destruyendo la sesión remota y protegiendo el sistema.
 
 ---
-*Manual Técnico SIGEINV — Versión 2.0 (Actualizado: Mayo 2026)*
+*Manual Técnico SIGEINV - Versión 2.0 (Actualizado: Noviembre 2026)*

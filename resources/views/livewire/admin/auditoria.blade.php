@@ -11,7 +11,7 @@
             </div>
         </div>
         <div class="col-md-5 d-flex justify-content-end gap-2">
-            @can('reportes-excel')
+            @can('admin-auditoria')
                 <a href="{{ route('reportes.logs.excel', ['searchUser' => $searchUser, 'searchModule' => $searchModule, 'dateFrom' => $dateFrom, 'dateTo' => $dateTo]) }}" class="btn btn-success shadow-sm border-0 fw-bold d-flex align-items-center">
                     <i class="bi bi-file-earmark-excel me-1"></i> Excel
                 </a>

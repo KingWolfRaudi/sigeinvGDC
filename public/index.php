@@ -5,6 +5,10 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
+// No revelar la versión de PHP: expose_php=On añade X-Powered-By a nivel SAPI
+// (no basta con quitarla del objeto Response en el middleware).
+header_remove('X-Powered-By');
+
 /*
 |--------------------------------------------------------------------------
 | Check If The Application Is Under Maintenance

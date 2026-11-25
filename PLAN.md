@@ -20,8 +20,8 @@
 | CA-5 | Test rojo de control | Un test deliberadamente fallido hace fallar el pipeline (demostrado, luego revertido) |
 | CA-6 | Rate limit en login | `RateLimiter::for('login')` existe + test que verifica 429 tras intentos fallidos |
 | CA-7 | bcrypt ≥ 12 | `config/hashing.php` → `rounds` por defecto ≥ 12 |
-| CA-8 | Authz en todas las rutas web | Toda ruta de `routes/web.php` tiene `->can()` o pertenece a grupo con middleware de permiso · matriz recurso×rol completa |
-| CA-9 | Tests de authz negativos | Tests que demuestran 401 sin sesión y 403 sin permiso para rutas protegidas |
+| CA-8 | Authz en todas las rutas web | Toda ruta de negocio de `routes/web.php` tiene `->can()` o `authorize()` en el controlador (las rutas sin permiso de negocio —`/login`, `/perfil`, `/logout`, `/force-logout-tab`— quedan cubiertas por los middleware `guest`/`auth`) · matriz recurso×rol completa |
+| CA-9 | Tests de authz negativos | Tests que demuestran redirección 302 a `/login` sin sesión (no aplica 401: la app usa sesiones por cookie) y 403 sin permiso para rutas protegidas |
 | CA-10 | Cabeceras de seguridad | Middleware que emite CSP, Referrer-Policy, Permissions-Policy, X-Content-Type-Options · test que las verifica |
 | CA-11 | Secretos | `gitleaks` sin hallazgos nuevos · sin `dd()`/`dump()` en código |
 | CA-12 | Gate 20 ítems | Informe en formato §6 de la skill, sin `✅` sobre ítem incumplido |
@@ -63,7 +63,7 @@
 
 | Paquete | Avisos | Severidad máxima | Nota |
 |---|---|---|---|
-| `laravel/framework` | 5 | **critical** (CVE-2026-114509 TokenGuard auth bypass, afecta <10.50.4 y 13.0–13.26) | Resuelto al instalar 13.42.x |
+| `laravel/framework` | 5 | **critical** (CVE-2026-114509 / GHSA-f9x3-7vq9-cph6: TokenGuard auth bypass; afecta `<10.50.4`, `11.x <11.56.1`, `12.x <12.68.0`, `13.x <13.27.0`) | Resuelto al instalar 13.42.x |
 | `phpoffice/phpspreadsheet` | 8 | critical | Transitive de maatwebsite/excel |
 | `league/commonmark` | 12 | high | Transitive (mary/dompdf) |
 | `guzzlehttp/guzzle` | 9 | high | |

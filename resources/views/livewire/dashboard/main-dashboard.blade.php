@@ -311,11 +311,14 @@
     </style>
 
     @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.6.2/dist/chart.umd.min.js"
+        integrity="sha384-wFIO1nJgUOP2XDesMi2Xqyej8+jLnzOfBrJbdvz7Pp+UI88xOiL08fKFupi2KqR0"
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
         document.addEventListener('livewire:initialized', () => {
-            const ramData = {!! json_encode($graficoRam) !!};
-            const discoData = {!! json_encode($graficoDiscos) !!};
+            // JSON_HEX_* evita que un valor con </script> cierre el bloque (XSS)
+            const ramData = {!! json_encode($graficoRam, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!};
+            const discoData = {!! json_encode($graficoDiscos, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!};
 
             // Paleta de colores Premium
             const colors = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1'];

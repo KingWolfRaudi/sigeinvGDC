@@ -30,6 +30,7 @@
                     <i class="bi bi-filter-circle me-1"></i> Use los filtros para segmentar la vista
                 </div>
                 <div class="d-flex gap-2">
+                    @can('reportes-excel')
                     <div class="dropdown">
                         <button class="btn btn-outline-success border-2 fw-bold dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
                             <i class="bi bi-file-earmark-excel me-1"></i> Exportar
@@ -39,6 +40,7 @@
                             <li><a class="dropdown-item py-2" href="{{ route('reportes.incidencias.excel') }}"><i class="bi bi-list-check me-2 text-primary"></i> Todo el Historial (Excel)</a></li>
                         </ul>
                     </div>
+                    @endcan
                     @can('crear-ticket')
                     <button type="button" class="btn btn-primary shadow-sm fw-bold px-4" wire:click="crear">
                         <i class="bi bi-plus-lg me-1"></i> Nueva Incidencia
@@ -92,7 +94,7 @@
                         <option value="">Todos los Estados</option>
                         <option value="abierto">Abiertos</option>
                         <option value="solventado">Solventados</option>
-                        <option value="cerrados">Cerrados</option>
+                        <option value="cerrado">Cerrados</option>
                     </select>
                 </div>
             </div>

@@ -479,7 +479,7 @@ Sección que muestra los activos tecnológicos que tienes actualmente asignados 
 
 ### 15.1 Exportación Excel
 
-Disponible en los módulos de Inventario, Incidencias, Movimientos, Usuarios y Auditoría *(requiere permiso `reportes-excel`)*. Botón **"Excel"** en la barra de acciones superior.
+Disponible en los módulos de Inventario, Incidencias, Movimientos y Usuarios *(requiere permiso `reportes-excel`)* y en **Auditoría** *(requiere permiso `admin-auditoria`)*. Botón **"Excel"** en la barra de acciones superior.
 
 Todos los Excel exportan los datos con los **filtros activos en pantalla** en ese momento.
 

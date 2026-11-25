@@ -28,7 +28,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // CA-6 / CWE-307: límite de intentos de login. El componente
         // Livewire\Auth\Login aplica la misma regla vía LoginThrottle
-        // (hoy el login es una acción Livewire, sin ruta propia).
+        // (hoy el login es una acción Livewire, sin ruta propia; este
+        // limitador nombrado queda listo para middleware throttle y usa
+        // la misma clave compartida LoginThrottle::key).
         RateLimiter::for('login', function (Request $request) {
             return Limit::perMinute(LoginThrottle::MAX_ATTEMPTS)->by(
                 LoginThrottle::key(

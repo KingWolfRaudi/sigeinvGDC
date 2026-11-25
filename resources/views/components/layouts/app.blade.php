@@ -5,9 +5,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>{{ env('ORG_NOMBRE', 'SIGEINV') }}</title>
+    <title>{{ config('app.org_nombre', 'SIGEINV') }}</title>
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v=2">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        integrity="sha384-XGjxtQfXaH2tnPFa9x+ruJTuLE3Aa6LhHSWRr1XeTyhezb4abCG4ccI5AkVDxqC+"
+        crossorigin="anonymous" referrerpolicy="no-referrer">
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     @livewireStyles
     <style>

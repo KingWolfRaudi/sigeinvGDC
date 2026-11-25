@@ -13,6 +13,7 @@ use App\Models\Problema;
 use App\Models\Trabajador;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -223,6 +224,10 @@ class Gestion extends Component
 
     public function crear()
     {
+        // Defensa en profundidad: la vista gatea el botón con @can('crear-ticket'),
+        // pero la acción Livewire debe revalidarla en el servidor (coherencia O-2).
+        abort_if(Gate::denies('crear-ticket'), 403, 'No tienes permiso para crear incidencias.');
+
         $this->resetForm();
 
         if (! empty($this->presetFiltro)) {
@@ -290,6 +295,9 @@ class Gestion extends Component
 
     public function guardar()
     {
+        // Mismo check que crear(): persistir una incidencia nueva exige crear-ticket
+        abort_if(! $this->incidencia_id && Gate::denies('crear-ticket'), 403, 'No tienes permiso para crear incidencias.');
+
         $rules = [
             'departamento_id' => 'required',
             'problema_id' => 'required',

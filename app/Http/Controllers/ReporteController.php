@@ -376,8 +376,27 @@ class ReporteController extends Controller
             $selections = json_decode($selections, true);
         }
 
-        if (empty($selections)) {
+        // Re-validación en el servidor (gate 11): forma estricta del payload.
+        $moduleAllowlist = [
+            'computadores', 'dispositivos', 'insumos', 'marcas', 'tipos-dispositivo',
+            'sistemas-operativos', 'departamentos', 'trabajadores', 'procesadores',
+            'gpus', 'puertos',
+        ];
+
+        if (! is_array($selections) || $selections === []) {
             return back()->with('error', 'Debe seleccionar al menos un módulo.');
+        }
+
+        foreach ($selections as $selection) {
+            $module = is_array($selection) ? ($selection['module'] ?? null) : null;
+
+            if (! in_array($module, $moduleAllowlist, true)) {
+                return back()->with('error', 'Módulo de reporte inválido.');
+            }
+
+            if (isset($selection['filters']) && ! is_array($selection['filters'])) {
+                return back()->with('error', 'Filtros de reporte inválidos.');
+            }
         }
 
         activity()->log('Generó reporte masivo multi-hoja de '.count($selections).' módulos.');

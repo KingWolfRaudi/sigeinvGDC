@@ -136,7 +136,7 @@ class Usuarios extends Component
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users,username,'.$this->user_id,
             'email' => 'required|email|max:255|unique:users,email,'.$this->user_id,
-            'password' => $this->user_id ? 'nullable|min:8' : 'required|min:8',
+            'password' => $this->user_id ? 'nullable|string|min:8|max:255' : 'required|string|min:8|max:255',
         ];
 
         $this->validate($reglas);

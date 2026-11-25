@@ -42,6 +42,10 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    // Nombre de la organización en la UI (no leer env() fuera de config: con
+    // config:cache devuelve null y perderíamos el valor — coherencia clase 11)
+    'org_nombre' => env('ORG_NOMBRE', 'SIGEINV'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

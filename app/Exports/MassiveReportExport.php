@@ -67,6 +67,9 @@ class MassiveReportExport implements WithMultipleSheets
                 case 'puertos':
                     $sheets[] = new CatalogosExport(Puerto::class, $filters, 'Puertos');
                     break;
+                default:
+                    // Estado no cubierto: falla explícito, nunca hoja vacía en silencio
+                    throw new \InvalidArgumentException("Módulo de reporte no soportado: {$module}");
             }
         }
 

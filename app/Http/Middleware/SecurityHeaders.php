@@ -39,6 +39,9 @@ class SecurityHeaders
             $headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains';
         }
 
+        // No revelar la versión de PHP (X-Powered-By la añade expose_php)
+        $response->headers->remove('X-Powered-By');
+
         foreach ($headers as $name => $value) {
             if (! $response->headers->has($name)) {
                 $response->headers->set($name, $value);

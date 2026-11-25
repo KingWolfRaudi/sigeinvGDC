@@ -57,7 +57,10 @@ class MainDashboard extends Component
             return redirect()->route('perfil');
         }
         $user = Auth::user();
-        $this->esTecnico = $user->hasRole('resolutor-incidencia') && ! $user->hasRole(['super-admin', 'administrador', 'coordinador']);
+        // Un resolutor solo ve sus propios casos (antes el flag nunca se activaba
+        // y caía en la rama "ver todo" — coherencia clase 6/10).
+        $this->esResolutor = $user->hasRole('resolutor-incidencia') && ! $user->hasRole(['super-admin', 'administrador', 'coordinador']);
+        $this->esTecnico = $this->esResolutor;
         $this->esTrabajador = $user->hasRole('trabajador') && ! $user->hasRole(['super-admin', 'administrador', 'coordinador', 'resolutor-incidencia']);
 
         $configDash = Configuracion::where('clave', 'dashboard_tecnico_ver_global')->first();
@@ -254,7 +257,7 @@ class MainDashboard extends Component
 
     public function ver($id)
     {
-        $this->incidencia_detalle = Incidencia::with([
+        $incidencia = Incidencia::with([
             'problema.especialidad',
             'departamento',
             'dependencia',
@@ -263,6 +266,17 @@ class MainDashboard extends Component
             'creator',
             'modelo',
         ])->findOrFail($id);
+
+        // Sin IDOR (CWE-639): la ruta solo exige ver-dashboard (la tienen los
+        // trabajadores), así que acotamos por propiedad o gestión de la incidencia.
+        $user = Auth::user();
+        $puedeVer = $user->can('ver-incidencias')
+            || $incidencia->created_by === $user->id
+            || $incidencia->user_id === $user->id;
+
+        abort_unless($puedeVer, 403, 'No tienes permiso para ver esta incidencia.');
+
+        $this->incidencia_detalle = $incidencia;
 
         $this->dispatch('abrir-modal', id: 'modalDetalleIncidencia');
     }

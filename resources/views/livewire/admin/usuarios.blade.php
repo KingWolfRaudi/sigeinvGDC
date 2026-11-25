@@ -37,6 +37,7 @@
                 @endcan
 
                 <div class="col-md-4 text-end d-flex gap-2 justify-content-end">
+                    @can('reportes-excel')
                     <div class="dropdown">
                         <button class="btn btn-outline-success border-2 fw-bold dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
                             <i class="bi bi-file-earmark-excel me-1"></i> Excel
@@ -46,6 +47,7 @@
                             <li><a class="dropdown-item py-2" href="{{ route('reportes.usuarios.excel') }}"><i class="bi bi-list-check me-2 text-primary"></i> Todo el Directorio</a></li>
                         </ul>
                     </div>
+                    @endcan
                     @can('crear-usuarios')
                         <button wire:click="crear" class="btn btn-primary shadow-sm fw-bold px-4">
                             <i class="bi bi-person-plus-fill me-1"></i> Nuevo

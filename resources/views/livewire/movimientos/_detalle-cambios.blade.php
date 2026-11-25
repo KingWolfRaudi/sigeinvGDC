@@ -131,10 +131,16 @@
             if (empty($val)) return '<em class="text-muted">Sin elementos</em>';
             
             if ($field === 'rams') {
-                return '<div class="small">' . implode('<br>', array_map(fn($r) => "Slot ".($r['slot'] ?? '?').": ".($r['capacidad'] ?? '0')."GB", $val)) . '</div>';
+                return '<div class="small">' . implode('<br>', array_map(
+                    fn($r) => 'Slot '.e((string) ($r['slot'] ?? '?')).': '.e((string) ($r['capacidad'] ?? '0')).'GB',
+                    $val
+                )) . '</div>';
             }
             if ($field === 'discos') {
-                return '<div class="small">' . implode('<br>', array_map(fn($d) => ($d['capacidad'] ?? '0')."GB (".($d['tipo'] ?? 'Desconocido').")", $val)) . '</div>';
+                return '<div class="small">' . implode('<br>', array_map(
+                    fn($d) => e((string) ($d['capacidad'] ?? '0')).'GB ('.e((string) ($d['tipo'] ?? 'Desconocido')).')',
+                    $val
+                )) . '</div>';
             }
             if ($field === 'puertos') {
                 // Si es solo un array de IDs, no podemos mostrar los nombres aquí fácilmente sin consulta extra.

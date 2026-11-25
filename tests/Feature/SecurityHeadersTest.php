@@ -30,6 +30,9 @@ class SecurityHeadersTest extends TestCase
 
         // Sin TLS no se emite HSTS (producción hoy es HTTP puro)
         $response->assertHeaderMissing('Strict-Transport-Security');
+
+        // No se revela la versión de PHP (X-Powered-By)
+        $response->assertHeaderMissing('X-Powered-By');
     }
 
     public function test_hsts_is_emitted_only_over_https(): void

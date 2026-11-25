@@ -18,10 +18,10 @@ class Login extends Component
 
     public $password = '';
 
-    // Reglas de validación básicas
+    // Reglas de validación básicas (allowlist de tipo y longitud — gate 11)
     protected $rules = [
-        'identificador' => 'required',
-        'password' => 'required',
+        'identificador' => 'required|string|max:255',
+        'password' => 'required|string|max:255',
     ];
 
     public function iniciarSesion()
