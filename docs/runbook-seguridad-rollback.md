@@ -103,8 +103,28 @@ php artisan migrate:rollback            # solo si hubo migraciones en el release
 | Tarea | Frecuencia | Comando/acceso |
 |---|---|---|
 | `composer audit --locked` + gitleaks + pint + phpunit | cada PR (CI) | `.github/workflows/ci.yml` |
+| Purga de `activity_log` (retención 12 meses, R6) | diario (scheduler) | `activitylog:clean --days=365 --force` — programado en `app/Console/Kernel.php` |
 | Actualizar PHP a la última 8.3.x de seguridad | mensual | `php -v` vs php.net |
 | Actualizar Composer (≥2.10.3) | mensual | `composer --version` |
 | Rotación `APP_KEY` | anual o ante incidente | §5 |
 | Revisar waivers W1 (2026-12-13), W2 (2027-02-13), R1–R9 | fechas en `SECURITY.md` | — |
 | Backup BD | diario | `mysqldump` (§6) |
+
+## 9. Límites de recursos y timeouts recomendados en el despliegue (R8)
+
+La aplicación valida en su borde (`ValidatePostSize`, reglas de Livewire,
+allowlist del reporte masivo), pero el tope real lo pone el runtime. Valores
+recomendados para nginx + PHP-FPM (fuera de alcance de este ciclo: se aplican
+en el servidor, no en el repo):
+
+| Parámetro | Valor recomendado | Motivo |
+|---|---|---|
+| nginx `client_max_body_size` | `8m` | Avatares/subidas; coincide con `upload_max_filesize` |
+| nginx `fastcgi_read_timeout` | `60s` | Exportes Excel/PDF grandes |
+| nginx `server_tokens` | `off` | No revelar versión de nginx |
+| nginx (estáticos) | `add_header X-Content-Type-Options nosniff always;` | Los assets no pasan por el middleware de Laravel |
+| php.ini `post_max_size` / `upload_max_filesize` | `8m` | Límite de cuerpo (gate 14) |
+| php.ini `max_execution_time` | `60s` | Timeouts |
+| php.ini `expose_php` | `Off` | Refuerza la eliminación de `X-Powered-By` |
+| php.ini `session.cookie_secure` / `httponly` / `samesite` | `1` / `1` / `Lax` | Solo con TLS activo (R1) |
+| nginx `limit_req` (zona `/login`) | `10 r/s burst=20` | Refuerzo externo del rate limit de aplicación (CA-6) |

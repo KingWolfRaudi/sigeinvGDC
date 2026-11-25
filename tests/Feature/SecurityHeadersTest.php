@@ -45,6 +45,26 @@ class SecurityHeadersTest extends TestCase
         $response->assertHeader('Strict-Transport-Security');
     }
 
+    /**
+     * R1 (activación de TLS): con `SESSION_SECURE_COOKIE=true` la cookie de
+     * sesión se emite con flag Secure, y sobre https se emite HSTS. Este test
+     * fija el comportamiento que debe existir en cuanto se habilite TLS.
+     */
+    public function test_secure_cookie_and_hsts_when_tls_is_configured(): void
+    {
+        config(['session.secure' => true]);
+
+        $response = $this->get('https://localhost/login');
+
+        $response->assertStatus(200);
+        $response->assertHeader('Strict-Transport-Security');
+
+        $cookie = collect($response->headers->getCookies())->first(fn ($c) => $c->getName() === 'laravel_session');
+        $this->assertNotNull($cookie, 'No se emitió la cookie de sesión');
+        $this->assertTrue($cookie->isSecure(), 'La cookie de sesión debe llevar Secure con SESSION_SECURE_COOKIE=true');
+        $this->assertTrue($cookie->isHttpOnly(), 'La cookie de sesión debe ser HttpOnly');
+    }
+
     public function test_csp_script_src_rejects_data_and_blob_uris(): void
     {
         $csp = (string) $this->get('/login')->headers->get('Content-Security-Policy');

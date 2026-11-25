@@ -12,7 +12,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // Retención de logs de auditoría (R6 / GDPR-ish): purga de activity_log
+        // con más de 12 meses (contiene IP + user-agent). `--force` porque el
+        // scheduler corre con APP_ENV=production.
+        $schedule->command('activitylog:clean', ['--days' => 365, '--force' => true])->daily();
     }
 
     /**

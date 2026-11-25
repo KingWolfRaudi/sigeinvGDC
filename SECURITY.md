@@ -1,7 +1,7 @@
 # SECURITY.md — sigeinvGDC
 
 > **Alcance:** repositorio local y rama `Dev-branch`. La producción (172.17.11.31) no se modifica en este ciclo.
-> **Última revisión:** 2026-11-24 · **Próxima revisión global:** 2027-02-24
+> **Última revisión:** 2026-11-25 · **Próxima revisión global:** 2027-02-24
 
 ## 1. Versiones soportadas
 
@@ -39,9 +39,9 @@
 | R1 | Producción sin TLS (HTTP en puerto 80) | Credenciales y sesión viajan en claro en la red interna; `SESSION_SECURE_COOKIE=false` y no se emite HSTS | Red interna segmentada; cookie `HttpOnly` + `SameSite=Lax`; CSP con `unsafe-*` limitada a Livewire (ver R2). Al habilitar TLS: `SESSION_SECURE_COOKIE=true` y HSTS se activa solo | 2027-02-24 |
 | R2 | CSP con `script-src 'unsafe-inline' 'unsafe-eval'` | Reduce la defensa en profundidad frente a XSS | Salidas Blade escapadas; `{!! !!}` auditados y endurecidos (`e()`, `JSON_HEX_*`); SRI en los CDN. Plan: CSP con nonce cuando Livewire 3 lo permita | 2027-02-24 |
 | R3 | MFA ausente | Robo de credenciales → acceso administrativo | Ver W2 | 2027-02-13 |
-| R4 | SAST/DAST parciales | Hallazgos no detectados automáticamente | `php -l` (166 ficheros), grep dirigido (SQL crudo, eval/exec, deserialización, `verify=false`), ZAP baseline local (0 FAIL / 6 WARN revisados). Larastan excluido del CI por decisión del usuario; DAST contra staging no ejecutado (no hay staging y producción no se toca) | 2027-02-24 |
+| R4 | SAST/DAST parciales | Hallazgos no detectados automáticamente | `php -l` (167 ficheros), grep dirigido (SQL crudo, eval/exec, deserialización, `verify=false`), **SAST one-off PHPStan 2.3.7 nivel 1 → 0 hallazgos** (app/routes/scripts; mágicas Eloquent/Livewire excluidas), ZAP baseline local (0 FAIL / 6 WARN revisados). Larastan excluido del CI por decisión del usuario; DAST autenticado contra staging no ejecutado (no hay staging y producción no se toca) | 2027-02-24 |
 | R5 | Permisos de `dependencias` reutilizan `ver-departamentos` | Granularidad menor de la deseada | Aceptado en F1 §4.7; sin ampliación de alcance en este ciclo | 2027-02-24 |
-| R6 | `activity_log` guarda IP y user-agent; sin retención automatizada | Dato personal en logs de auditoría | Acceso restringido a `admin-auditoria` (ruta, controlador, componente y UI); exportaciones con el mismo permiso; purga manual pendiente de política formal | 2027-02-24 |
+| R6 | `activity_log` guarda IP y user-agent | Dato personal en logs de auditoría | Acceso restringido a `admin-auditoria` (ruta, controlador, componente y UI); exportaciones con el mismo permiso; **retención automatizada a 12 meses** (`activitylog:clean --days=365` programado en `app/Console/Kernel.php` + test) | 2027-02-24 |
 | R7 | Runtime local 8.3.36 < 8.3.37 | Correcciones de seguridad de la rama 8.3 sin aplicar en el entorno local | CI fija 8.3.37; **actualizar Laragon antes del despliegue** | **2026-12-13** |
 | R8 | Límites de recursos dependen de PHP/nginx | Agotamiento de recursos por payloads grandes; headers en estáticos fuera de la app | `ValidatePostSize` + validación estricta del reporte masivo + paginación; revisar `post_max_size`/`client_max_body_size`/`expose_php=Off`/headers en despliegue | 2027-02-24 |
 | R9 | Composer local 2.9.4 afectado por CVE-2026-59944 (media, 6.1) | Riesgo de permisos/rutas en `vendor/bin` al instalar paquetes con binarios enlazados fuera del paquete | Es **herramienta de build local**, no runtime; el CI usa el Composer actual de `setup-php` (≥2.10.3) y el `vendor/` se instala desde lock. **Actualizar Composer a ≥2.10.3 antes de la próxima actualización de dependencias** | **2026-12-13** |
@@ -69,7 +69,7 @@
 
 - SBOM: `docs/sbom/composer-sbom.json` (CycloneDX 1.5, 148 componentes, generado 2026-11-24, sincronizado 1:1 con `composer.lock`).
 - DAST local: `docs/seguridad/zap-baseline.html`, `.json`, `.md` (ZAP 2.17.0, 2026-11-24, **0 FAIL / 6 WARN**).
-- Tests: `docs/seguridad/phpunit.xml` (29 tests, 100 assertions).
+- Tests: `docs/seguridad/phpunit.xml` (31 tests, 108 assertions).
 - Runbook: `docs/runbook-seguridad-rollback.md` (despliegue, rotación de `APP_KEY`, TLS, rollback, incidentes).
 - Verificación SBOM en CI: `scripts/verify-sbom.php`.
 - Informe del gate F6: `docs/seguridad/informe-gate-F6.md`.
