@@ -36,13 +36,13 @@ decisiones o entornos fuera de este ciclo, o de waivers aún no aceptados. Causa
 | 17 | Supply chain | ✅ | `composer.lock` versionado; SBOM CycloneDX 1.5 reproducible (148 componentes, 1:1 con lock); `composer audit` 0; Actions por commit SHA; gitleaks verificado por SHA-256; CI ejecuta `scripts/verify-sbom.php` y falla si el SBOM se desincroniza |
 | 18 | Headers de seguridad | ⚠️ R1/R8 | `SecurityHeadersTest` verifica CSP, nosniff, DENY, Referrer-Policy, Permissions-Policy, COOP y ausencia de HSTS/`X-Powered-By` **en respuestas dinámicas**; los estáticos y HSTS dependen del despliegue (nginx, TLS) |
 | 19 | Privacidad | ⚠️ R6 | Exportaciones con PII gated (`reportes-excel`/`reportes-pdf`/`admin-auditoria`, ruta+controlador+UI); sin PII en `.env`; retención de `activity_log` pendiente de política formal |
-| 20 | Checks en verde | ⚠️ R4 | Pint ✅ · PHPUnit 31/31 ✅ · composer audit 0 ✅ · gitleaks ✅ · ZAP local 0 FAIL/6 WARN (revisados) · SBOM verificado en CI · SAST one-off PHPStan 2.3.7 (nivel 1) → 0 hallazgos (Larastan sigue excluido del CI por decisión del usuario) · DAST autenticado sin staging |
+| 20 | Checks en verde | ⚠️ R4 | Pint ✅ · PHPUnit 32/32 ✅ · composer audit 0 ✅ · gitleaks ✅ · ZAP local 0 FAIL/6 WARN (revisados) · SBOM verificado en CI · SAST one-off PHPStan 2.3.7 (nivel 1) → 0 hallazgos (Larastan sigue excluido del CI por decisión del usuario) · DAST autenticado sin staging |
 
 ## 2. Evidencia de comandos (2026-11-24)
 
 ```
 pint --test                          → passed
-phpunit --log-junit                  → OK (31 tests, 108 assertions) · docs/seguridad/phpunit.xml
+phpunit --log-junit                  → OK (32 tests, 110 assertions) · docs/seguridad/phpunit.xml
 composer audit --locked              → No security vulnerability advisories found (exit 0)
 gitleaks 8.30.1 (git, modo CI)       → 45 commits scanned · no leaks found (exit 0) · gate ejecutado antes del commit de F6; el CI re-escanea el historial completo en cada push
 php -l (167 ficheros, app/routes/config/database/tests/public/scripts) → 0 errores
@@ -163,7 +163,7 @@ corregidos o aceptados con motivo, responsable y fecha.
 FASE F6 · gate de seguridad + tests transversales
 GATE SEGURIDAD 13/20 ✅ · 7 ⚠️ (R1, R2, R4, R6, R8) · 0 ❌
 COHERENCIA 12 clases: 52 hallazgos → 45 corregidos · 7 aceptados con responsable y fecha · 0 abiertas
-TESTS 31/31, 108 assertions (docs/seguridad/phpunit.xml) · SCA 0 advisories · gitleaks 0 hallazgos · DAST local 0 FAIL/6 WARN
+TESTS 32/32, 110 assertions (docs/seguridad/phpunit.xml) · SCA 0 advisories · gitleaks 0 hallazgos · DAST local 0 FAIL/6 WARN
 Artefactos: SECURITY.md · docs/sbom/composer-sbom.json · docs/seguridad/* · docs/runbook-seguridad-rollback.md · scripts/verify-sbom.php
 Desviaciones de coherencia corregidas: 45 (pass 1: D02–D04, D08–D22, D25, D27–D29 · pass 2: O-1–O-12 · pass 3: N-1–N-9 · pass 4: N-10–N-11) — detalle en §3 y §6.
 Desviaciones aceptadas: D01, D05, D06, D07, D23, D24, D26 (§6) + riesgos residuales R1–R9 propuestos (SECURITY.md §4, pendientes de confirmación) + waivers W1/W2 (SECURITY.md §3).
@@ -181,12 +181,12 @@ esta tanda (el recuento del gate §1 corresponde a la evaluación del
 
 | Riesgo | Avance aplicado | Estado |
 |---|---|---|
-| **R1** | Test `test_secure_cookie_and_hsts_when_tls_is_configured`: con `SESSION_SECURE_COOKIE=true` la cookie de sesión sale con `Secure` + `HttpOnly` y se emite HSTS sobre https (fija el comportamiento que debe existir al habilitar TLS) | Sigue ⚠️: falta TLS real en producción |
+| **R1** | Verificación end-to-end local (2026-11-25): proxy TLS con cert autofirmado + `X-Forwarded-Proto` → **200 con HSTS `max-age=31536000; includeSubDomains`, cookie `laravel_session` `secure; httponly; samesite=lax` y sin `X-Powered-By`**. Corregido `TrustProxies` (allowlist loopback: sin ella la app ignora `X-Forwarded-Proto` y no emitiría HSTS tras nginx) + 2 tests (`test_hsts_when_trusted_proxy_forwards_https`, `test_secure_cookie_and_hsts_when_tls_is_configured`) | Sigue ⚠️: falta aplicar TLS real en producción |
 | **R4** | SAST one-off: **PHPStan 2.3.7 nivel 1** sobre `app/`, `routes/` y `scripts/` (excluidas las mágicas Eloquent/Livewire) → **0 hallazgos**; se retiró el comando `inspire` del skeleton (único falso positivo, código muerto). Ejecutado fuera del CI (Larastan sigue excluido por decisión del usuario) | Sigue ⚠️: falta DAST autenticado en staging |
 | **R6** | Retención automatizada: `activitylog:clean --days=365 --force` programado a diario en `app/Console/Kernel.php` + test `ActivityRetentionTest` (purga registros >12 meses y conserva los recientes) | Avance; quedan alertas/request-id por definir |
 | **R8** | Valores recomendados de nginx/php.ini (body size, timeouts, `expose_php`, headers en estáticos, `limit_req` en `/login`) documentados en el runbook §9 | Sigue ⚠️: fuera de alcance (producción) |
 
-Estado de la suite tras las ampliaciones: **31 tests / 108 assertions**,
+Estado de la suite tras las ampliaciones: **32 tests / 110 assertions**,
 `pint --test` passed, `composer audit` 0, gitleaks 0 hallazgos,
 `scripts/verify-sbom.php` 0, PHPStan 0 hallazgos.
 

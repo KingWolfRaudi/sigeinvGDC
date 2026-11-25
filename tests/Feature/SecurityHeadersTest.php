@@ -65,6 +65,20 @@ class SecurityHeadersTest extends TestCase
         $this->assertTrue($cookie->isHttpOnly(), 'La cookie de sesión debe ser HttpOnly');
     }
 
+    /**
+     * R1 (topología real): con nginx/proxy TLS delante, la app solo detecta
+     * HTTPS si el proxy está en la allowlist de loopback (TrustProxies).
+     * Verificación: X-Forwarded-Proto: https → HSTS.
+     */
+    public function test_hsts_when_trusted_proxy_forwards_https(): void
+    {
+        $response = $this->withHeaders(['X-Forwarded-Proto' => 'https'])
+            ->get('/login');
+
+        $response->assertStatus(200);
+        $response->assertHeader('Strict-Transport-Security');
+    }
+
     public function test_csp_script_src_rejects_data_and_blob_uris(): void
     {
         $csp = (string) $this->get('/login')->headers->get('Content-Security-Policy');

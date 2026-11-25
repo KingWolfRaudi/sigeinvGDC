@@ -57,10 +57,19 @@ Cualquier advisory nuevo se evalúa: bump → waiver §7 de la skill con compens
 
 ## 4. Habilitación de TLS (cierra R1)
 
-1. Emitir certificado (CA institucional) y montar en nginx con redirect 80 → 443.
-2. En `.env`: `SESSION_SECURE_COOKIE=true`, `APP_URL=https://<host>`.
-3. Verificar: HSTS (`max-age=31536000; includeSubDomains`) se emite solo sobre TLS (test `SecurityHeadersTest`), cookie `laravel_session` con `Secure`.
-4. `php artisan config:cache` y smoke test con `curl -I --insecure https://…`.
+1. Emitir certificado (CA institucional) y montar en nginx con redirect 80 → 443 y cabecera `X-Forwarded-Proto: https` hacia PHP-FPM.
+2. **Proxy de confianza:** `app/Http/Middleware/TrustProxies.php` tiene `$proxies = ['127.0.0.1', '::1']`. Sin eso, `X-Forwarded-Proto` se ignora, `request()->secure()` es `false` y **no se emite HSTS** aunque haya TLS (verificado: es la topología nginx→php-fpm en loopback). Si el proxy estuviera en otra IP, ampliar la allowlist explícitamente — **nunca** `'*'`.
+3. En `.env`: `SESSION_SECURE_COOKIE=true`, `APP_URL=https://<host>`.
+4. Verificar: HSTS (`max-age=31536000; includeSubDomains`), cookie `laravel_session` con `Secure` + `HttpOnly`, sin `X-Powered-By`.
+5. `php artisan config:cache` y smoke test con `curl -k -I https://…`.
+
+**Verificación local realizada (2026-11-25, sin tocar producción):** proxy TLS
+con certificado autofirmado delante de `artisan serve` + cabecera
+`X-Forwarded-Proto: https` → `curl -k -I https://127.0.0.1:8443/login` devolvió
+**200** con `Strict-Transport-Security: max-age=31536000; includeSubDomains`,
+`laravel_session=…; secure; httponly; samesite=lax` y **sin** `X-Powered-By`.
+Cobertura automatizada: `SecurityHeadersTest::test_hsts_when_trusted_proxy_forwards_https`
+y `::test_secure_cookie_and_hsts_when_tls_is_configured`.
 
 ## 5. Rotación de `APP_KEY`
 

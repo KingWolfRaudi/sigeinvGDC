@@ -10,9 +10,13 @@ class TrustProxies extends Middleware
     /**
      * The trusted proxies for this application.
      *
+     * Solo loopback: es donde termina TLS (nginx/proxy local) antes de llegar
+     * a PHP-FPM. Sin esto, `X-Forwarded-Proto: https` se ignora y la app
+     * cree que va por HTTP (no emitiría HSTS ni generaría URLs https) — R1.
+     *
      * @var array<int, string>|string|null
      */
-    protected $proxies;
+    protected $proxies = ['127.0.0.1', '::1'];
 
     /**
      * The headers that should be used to detect proxies.

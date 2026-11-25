@@ -36,7 +36,7 @@
 
 | ID | Riesgo | Impacto | Mitigación actual | Revisión |
 |---|---|---|---|---|
-| R1 | Producción sin TLS (HTTP en puerto 80) | Credenciales y sesión viajan en claro en la red interna; `SESSION_SECURE_COOKIE=false` y no se emite HSTS | Red interna segmentada; cookie `HttpOnly` + `SameSite=Lax`; CSP con `unsafe-*` limitada a Livewire (ver R2). Al habilitar TLS: `SESSION_SECURE_COOKIE=true` y HSTS se activa solo | 2027-02-24 |
+| R1 | Producción sin TLS (HTTP en puerto 80) | Credenciales y sesión viajan en claro en la red interna; `SESSION_SECURE_COOKIE=false` y no se emite HSTS | Red interna segmentada; cookie `HttpOnly` + `SameSite=Lax`; CSP con `unsafe-*` limitada a Livewire (ver R2). **Ruta de activación verificada en local (2026-11-25)**: `TrustProxies` con allowlist loopback + `SESSION_SECURE_COOKIE=true` → HSTS y cookie `Secure` de punta a punta (runbook §4, tests en `SecurityHeadersTest`). Al habilitar TLS en producción: certificado nginx + `X-Forwarded-Proto` + esos dos settings | 2027-02-24 |
 | R2 | CSP con `script-src 'unsafe-inline' 'unsafe-eval'` | Reduce la defensa en profundidad frente a XSS | Salidas Blade escapadas; `{!! !!}` auditados y endurecidos (`e()`, `JSON_HEX_*`); SRI en los CDN. Plan: CSP con nonce cuando Livewire 3 lo permita | 2027-02-24 |
 | R3 | MFA ausente | Robo de credenciales → acceso administrativo | Ver W2 | 2027-02-13 |
 | R4 | SAST/DAST parciales | Hallazgos no detectados automáticamente | `php -l` (167 ficheros), grep dirigido (SQL crudo, eval/exec, deserialización, `verify=false`), **SAST one-off PHPStan 2.3.7 nivel 1 → 0 hallazgos** (app/routes/scripts; mágicas Eloquent/Livewire excluidas), ZAP baseline local (0 FAIL / 6 WARN revisados). Larastan excluido del CI por decisión del usuario; DAST autenticado contra staging no ejecutado (no hay staging y producción no se toca) | 2027-02-24 |
@@ -69,7 +69,7 @@
 
 - SBOM: `docs/sbom/composer-sbom.json` (CycloneDX 1.5, 148 componentes, generado 2026-11-24, sincronizado 1:1 con `composer.lock`).
 - DAST local: `docs/seguridad/zap-baseline.html`, `.json`, `.md` (ZAP 2.17.0, 2026-11-24, **0 FAIL / 6 WARN**).
-- Tests: `docs/seguridad/phpunit.xml` (31 tests, 108 assertions).
+- Tests: `docs/seguridad/phpunit.xml` (32 tests, 110 assertions).
 - Runbook: `docs/runbook-seguridad-rollback.md` (despliegue, rotación de `APP_KEY`, TLS, rollback, incidentes).
 - Verificación SBOM en CI: `scripts/verify-sbom.php`.
 - Informe del gate F6: `docs/seguridad/informe-gate-F6.md`.
