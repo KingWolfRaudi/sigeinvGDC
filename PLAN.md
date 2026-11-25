@@ -16,7 +16,7 @@
 | CA-1 | Framework en Laravel 13 | `php artisan about` muestra `13.x` · `composer show laravel/framework` ≥ 13.42 |
 | CA-2 | PHP mínimo 8.3 fijado | `composer.json` → `"php": "^8.3"` |
 | CA-3 | Tests en verde | `vendor/bin/phpunit` → 0 fallos |
-| CA-4 | CI operativo | `.github/workflows/ci.yml` presente con pint + phpunit + composer audit + gitleaks |
+| CA-4 | CI operativo | `.github/workflows/ci.yml` presente con pint + phpunit + composer audit + gitleaks · **ejecutado en verde el 2026-11-25** (GitHub Actions run 45630091929, commit `39a4152`) |
 | CA-5 | Test rojo de control | Un test deliberadamente fallido hace fallar el pipeline (demostrado, luego revertido) |
 | CA-6 | Rate limit en login | `RateLimiter::for('login')` existe + test que verifica 429 tras intentos fallidos |
 | CA-7 | bcrypt ≥ 12 | `config/hashing.php` → `rounds` por defecto ≥ 12 |

@@ -73,4 +73,4 @@
 - Runbook: `docs/runbook-seguridad-rollback.md` (despliegue, rotación de `APP_KEY`, TLS, rollback, incidentes).
 - Verificación SBOM en CI: `scripts/verify-sbom.php`.
 - Informe del gate F6: `docs/seguridad/informe-gate-F6.md`.
-- CI: `.github/workflows/ci.yml` (pint + phpunit + composer audit + gitleaks; Actions por commit SHA).
+- CI: `.github/workflows/ci.yml` (pint + phpunit + composer audit + gitleaks; Actions por commit SHA) — **en verde el 2026-11-25** (run `45630091929`, commit `39a4152`).

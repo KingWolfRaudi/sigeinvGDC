@@ -45,6 +45,7 @@ pint --test                          → passed
 phpunit --log-junit                  → OK (32 tests, 110 assertions) · docs/seguridad/phpunit.xml
 composer audit --locked              → No security vulnerability advisories found (exit 0)
 gitleaks 8.30.1 (git, modo CI)       → 45 commits scanned · no leaks found (exit 0) · gate ejecutado antes del commit de F6; el CI re-escanea el historial completo en cada push
+GitHub Actions (run 45630091929, 39a4152, 2026-11-25) → SUCCESS: checkout · PHP 8.3.37 · composer install · SBOM sincronizado · APP_KEY · gitleaks · composer audit · pint · phpunit
 php -l (167 ficheros, app/routes/config/database/tests/public/scripts) → 0 errores
 ZAP baseline (local :8000)           → FAIL-NEW: 0 · WARN-NEW: 6 (artefactos archivados)
 SBOM CycloneDX 1.5 (reproducible)    → 148 componentes · 1:1 con composer.lock · scripts/verify-sbom.php exit 0
@@ -189,6 +190,12 @@ esta tanda (el recuento del gate §1 corresponde a la evaluación del
 Estado de la suite tras las ampliaciones: **32 tests / 110 assertions**,
 `pint --test` passed, `composer audit` 0, gitleaks 0 hallazgos,
 `scripts/verify-sbom.php` 0, PHPStan 0 hallazgos.
+
+**CI real en verde (2026-11-25):** run `45630091929` sobre `39a4152` →
+`success` en todos los pasos (PHP 8.3.37, SBOM sincronizado, gitleaks,
+composer audit, pint, phpunit). Corrección que lo hizo posible: `withoutVite()`
+en `tests/TestCase.php` (en CI no existe `public/build`, gitignored, y las
+vistas con `@vite` devolvían 500 — `ViteManifestNotFoundException`).
 
 **Pendiente para el cierre de F6:** (1) TLS real en producción (R1),
 (2) DAST autenticado en staging con navegador (R4), (3) confirmación
